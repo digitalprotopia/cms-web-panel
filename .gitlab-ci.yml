@@ -1,0 +1,108 @@
+stages:
+  - lint
+  # - build
+  - image
+  - deploy
+  - release
+
+variables:
+  NPM_TOKEN: ${CI_JOB_TOKEN}
+
+eslint:
+  image: node:18
+  except:
+    - deploy
+    - main
+    - 38-public-docker
+  stage: lint
+  script:
+    - cp config/config.sample.js config/config.js
+    - npm i
+    - npx eslint .
+    - npm run build
+
+# cache:
+#   key:
+#     files:
+#       - package.json
+#   paths:
+#     - node_modules
+#     - package-lock.json
+#     - config/config.js
+#     - .next
+
+# build-job:       # This job runs in the build stage, which runs first.
+#   image: node:14
+#   only: 
+#     - deploy
+#     - main
+#     - 38-public-docker
+#   stage: build
+#   script:
+#     - \[ ! -e node_modules \] && npm install
+#     - cp config/config.docker.sample.js config/config.js
+#     - npm run build
+    # - $CHANGED && CI="" npm run build
+    # - \[ ! -e build \] && CI="" npm run build
+  # variables:
+  #   CHANGED: 0
+  # rules:
+  #   - changes:
+  #       - /*
+  #   - changes:
+  #       - src/*
+  #       - public/*
+  #     variables:
+  #       CHANGED: 1
+
+dockerimage:
+  # dependencies: 
+  #   - build-job
+  image: docker
+  only: 
+    - deploy
+    - main
+    - 38-public-docker
+  stage: image
+  services:
+    - name: docker:24.0.6-dind
+      alias: thedockerhost
+  variables:
+    # Tell docker CLI how to talk to Docker daemon; see
+    # https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-in-docker-executor
+    DOCKER_HOST: tcp://thedockerhost:2375/
+    # Use the overlayfs driver for improved performance:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  script:
+    - ls
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull || true
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+
+deployimage: 
+  stage: deploy
+  image: curlimages/curl
+  script: curl --fail --request POST --form token=$CI_JOB_TOKEN --form ref=main "$CI_API_V4_URL/projects/$DEPLOY_PROJECT/trigger/pipeline"
+  rules:
+    - if: $DEPLOY_PROJECT
+    - if: $CI_COMMIT_BRANCH == "deploy"
+
+publish:
+  stage: release
+  image: node:latest
+  cache: []
+  script:
+    - npm i
+    - |
+      {
+        echo "@${CI_PROJECT_ROOT_NAMESPACE}:registry=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
+        echo "${CI_API_V4_URL#https?}/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=\${CI_JOB_TOKEN}"
+      } | tee -a .npmrc
+    - npm run semantic-release
+  rules:
+    - if: $CI_COMMIT_BRANCH == "deploy"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
