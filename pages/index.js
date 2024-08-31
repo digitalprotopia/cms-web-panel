@@ -87,14 +87,14 @@ function Home(props) {
       const tableData = (await client.query({
         query: gql`
           query {
-            getAll${table.name} {
+            getAll${table.dbName} {
               id createdAt
               ${table.fields.map((field) => field.dbName).join(' ')}
             }
           }
         `,
       })).data[`getAll${table.dbName}`];
-      _tablesData[table.name] = tableData;
+      _tablesData[table.dbName] = tableData;
     }
     setTablesData(_tablesData);
   };
@@ -132,7 +132,7 @@ function Home(props) {
               ))}
             </tr>
             {
-              tablesData[table.name]?.map((row, i) => (
+              tablesData[table.dbName]?.map((row, i) => (
                 <tr key={i}>
                   {table.fields.map((field) => (
                     <td key={field.id}>{row[field.dbName]?.toString()}</td>
