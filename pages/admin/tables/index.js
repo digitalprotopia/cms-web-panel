@@ -4,6 +4,7 @@ import {
   Button,
   Checkbox, FormControl, FormControlLabel, IconButton, TextField,
 } from '@mui/material';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function AddRow(props) {
@@ -77,44 +78,15 @@ function AddRow(props) {
 }
 
 function Home(props) {
-  const [tablesData, setTablesData] = useState({});
-  const client = useApolloClient();
-
-  const refetchData = async (tables) => {
-    const _tablesData = {};
-    for (const i in tables.getTables) {
-      const table = tables.getTables[i];
-      const tableData = (await client.query({
-        query: gql`
-          query {
-            getAll${table.dbName} {
-              id createdAt
-              ${table.fields.map((field) => field.dbName).join(' ')}
-            }
-          }
-        `,
-      })).data[`getAll${table.dbName}`];
-      _tablesData[table.dbName] = tableData;
-    }
-    setTablesData(_tablesData);
-  };
-
+  const router = useRouter();
   const { loading, data, refetch } = useQuery(gql`query {
     getTables {
       id
       name
       dbName
       createdAt
-      fields {
-        id
-        name
-        type
-        dbName
-      }
     }
-  }`, {
-    onCompleted: refetchData,
-  });
+  }`);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -125,41 +97,9 @@ function Home(props) {
       {data.getTables.map((table) => (
         <div key={table.id}>
           <h2 className="text-2xl">{table.name}</h2>
-          <table>
-            <tr>
-              {table.fields.map((field) => (
-                <th key={field.id}>{field.name}</th>
-              ))}
-            </tr>
-            {
-              tablesData[table.dbName]?.map((row, i) => (
-                <tr key={i}>
-                  {table.fields.map((field) => (
-                    <td key={field.id}>{row[field.dbName]?.toString()}</td>
-                  ))}
-                  <td>
-                    <IconButton onClick={async () => {
-                      await client.mutate({
-                        mutation: gql`
-                mutation {
-                  delete${table.dbName}(id: "${row.id}")
-                }
-              `,
-                      });
-                      refetchData(data);
-                    }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </td>
-                </tr>
-              ))
-            }
-          </table>
-          <AddRow table={table} refetchData={() => refetchData(data)} />
+          <Button onClick={() => router.push(`/admin/tables/${table.dbName}`)}>View</Button>
         </div>
       ))}
-      <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
 }
