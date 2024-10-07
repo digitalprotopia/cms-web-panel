@@ -94,10 +94,15 @@ function Home(props) {
 
   return (
     <div className="bg-white">
+      <div>
+        <Button onClick={() => router.push('/admin/tables/add')}>Add</Button>
+      </div>
       {data.getTables.map((table) => (
         <div key={table.id}>
           <h2 className="text-2xl">{table.name}</h2>
           <Button onClick={() => router.push(`/admin/tables/${table.dbName}`)}>View</Button>
+          <Button onClick={() => router.push(`/admin/tables/${table.dbName}/edit`)}>Edit</Button>
+          <Button onClick={() => router.push(`/admin/tables/${table.dbName}/templates`)}>Templates</Button>
         </div>
       ))}
     </div>

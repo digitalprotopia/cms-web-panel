@@ -1,7 +1,11 @@
 import { gql, useApolloClient, useQuery } from '@apollo/client';
 import { useState } from 'react';
 
-const useTableData = (tableName: string) => {
+const useTableData = (
+  tableName: string,
+  onCompletedMeta?: (meta: any) => void,
+  onCompletedData?: (data: any) => void,
+) => {
   const [tableData, setTableData] = useState<any>(null);
   const [tableMeta, setTableMeta] = useState<any>(null);
 
@@ -19,6 +23,9 @@ const useTableData = (tableName: string) => {
         `,
     })).data[`getAll${tableName}`];
     setTableData(newTableData);
+    if (onCompletedData) {
+      onCompletedData(newTableData);
+    }
   };
 
   const { loading, data, refetch } = useQuery(gql`
@@ -42,6 +49,9 @@ const useTableData = (tableName: string) => {
     onCompleted: (newTableMeta) => {
       setTableMeta(newTableMeta.getTableByDbName);
       refetchData(newTableMeta.getTableByDbName);
+      if (onCompletedMeta) {
+        onCompletedMeta(newTableMeta.getTableByDbName);
+      }
     },
   });
   return { data: tableData, meta: tableMeta, refetch: () => refetchData(tableMeta) };

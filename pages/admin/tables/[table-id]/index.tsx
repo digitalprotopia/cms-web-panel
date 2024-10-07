@@ -74,7 +74,7 @@ function AddRow(props) {
 
 function TablePage(props) {
   const router = useRouter();
-  const tableId = router.query['table-id'];
+  const tableId = router.query['table-id'] as string;
   const client = useApolloClient();
   const { data, meta, refetch } = useTableData(tableId);
   if (!data) {

@@ -91,6 +91,13 @@ mutation {
 }
 `;
 
+declare global {
+  interface Window {
+    enqueueSnackbar: ReturnType<typeof useSnackbar>['enqueueSnackbar'];
+    router: ReturnType<typeof useRouter>;
+  }
+}
+
 function S3App({ Component, pageProps }) {
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
