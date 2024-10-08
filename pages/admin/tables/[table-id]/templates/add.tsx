@@ -2,11 +2,21 @@ import React, {
   useState,
 } from 'react';
 import { useRouter } from 'next/router';
-import { TextField } from '@mui/material';
+import { Button, TextField } from '@mui/material';
+import { gql, useMutation } from '@apollo/client';
 import DynamicParse from '../../../../../components/DynamicParse.tsx';
 import useTableData from '../../../../../components/useTableData.ts';
 
 function AddTemplate() {
+  const [createTemplate] = useMutation(gql`
+    mutation($input: TemplateInput!) {
+        createTemplate(input: $input) {
+            id
+            title
+        }
+    }
+`);
+
   const router = useRouter();
   const tableDbName = router.query['table-id'] as string;
   const [html, setHtml] = useState('<b>{text}</b>');
@@ -34,6 +44,22 @@ function AddTemplate() {
         {data.map((row, index) => (
           <DynamicParse html={html} replace={row} key={index} />
         ))}
+      </div>
+      <div>
+        <Button onClick={async () => {
+          await createTemplate({
+            variables: {
+              input: {
+                tableId: meta.id,
+                title,
+                html,
+              },
+            },
+          });
+        }}
+        >
+          Add
+        </Button>
       </div>
     </div>
   );
