@@ -14,6 +14,7 @@ module.exports = {
   reactStrictMode: true,
   transpilePackages: ['mui-color-input', '@mdxeditor/editor', 'mui-tel-input'],
   publicRuntimeConfig: {
-    server: process.env.S3APP_LICENSE_REPOSITORY_SERVER,
+    server: process.env.CMS_SERVER,
+    noConfirmaion: process.env.CMS_NO_CONFIRMATION,
   },
 };

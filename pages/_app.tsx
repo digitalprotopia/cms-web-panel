@@ -71,16 +71,6 @@ query {
     id
     name
     role
-    licenses {
-        activated
-    }
-    cart {
-      id
-    }
-    orders {
-      id
-      isPaid
-    }
   }
 }
 `;
@@ -181,23 +171,6 @@ function S3App({ Component, pageProps }) {
         <div className="flex items-center">
           {data?.me ? (
             <div className="flex gap-4">
-              <div className="flex items-center gap-3 font-light text-base text-black/60">
-                <Link href="/cart" className={clsx({ 'font-bold': router.pathname.includes('/cart') })} passHref>
-                  Корзина (
-                  {data?.me.cart.length}
-                  )
-                </Link>
-                <Link href="/orders" className={clsx({ 'font-bold': router.pathname.includes('/orders') })} passHref>
-                  Заказы (
-                  {data?.me.orders.filter((order) => !order.isPaid).length}
-                  )
-                </Link>
-                <Link href="/licenses" className={clsx({ 'font-bold': router.pathname.includes('/licenses') })} passHref>
-                  Ключи (
-                  {data?.me.licenses.length}
-                  )
-                </Link>
-              </div>
               <Button
                 variant="contained"
                 color="inherit"

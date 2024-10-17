@@ -5,7 +5,7 @@ import {
 import { gql, useApolloClient } from '@apollo/client';
 import { Delete } from '@mui/icons-material';
 import { useState } from 'react';
-import useTableData from '../../../../components/useTableData.ts';
+import useTableData from '../../../../components/useTableData';
 
 function AddRow(props) {
   const [form, setForm] = useState({});
@@ -106,7 +106,7 @@ function TablePage(props) {
                 }
               `,
                       });
-                      refetch(data);
+                      refetch();
                     }}
                     >
                       <Delete />

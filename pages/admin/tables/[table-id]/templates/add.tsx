@@ -4,8 +4,8 @@ import React, {
 import { useRouter } from 'next/router';
 import { Button, TextField } from '@mui/material';
 import { gql, useMutation } from '@apollo/client';
-import DynamicParse from '../../../../../components/DynamicParse.tsx';
-import useTableData from '../../../../../components/useTableData.ts';
+import DynamicParse from '../../../../../components/DynamicParse';
+import useTableData from '../../../../../components/useTableData';
 
 function AddTemplate() {
   const [createTemplate] = useMutation(gql`
@@ -21,8 +21,8 @@ function AddTemplate() {
   const tableDbName = router.query['table-id'] as string;
   const [html, setHtml] = useState('<b>{text}</b>');
   const [title, setTitle] = useState('');
-  const { data, meta } = useTableData(tableDbName, (meta) => {
-    setHtml(meta.fields.map((field) => `{${field.dbName}}`).join(' '));
+  const { data, meta } = useTableData(tableDbName, (_meta) => {
+    setHtml(_meta.fields.map((field) => `{${field.dbName}}`).join(' '));
   });
 
   if (!data) {

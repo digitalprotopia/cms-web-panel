@@ -35,3 +35,4 @@ yarn-error.log*
 /config/config.js
 /package-lock.json
 /.vscode/settings.json
+/config/config.ts

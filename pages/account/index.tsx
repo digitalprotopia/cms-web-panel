@@ -59,26 +59,7 @@ export default function Account(props) {
       <div
         className="flex items-center bg-white rounded p-6 shadow-lg mb-5 text-base text-black/60 font-medium"
       >
-        <span>
-          Всего ключей:
-          {' '}
-          {props.user.licenses.length}
-        </span>
-        <Divider className="mx-2 border" flexItem orientation="vertical" />
-        <span>
-          Активированных ключей:
-          {' '}
-          {props.user.licenses.filter((license) => license.activated).length}
-        </span>
-        <Divider className="mx-2 border" flexItem orientation="vertical" />
-
-        <span>
-          Неактивированных ключей:
-          {' '}
-          {props.user.licenses.filter((license) => !license.activated).length}
-        </span>
-
-        {config.license && (
+        {/* {config.license && (
         <>
           <Divider className="mx-2 border" flexItem orientation="vertical" />
           <span>
@@ -87,7 +68,7 @@ export default function Account(props) {
             {moment(props.user.licenseExpires).format('hh:mm:ss DD.MM.YYYY')}
           </span>
         </>
-        )}
+        )} */}
       </div>
       <div className="flex justify-between gap-6">
         <div className="flex flex-col bg-white rounded p-5 shadow-lg w-1/4 grow">

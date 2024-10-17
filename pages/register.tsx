@@ -37,10 +37,10 @@ export default function Register(props) {
     router.push(`/domains/${props.user.domains[0].id}`);
   }
 
-  if (props?.user?.domains.length === 0) {
-    if (config.demo) router.push('/');
-    else router.push('/welcomePage');
-  }
+  // if (props?.user?.domains.length === 0) {
+  //   if (config.demo) router.push('/');
+  //   else router.push('/welcomePage');
+  // }
 
   return (
     <div
@@ -100,7 +100,7 @@ export default function Register(props) {
             onChange={(e) => setRegisterForm({ ...registerForm, repeatPassword: e.target.value })}
           />
 
-          {config.license
+          {/* {config.license
                 && (
                 <TextField
                   margin="normal"
@@ -109,7 +109,7 @@ export default function Register(props) {
                   value={registerForm.license}
                   onChange={(e) => setRegisterForm({ ...registerForm, license: e.target.value })}
                 />
-                )}
+                )} */}
 
           <FormControlLabel
             control={(
@@ -137,7 +137,7 @@ export default function Register(props) {
                     || !registerForm.password
                     || registerForm.password !== registerForm.repeatPassword
                     || !registerForm.acceptedPrivacy
-                    || (config.license && !registerForm.license)
+                    // || (config.license && !registerForm.license)
                 }
             onClick={async () => {
               try {
@@ -153,9 +153,12 @@ export default function Register(props) {
                     },
                   },
                   onCompleted: () => {
-                    enqueueSnackbar('Регистрация прошла успешно. Пожалуйста, подтвердите свою почту.', {
-                      variant: 'success',
-                    });
+                    enqueueSnackbar(
+                      config.noConfirmation ? 'Регистрация прошла успешно' : 'Регистрация прошла успешно. Пожалуйста, подтвердите свою почту.',
+                      {
+                        variant: 'success',
+                      },
+                    );
                   },
                 });
               } catch (e) {
