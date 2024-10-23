@@ -256,8 +256,3 @@ export default function S3AppContainer(props) {
   // </StyledEngineProvider>
   );
 }
-
-S3AppContainer.getInitialProps = async (appContext) => {
-  const appProps = await App.getInitialProps(appContext);
-  return { ...appProps };
-};
