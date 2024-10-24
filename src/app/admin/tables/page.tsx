@@ -1,11 +1,17 @@
-import { gql, useApolloClient, useQuery } from '@apollo/client';
-import { Delete } from '@mui/icons-material';
+"use client";
+
+import { gql, useApolloClient, useQuery } from "@apollo/client";
+import { Delete } from "@mui/icons-material";
 import {
   Button,
-  Checkbox, FormControl, FormControlLabel, IconButton, TextField,
-} from '@mui/material';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  TextField,
+} from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 function AddRow(props) {
   const [form, setForm] = useState({});
@@ -13,39 +19,45 @@ function AddRow(props) {
   return (
     <>
       {props.table.fields.map((field) => {
-        if (field.type === 'string') {
+        if (field.type === "string") {
           return (
             <div key={field.id}>
               <TextField
                 label={field.name}
-                value={form[field.dbName] || ''}
-                onChange={(e) => setForm({ ...form, [field.dbName]: e.target.value })}
+                value={form[field.dbName] || ""}
+                onChange={(e) =>
+                  setForm({ ...form, [field.dbName]: e.target.value })
+                }
               />
             </div>
           );
         }
-        if (field.type === 'boolean') {
+        if (field.type === "boolean") {
           return (
             <div key={field.id}>
               <FormControlLabel
-                control={(
+                control={
                   <Checkbox
                     checked={form[field.dbName] || false}
-                    onChange={(e) => setForm({ ...form, [field.dbName]: e.target.checked })}
+                    onChange={(e) =>
+                      setForm({ ...form, [field.dbName]: e.target.checked })
+                    }
                   />
-)}
+                }
                 label={field.name}
               />
             </div>
           );
         }
-        if (field.type === 'date') {
+        if (field.type === "date") {
           return (
             <div key={field.id}>
               <TextField
                 label={field.name}
-                value={form[field.dbName] || ''}
-                onChange={(e) => setForm({ ...form, [field.dbName]: e.target.value })}
+                value={form[field.dbName] || ""}
+                onChange={(e) =>
+                  setForm({ ...form, [field.dbName]: e.target.value })
+                }
                 type="date"
               />
             </div>
@@ -79,14 +91,16 @@ function AddRow(props) {
 
 function Home(props) {
   const router = useRouter();
-  const { loading, data, refetch } = useQuery(gql`query {
-    getTables {
-      id
-      name
-      dbName
-      createdAt
+  const { loading, data, refetch } = useQuery(gql`
+    query {
+      getTables {
+        id
+        name
+        dbName
+        createdAt
+      }
     }
-  }`);
+  `);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -95,14 +109,26 @@ function Home(props) {
   return (
     <div className="bg-white">
       <div>
-        <Button onClick={() => router.push('/admin/tables/add')}>Add</Button>
+        <Button onClick={() => router.push("/admin/tables/add")}>Add</Button>
       </div>
       {data.getTables.map((table) => (
         <div key={table.id}>
           <h2 className="text-2xl">{table.name}</h2>
-          <Button onClick={() => router.push(`/admin/tables/${table.dbName}`)}>View</Button>
-          <Button onClick={() => router.push(`/admin/tables/${table.dbName}/edit`)}>Edit</Button>
-          <Button onClick={() => router.push(`/admin/tables/${table.dbName}/templates`)}>Templates</Button>
+          <Button onClick={() => router.push(`/admin/tables/${table.dbName}`)}>
+            View
+          </Button>
+          <Button
+            onClick={() => router.push(`/admin/tables/${table.dbName}/edit`)}
+          >
+            Edit
+          </Button>
+          <Button
+            onClick={() =>
+              router.push(`/admin/tables/${table.dbName}/templates`)
+            }
+          >
+            Templates
+          </Button>
         </div>
       ))}
     </div>

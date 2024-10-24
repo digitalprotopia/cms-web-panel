@@ -35,8 +35,8 @@ export default function Page(props) {
   }
 
   return (
-    <div className="size-full flex items-center justify-center">
-      <div className="flex flex-col justify-between items-center bg-white rounded p-5 shadow-lg w-1/4">
+    <div className="size-full flex items-center justify-center p-4">
+      <div className="flex flex-col justify-between items-center bg-white rounded p-5 shadow-lg w-full max-w-md mx-auto">
         <span className="text-2xl font-medium">Вход</span>
         <div className="flex flex-col mt-2 w-full">
           <TextField

@@ -1,23 +1,22 @@
-import App from 'next/app';
+import App from "next/app";
+import { ApolloProvider, gql, useMutation, useQuery } from "@apollo/client";
+import { createTheme, Menu, MenuItem, ThemeProvider } from "@mui/material";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { SnackbarProvider, useSnackbar } from "notistack";
 import {
-  ApolloProvider, gql, useMutation, useQuery,
-} from '@apollo/client';
-import {
-  createTheme, Menu, MenuItem, ThemeProvider,
-} from '@mui/material';
-import Head from 'next/head';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { SnackbarProvider, useSnackbar } from 'notistack';
-import { AccountCircleOutlined, KeyboardArrowDownRounded } from '@mui/icons-material';
-import Image from 'next/image';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import clsx from 'clsx';
-import client from '../components/apollo-client';
-import { theme as tailwind } from '../tailwind.config';
-import '../globals.css';
+  AccountCircleOutlined,
+  KeyboardArrowDownRounded,
+} from "@mui/icons-material";
+import Image from "next/image";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import clsx from "clsx";
+import client from "../components/apollo-client";
+import { theme as tailwind } from "../tailwind.config";
+import "../globals.css";
 
 function DropdownIcon(props) {
   return (
@@ -26,9 +25,9 @@ function DropdownIcon(props) {
       component="span"
       sx={{
         px: 0.5,
-        stroke: '#859CBE',
-        display: 'flex',
-        alignItems: 'center',
+        stroke: "#859CBE",
+        display: "flex",
+        alignItems: "center",
       }}
     />
   );
@@ -37,15 +36,15 @@ const theme = createTheme({
   palette: {
     primary: {
       main: tailwind.extend.colors.primary,
-      contrastText: '#ffffff',
+      contrastText: "#ffffff",
     },
     secondary: {
       main: tailwind.extend.colors.secondary,
-      contrastText: '#4B5A73',
+      contrastText: "#4B5A73",
     },
     tertiary: {
       main: tailwind.extend.colors.tertiary,
-      contrastText: '#4B5A73',
+      contrastText: "#4B5A73",
     },
   },
   variables: {
@@ -66,24 +65,24 @@ const theme = createTheme({
 });
 
 const GET_ME = gql`
-query {
-  me {
-    id
-    name
-    role
+  query {
+    me {
+      id
+      name
+      role
+    }
   }
-}
 `;
 
 const LOG_OUT = gql`
-mutation {
-  logOut
-}
+  mutation {
+    logOut
+  }
 `;
 
 declare global {
   interface Window {
-    enqueueSnackbar: ReturnType<typeof useSnackbar>['enqueueSnackbar'];
+    enqueueSnackbar: ReturnType<typeof useSnackbar>["enqueueSnackbar"];
     router: ReturnType<typeof useRouter>;
   }
 }
@@ -111,41 +110,47 @@ function S3App({ Component, pageProps }) {
   };
 
   const getMe = useQuery(GET_ME);
-  let {
-    data,
-  } = getMe;
-  const {
-    refetch,
-    error,
-    loading,
-  } = getMe;
+  let { data } = getMe;
+  const { refetch, error, loading } = getMe;
   if (!loading && (error || !data?.me)) {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     data = null;
   }
 
-  const allowedPathsGuest = ['/', '/login', '/register', '/restore-password/request', '/restore-password/confirm', '/confirm-email'];
-  const disallowedPathsUser = ['/login', '/register', '/restore-password/request', '/restore-password/confirm'];
+  const allowedPathsGuest = [
+    "/",
+    "/login",
+    "/register",
+    "/restore-password/request",
+    "/restore-password/confirm",
+    "/confirm-email",
+  ];
+  const disallowedPathsUser = [
+    "/login",
+    "/register",
+    "/restore-password/request",
+    "/restore-password/confirm",
+  ];
 
   if (loading) {
     return null;
   }
 
   if (
-    !loading
-      && !data?.me
-      && !allowedPathsGuest.some((path) => router.pathname.includes(path))
+    !loading &&
+    !data?.me &&
+    !allowedPathsGuest.some((path) => router.pathname.includes(path))
   ) {
-    router.push('/login');
+    router.push("/login");
     return null;
   }
 
   if (
-    !loading
-      && data
-      && disallowedPathsUser.some((path) => router.pathname.includes(path))
+    !loading &&
+    data &&
+    disallowedPathsUser.some((path) => router.pathname.includes(path))
   ) {
-    router.push('/');
+    router.push("/");
     return null;
   }
 
@@ -164,7 +169,9 @@ function S3App({ Component, pageProps }) {
         <Link href="/" passHref>
           <div className="flex items-center cursor-pointer">
             <Image src="/Logo.svg" alt="" width={208} height={55} />
-            <span className="text-black/60 font-medium text-xl ml-2">| MARKETPLACE</span>
+            <span className="text-black/60 font-medium text-xl ml-2">
+              | MARKETPLACE
+            </span>
           </div>
         </Link>
 
@@ -174,9 +181,9 @@ function S3App({ Component, pageProps }) {
               <Button
                 variant="contained"
                 color="inherit"
-                aria-controls={userPopoverOpen ? 'basic-menu' : undefined}
+                aria-controls={userPopoverOpen ? "basic-menu" : undefined}
                 aria-haspopup="true"
-                aria-expanded={userPopoverOpen ? 'true' : undefined}
+                aria-expanded={userPopoverOpen ? "true" : undefined}
                 onClick={handleUserPopoverClick}
               >
                 <AccountCircleOutlined />
@@ -189,50 +196,55 @@ function S3App({ Component, pageProps }) {
                 open={userPopoverOpen}
                 onClose={handleUserPopoverClose}
                 MenuListProps={{
-                  'aria-labelledby': 'basic-button',
+                  "aria-labelledby": "basic-button",
                 }}
               >
-                <MenuItem onClick={async () => {
-                  await router.push('/account');
-                }}
+                <MenuItem
+                  onClick={async () => {
+                    await router.push("/account");
+                  }}
                 >
                   Мой аккаунт
                 </MenuItem>
-                <MenuItem onClick={async () => {
-                  await logOut();
-                  handleUserPopoverClose();
-                  localStorage.removeItem('token');
-                  try {
-                    await refetch();
-                  } catch (e) {
-                    console.log(e);
-                  }
-                  await router.push('/login');
-                }}
+                <MenuItem
+                  onClick={async () => {
+                    await logOut();
+                    handleUserPopoverClose();
+                    localStorage.removeItem("token");
+                    try {
+                      await refetch();
+                    } catch (e) {
+                      console.log(e);
+                    }
+                    await router.push("/login");
+                  }}
                 >
                   Выйти
                 </MenuItem>
               </Menu>
             </div>
           ) : (
-            <Button className="normal-case bg-primary/20 text-primary text-xl" href="/login" size="large" variant="contained">
+            <Button
+              className="normal-case bg-primary/20 text-primary text-xl"
+              href="/login"
+              size="large"
+              variant="contained"
+            >
               Войти
             </Button>
           )}
         </div>
       </header>
       <main className="p-7 grow overflow-auto">
-        <Component
-          {...pageProps}
-          user={data?.me}
-          refetchUser={refetch}
-        />
+        <Component {...pageProps} user={data?.me} refetchUser={refetch} />
       </main>
       {/* TODO: Вставить ссылки на различные документы */}
       <footer className="flex justify-between items-center p-5 bg-[#e1e1e1] h-20 font-light text-base text-black/60">
         <div className="flex gap-4">
           <Link href="https://digitalprotopia.ru">О компании</Link>
-          <Link href="https://s3app.ru/privacy">Политика конфиденциальности</Link>
+          <Link href="https://s3app.ru/privacy">
+            Политика конфиденциальности
+          </Link>
           <Link href="https://s3app.ru/oferta">Договор публичной оферты</Link>
         </div>
         <div>
@@ -245,7 +257,7 @@ function S3App({ Component, pageProps }) {
 
 export default function S3AppContainer(props) {
   return (
-  // <StyledEngineProvider injectFirst>
+    // <StyledEngineProvider injectFirst>
     <ApolloProvider client={client}>
       <ThemeProvider theme={theme}>
         <SnackbarProvider maxSnack={3}>
@@ -253,6 +265,6 @@ export default function S3AppContainer(props) {
         </SnackbarProvider>
       </ThemeProvider>
     </ApolloProvider>
-  // </StyledEngineProvider>
+    // </StyledEngineProvider>
   );
 }
