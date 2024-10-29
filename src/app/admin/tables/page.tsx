@@ -11,7 +11,8 @@ import {
   TextField,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { MaterialReactTable } from "material-react-table";
 
 function AddRow(props) {
   const [form, setForm] = useState({});
@@ -89,7 +90,7 @@ function AddRow(props) {
   );
 }
 
-function Home(props) {
+function TablesPage(props) {
   const router = useRouter();
   const { loading, data, refetch } = useQuery(gql`
     query {
@@ -102,37 +103,96 @@ function Home(props) {
     }
   `);
 
+  // Define columns for Material React Table
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "id",
+        header: "ID",
+        size: 400,
+      },
+      {
+        accessorKey: "dbName",
+        header: "DB Name",
+        size: 150,
+      },
+      {
+        accessorKey: "name",
+        header: "Name",
+        size: 150,
+      },
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        size: 300,
+        Cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Button
+              onClick={() =>
+                router.push(`/admin/tables/${row.original.dbName}`)
+              }
+            >
+              View
+            </Button>
+            <Button
+              onClick={() =>
+                router.push(`/admin/tables/${row.original.dbName}/edit`)
+              }
+            >
+              Edit
+            </Button>
+            <Button
+              onClick={() =>
+                router.push(`/admin/tables/${row.original.dbName}/templates`)
+              }
+            >
+              Templates
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [router],
+  );
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="bg-white">
-      <div>
-        <Button onClick={() => router.push("/admin/tables/add")}>Add</Button>
+    <div className="bg-white p-4">
+      <div className="mb-4">
+        <Button
+          variant="contained"
+          onClick={() => router.push("/admin/tables/add")}
+          className="mb-4"
+        >
+          Add New Table
+        </Button>
       </div>
-      {data.getTables.map((table) => (
-        <div key={table.id}>
-          <h2 className="text-2xl">{table.name}</h2>
-          <Button onClick={() => router.push(`/admin/tables/${table.dbName}`)}>
-            View
-          </Button>
-          <Button
-            onClick={() => router.push(`/admin/tables/${table.dbName}/edit`)}
-          >
-            Edit
-          </Button>
-          <Button
-            onClick={() =>
-              router.push(`/admin/tables/${table.dbName}/templates`)
-            }
-          >
-            Templates
-          </Button>
-        </div>
-      ))}
+
+      <MaterialReactTable
+        columns={columns}
+        data={data.getTables}
+        enableColumnResizing
+        enableFullScreenToggle={false}
+        enableDensityToggle
+        enableColumnFilters
+        enablePagination
+        enableSorting
+        muiTableProps={{
+          sx: {
+            tableLayout: "fixed",
+          },
+        }}
+        renderTopToolbarCustomActions={() => (
+          <div className="px-4 py-2">
+            <h1 className="text-xl font-bold">Tables</h1>
+          </div>
+        )}
+      />
     </div>
   );
 }
 
-export default Home;
+export default TablesPage;

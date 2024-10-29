@@ -8,10 +8,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        base: "0.9375rem",
+      },
       colors: {
-        primary: "#f79244",
-        secondary: "#dae5f4",
-        tertiary: "#687B98",
+        cms: {
+          primary: "#CBE0FF",
+          gray: {
+            light: "#EBEBEB",
+            DEFAULT: "#CCCCCC",
+            dark: "#666666",
+          },
+          secondary: "#dae5f4",
+          tertiary: "#687B98",
+        },
       },
     },
   },

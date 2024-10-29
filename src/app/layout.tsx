@@ -10,34 +10,29 @@ import {
 import { ApolloProvider } from "@apollo/client";
 import { SnackbarProvider } from "notistack";
 import tailwind from "@/../tailwind.config";
-import { Inter } from "next/font/google";
+import { Roboto } from "next/font/google";
+import { ReactNode } from "react";
 
-const inter = Inter({
-  variable: "--font-inter",
+const inter = Roboto({
+  weight: ["100", "300", "400", "500", "700", "900"],
+  variable: "--font-roboto",
   subsets: ["cyrillic-ext", "latin"],
 });
 
+console.log(tailwind.theme);
 const theme = createTheme({
   palette: {
     primary: {
-      main: tailwind?.theme?.extend?.colors?.primary,
+      main: tailwind?.theme?.extend?.colors.cms?.primary,
       contrastText: "#ffffff",
     },
     secondary: {
-      main: tailwind?.theme?.extend?.colors?.secondary,
+      main: tailwind?.theme?.extend?.colors.cms?.secondary,
       contrastText: "#4B5A73",
     },
     tertiary: {
-      main: tailwind?.theme?.extend?.colors?.tertiary,
+      main: tailwind?.theme?.extend?.colors.cms?.tertiary,
       contrastText: "#4B5A73",
-    },
-  },
-  variables: {
-    leftPanel: {
-      width: 250,
-    },
-    header: {
-      height: 73,
     },
   },
 });
@@ -45,7 +40,7 @@ const theme = createTheme({
 export default function CMSLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="en">

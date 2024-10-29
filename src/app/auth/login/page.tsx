@@ -5,44 +5,61 @@ import { gql, useMutation } from "@apollo/client";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import config from "@/config/config";
 
 const SIGN_IN = gql`
-  mutation ($password: String!, $email: String, $name: String) {
-    signIn(email: $email, name: $name, password: $password)
+  mutation SignIn($password: String!, $email: String!) {
+    signIn(email: $email, password: $password)
   }
 `;
 
-export default function Page(props) {
-  const router = useRouter();
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
-  const [loginForm, setLoginForm] = useState({
+export default function LoginPage() {
+  const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [loginForm, setLoginForm] = useState<LoginFormData>({
     email: "",
     password: "",
   });
-  const [signIn] = useMutation(SIGN_IN);
-  const { enqueueSnackbar } = useSnackbar();
 
-  if (props?.user?.domains.length > 0) {
-    router.push(`/domains/${props.user.domains[0].id}`);
-  }
+  const [signIn] = useMutation<{ signIn: string }>(SIGN_IN);
 
-  if (props?.user?.domains.length === 0) {
-    if (config.demo) router.push("/");
-    else router.push("/welcomePage");
-  }
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!loginForm.email || !loginForm.password) return;
+
+    try {
+      const { data } = await signIn({
+        variables: { ...loginForm },
+      });
+
+      if (data?.signIn) {
+        enqueueSnackbar("Вы вошли", { variant: "success" });
+        localStorage.setItem("token", data.signIn);
+        router.push("/admin");
+      }
+    } catch (e) {
+      enqueueSnackbar((e as Error).message, { variant: "error" });
+    }
+  };
 
   return (
     <div className="size-full flex items-center justify-center p-4">
       <div className="flex flex-col justify-between items-center bg-white rounded p-5 shadow-lg w-full max-w-md mx-auto">
         <span className="text-2xl font-medium">Вход</span>
-        <div className="flex flex-col mt-2 w-full">
+        <form onSubmit={handleSubmit} className="flex flex-col mt-2 w-full">
           <TextField
             margin="normal"
             label="E-Mail"
             type="email"
+            required
             value={loginForm.email}
             onChange={(e) =>
               setLoginForm({ ...loginForm, email: e.target.value })
@@ -52,6 +69,7 @@ export default function Page(props) {
             margin="normal"
             label="Пароль"
             type="password"
+            required
             value={loginForm.password}
             onChange={(e) =>
               setLoginForm({ ...loginForm, password: e.target.value })
@@ -60,21 +78,8 @@ export default function Page(props) {
           <Button
             variant="contained"
             className="mt-2"
+            type="submit"
             disabled={!loginForm.email || !loginForm.password}
-            onClick={async () => {
-              try {
-                await signIn({
-                  variables: { ...loginForm },
-                  onCompleted: async (data) => {
-                    enqueueSnackbar("Вы вошли", { variant: "success" });
-                    localStorage.setItem("token", data.signIn);
-                    props.refetchUser();
-                  },
-                });
-              } catch (e) {
-                enqueueSnackbar(e.message, { variant: "error" });
-              }
-            }}
           >
             Войти
           </Button>
@@ -89,7 +94,7 @@ export default function Page(props) {
               Зарегистрироваться
             </Link>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ const SIGN_UP = gql`
   }
 `;
 
-export default function Page(props) {
+export default function RegisterPage(props) {
   const router = useRouter();
 
   const [registerForm, setRegisterForm] = useState({
@@ -30,15 +30,6 @@ export default function Page(props) {
   });
   const [signUp] = useMutation(SIGN_UP);
   const { enqueueSnackbar } = useSnackbar();
-
-  if (props?.user?.domains.length > 0) {
-    router.push(`/domains/${props.user.domains[0].id}`);
-  }
-
-  // if (props?.user?.domains.length === 0) {
-  //   if (config.demo) router.push('/');
-  //   else router.push('/welcomePage');
-  // }
 
   return (
     <div className="size-full flex items-center justify-center p-4">
@@ -179,7 +170,7 @@ export default function Page(props) {
           </Button>
           <span className="text-center text-base font-light mt-4 text-black/60">
             Уже есть аккаунт?{" "}
-            <Link href="login" className="no-underline">
+            <Link href="/auth/login" className="no-underline">
               Войти
             </Link>
           </span>
