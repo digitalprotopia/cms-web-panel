@@ -13,7 +13,7 @@ const config: Config = {
       },
       colors: {
         cms: {
-          primary: "#CBE0FF",
+          primary: "#0066FF",
           gray: {
             light: "#EBEBEB",
             DEFAULT: "#CCCCCC",

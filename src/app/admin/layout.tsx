@@ -27,7 +27,8 @@ import {
   SmartToyOutlined,
   SvgIconComponent,
 } from "@mui/icons-material";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import clsx from "clsx";
 
 interface User {
   id: string;
@@ -64,7 +65,17 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
-const menuItems: MenuItem[] = [
+interface SidebarItem {
+  icon: SvgIconComponent;
+  label: string;
+  href: string;
+}
+
+interface MenuItemProps extends SidebarItem {
+  isActive: boolean;
+}
+
+const menuItems: SidebarItem[] = [
   {
     icon: HouseOutlined,
     label: "Главная",
@@ -102,16 +113,60 @@ const menuItems: MenuItem[] = [
   },
 ];
 
+const SidebarItem = ({ href, icon: Icon, label, isActive }: MenuItemProps) => {
+  return (
+    <li
+      className={clsx(
+        "rounded-md p-2",
+        isActive ? "bg-cms-primary" : "bg-cms-gray-light",
+      )}
+    >
+      <Link
+        href={href}
+        className={clsx(
+          "flex items-center",
+          isActive ? "text-white" : "text-cms-gray-dark",
+        )}
+      >
+        <Icon />
+        <span className="ml-2">{label}</span>
+      </Link>
+    </li>
+  );
+};
+
+interface MenuNavigationProps {
+  items: SidebarItem[];
+}
+
+const MenuNavigation = ({ items }: MenuNavigationProps) => {
+  const pathname = usePathname();
+  const currentPath = `/${pathname.split("/").slice(1, 3).join("/")}`;
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {items.map((item) => (
+        <SidebarItem
+          key={item.href}
+          {...item}
+          isActive={currentPath === item.href}
+        />
+      ))}
+    </ul>
+  );
+};
+
 export default function AdminLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
   const router = useRouter();
+  const pathname = usePathname();
   const [userPopoverEl, setUserPopoverEl] = useState<null | HTMLElement>(null);
   const userPopoverOpen = Boolean(userPopoverEl);
 
-  const handleUserPopoverClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleUserPopoverClick = (event: MouseEvent<HTMLElement>) => {
     setUserPopoverEl(event.currentTarget);
   };
   const handleUserPopoverClose = () => {
@@ -129,7 +184,7 @@ export default function AdminLayout({
     localStorage.removeItem("token");
     try {
       await refetch();
-      await router.push("/login");
+      router.push("/auth/login");
     } catch (e) {
       console.error(e);
     }
@@ -194,7 +249,7 @@ export default function AdminLayout({
             ) : (
               <Button
                 className="normal-case"
-                href="/login"
+                href="/auth/login"
                 variant="contained"
                 color="primary"
               >
@@ -206,21 +261,7 @@ export default function AdminLayout({
       </div>
       <div className="bg-cms-gray-light flex-1 flex gap-4 p-4">
         <nav className="max-w-72 h-fit mx-auto flex-1 bg-white rounded p-4 shadow-lg">
-          <ul className="flex flex-col gap-2">
-            {menuItems.map((menuItem) => (
-              <li className="bg-cms-gray-light rounded-md p-2">
-                <Link
-                  href={menuItem.href}
-                  className="flex items-center text-gray-900"
-                >
-                  <menuItem.icon className="text-cms-gray-dark" />
-                  <span className="ml-2 text-cms-gray-dark">
-                    {menuItem.label}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <MenuNavigation items={menuItems} />
         </nav>
         <main className="flex-1 ">{children}</main>
       </div>

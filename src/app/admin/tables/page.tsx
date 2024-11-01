@@ -1,94 +1,43 @@
 "use client";
 
-import { gql, useApolloClient, useQuery } from "@apollo/client";
-import { Delete } from "@mui/icons-material";
+import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
+import { AddOutlined, Delete, DeleteOutlined } from "@mui/icons-material";
 import {
   Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { MaterialReactTable } from "material-react-table";
+import TableEditor from "@/components/table-editor";
 
-function AddRow(props) {
-  const [form, setForm] = useState({});
-  const client = useApolloClient();
-  return (
-    <>
-      {props.table.fields.map((field) => {
-        if (field.type === "string") {
-          return (
-            <div key={field.id}>
-              <TextField
-                label={field.name}
-                value={form[field.dbName] || ""}
-                onChange={(e) =>
-                  setForm({ ...form, [field.dbName]: e.target.value })
-                }
-              />
-            </div>
-          );
-        }
-        if (field.type === "boolean") {
-          return (
-            <div key={field.id}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form[field.dbName] || false}
-                    onChange={(e) =>
-                      setForm({ ...form, [field.dbName]: e.target.checked })
-                    }
-                  />
-                }
-                label={field.name}
-              />
-            </div>
-          );
-        }
-        if (field.type === "date") {
-          return (
-            <div key={field.id}>
-              <TextField
-                label={field.name}
-                value={form[field.dbName] || ""}
-                onChange={(e) =>
-                  setForm({ ...form, [field.dbName]: e.target.value })
-                }
-                type="date"
-              />
-            </div>
-          );
-        }
-        return null;
-      })}
-      <div>
-        <Button
-          onClick={async () => {
-            await client.mutate({
-              mutation: gql`
-            mutation($input: ${props.table.dbName}Input!) {
-              create${props.table.dbName}(input: $input) {
-                id
-                createdAt
-              }
-            }
-          `,
-              variables: { input: form },
-            });
-            props.refetchData();
-          }}
-        >
-          Add
-        </Button>
-      </div>
-    </>
-  );
-}
+const CREATE_TABLE = gql`
+  mutation CreateTable($input: TableInput!) {
+    createTable(input: $input) {
+      id
+      name
+      dbName
+      fields {
+        id
+        name
+        dbName
+        type
+      }
+      createdAt
+    }
+  }
+`;
 
 function TablesPage(props) {
   const router = useRouter();
@@ -103,7 +52,6 @@ function TablesPage(props) {
     }
   `);
 
-  // Define columns for Material React Table
   const columns = useMemo(
     () => [
       {
@@ -118,35 +66,19 @@ function TablesPage(props) {
       },
       {
         accessorKey: "name",
-        header: "Name",
+        header: "Имя",
         size: 150,
       },
       {
         accessorKey: "actions",
-        header: "Actions",
+        header: "Действия",
         size: 300,
         Cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
-              onClick={() =>
-                router.push(`/admin/tables/${row.original.dbName}`)
-              }
+              onClick={() => router.push(`/admin/tables/${row.original.id}`)}
             >
-              View
-            </Button>
-            <Button
-              onClick={() =>
-                router.push(`/admin/tables/${row.original.dbName}/edit`)
-              }
-            >
-              Edit
-            </Button>
-            <Button
-              onClick={() =>
-                router.push(`/admin/tables/${row.original.dbName}/templates`)
-              }
-            >
-              Templates
+              Просмотр
             </Button>
           </div>
         ),
@@ -155,21 +87,33 @@ function TablesPage(props) {
     [router],
   );
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="bg-white p-4">
+    <div className="rounded p-4 shadow-lg bg-white">
       <div className="mb-4">
         <Button
           variant="contained"
-          onClick={() => router.push("/admin/tables/add")}
-          className="mb-4"
+          onClick={() => setIsModalOpen(true)}
+          className="mb-4 normal-case"
         >
-          Add New Table
+          Добавить таблицу
         </Button>
       </div>
+
+      <TableEditor
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          refetch();
+          setIsModalOpen(false);
+        }}
+        mode="create"
+      />
 
       <MaterialReactTable
         columns={columns}
@@ -187,7 +131,7 @@ function TablesPage(props) {
         }}
         renderTopToolbarCustomActions={() => (
           <div className="px-4 py-2">
-            <h1 className="text-xl font-bold">Tables</h1>
+            <h1 className="text-xl font-bold">Таблицы данных</h1>
           </div>
         )}
       />

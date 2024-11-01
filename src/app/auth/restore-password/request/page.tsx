@@ -49,10 +49,10 @@ export default function Page() {
             Выслать ссылку
           </Button>
           <div className="flex justify-between items-center text-base pt-3.5">
-            <Link href="/login" className="no-underline">
+            <Link href="/auth/login" className="no-underline">
               Войти
             </Link>
-            <Link href="/register" className="no-underline">
+            <Link href="/auth/register" className="no-underline">
               Зарегистрироваться
             </Link>
           </div>

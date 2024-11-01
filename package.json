@@ -17,6 +17,7 @@
     "@mui/material": "^6.1.5",
     "@mui/x-date-pickers": "^7.22.0",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.13",
     "graphql": "^16.9.0",
     "html-react-parser": "^5.1.18",
     "material-react-table": "^3.0.1",
