@@ -1,3 +1,6 @@
+import { useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
+
 interface TableField {
   id: string;
   name: string;
@@ -18,8 +21,6 @@ interface TableData {
   createdAt: string;
   [key: string]: any;
 }
-
-import { gql } from "@apollo/client";
 
 export const GET_TABLE_BY_ID = gql`
   query GetTable($id: ID!) {
@@ -43,17 +44,15 @@ export const generateGetTableDataQuery = (
   fields: TableField[],
 ) => {
   return gql`
-    query GetTableData {
-        getAll${tableName} {
-        id
-        createdAt
-        ${fields.map((field) => field.dbName).join("\n      ")}
-    }
-    }
-`;
+      query GetTableData {
+          getAll${tableName} {
+          id
+          createdAt
+          ${fields.map((field) => field.dbName).join("\n        ")}
+      }
+      }
+  `;
 };
-
-import { useQuery } from "@apollo/client";
 
 interface UseTableOptions {
   onMetaLoaded?: (meta: TableMeta) => void;
@@ -65,6 +64,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
     data: tableMetaData,
     loading: metaLoading,
     error: metaError,
+    refetch: refetchMeta,
   } = useQuery<{ getTable: TableMeta }>(GET_TABLE_BY_ID, {
     variables: { id: tableId },
     onCompleted: (data) => {
@@ -82,7 +82,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
   } = useQuery(
     generateGetTableDataQuery(tableMeta?.dbName || "", tableMeta?.fields || []),
     {
-      pollInterval: 0,
+      skip: !tableMeta?.dbName || !tableMeta?.fields?.length,
       onCompleted: (data) => {
         options?.onDataLoaded?.(data[`getAll${tableMeta!.dbName}`]);
       },
@@ -92,12 +92,30 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
   const loading = metaLoading || dataLoading;
   const error = metaError || dataError;
 
+  const refetch = async () => {
+    try {
+      const metaResult = await refetchMeta();
+      const newMeta = metaResult.data.getTable;
+
+      if (newMeta?.dbName && newMeta?.fields?.length) {
+        const dataResult = await refetchData();
+        return {
+          meta: newMeta,
+          data: dataResult.data[`getAll${newMeta.dbName}`],
+        };
+      }
+    } catch (error) {
+      console.error("Error refetching table data:", error);
+      throw error;
+    }
+  };
+
   return {
     meta: tableMeta,
     data: tableData ? tableData[`getAll${tableMeta!.dbName}`] : null,
     loading,
     error,
-    refetch: refetchData,
+    refetch,
   } as const;
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -43,36 +43,44 @@ const ADD_FIELDS = gql`
   }
 `;
 
+const initialFormState = {
+  name: "",
+  dbName: "",
+  fields: [{ name: "", dbName: "", type: "string" }],
+};
+
 const TableEditor = ({
   open,
   onClose,
   onSuccess,
   mode = "create",
-  initialData = null,
-  tableId = null,
+  initialData = {},
+  tableId = {},
 }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    dbName: "",
-    fields: [{ name: "", dbName: "", type: "string" }],
-  });
+  const [formData, setFormData] = useState(initialFormState);
   const [newFields, setNewFields] = useState([]);
   const [createTable] = useMutation(CREATE_TABLE);
   const [addFields] = useMutation(ADD_FIELDS);
 
   useEffect(() => {
-    if (initialData && mode === "edit") {
-      setFormData({
-        name: initialData.name,
-        dbName: initialData.dbName,
-        fields: initialData.fields.map((field) => ({
-          name: field.name,
-          dbName: field.dbName,
-          type: field.type,
-        })),
-      });
+    if (open) {
+      if (initialData && mode === "edit") {
+        setFormData({
+          name: initialData.name,
+          dbName: initialData.dbName,
+          fields: initialData.fields.map((field) => ({
+            name: field.name,
+            dbName: field.dbName,
+            type: field.type,
+          })),
+        });
+        setNewFields([]);
+      } else {
+        setFormData(initialFormState);
+        setNewFields([]);
+      }
     }
-  }, [initialData, mode]);
+  }, [initialData, mode, open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,48 +110,49 @@ const TableEditor = ({
         }
       }
 
-      onSuccess?.();
-      onClose();
-      setFormData({
-        name: "",
-        dbName: "",
-        fields: [{ name: "", dbName: "", type: "string" }],
-      });
-      setNewFields([]);
+      if (onSuccess) {
+        await onSuccess();
+      }
     } catch (error) {
-      console.error("Ошибка при сохранении таблицы:", error);
+      console.error("Error saving table:", error);
     }
   };
 
-  const addField = () => {
+  const addField = useCallback(() => {
     const newField = { name: "", dbName: "", type: "string" };
     setFormData((prev) => ({
       ...prev,
       fields: [...prev.fields, newField],
     }));
     setNewFields((prev) => [...prev, newField]);
-  };
+  }, []);
 
-  const removeField = (index) => {
-    const removedField = formData.fields[index];
-    setFormData((prev) => ({
-      ...prev,
-      fields: prev.fields.filter((_, i) => i !== index),
-    }));
-    setNewFields((prev) => prev.filter((field) => field !== removedField));
-  };
+  const removeField = useCallback(
+    (index) => {
+      const removedField = formData.fields[index];
+      setFormData((prev) => ({
+        ...prev,
+        fields: prev.fields.filter((_, i) => i !== index),
+      }));
+      setNewFields((prev) => prev.filter((field) => field !== removedField));
+    },
+    [formData.fields],
+  );
 
-  const updateField = (index, field) => {
-    setFormData((prev) => ({
-      ...prev,
-      fields: prev.fields.map((f, i) => (i === index ? field : f)),
-    }));
-    if (newFields.includes(formData.fields[index])) {
-      setNewFields((prev) =>
-        prev.map((f, i) => (formData.fields[index] === f ? field : f)),
-      );
-    }
-  };
+  const updateField = useCallback(
+    (index, field) => {
+      setFormData((prev) => ({
+        ...prev,
+        fields: prev.fields.map((f, i) => (i === index ? field : f)),
+      }));
+      if (newFields.includes(formData.fields[index])) {
+        setNewFields((prev) =>
+          prev.map((f) => (f === formData.fields[index] ? field : f)),
+        );
+      }
+    },
+    [formData.fields, newFields],
+  );
 
   const isEditMode = mode === "edit";
 
@@ -250,7 +259,7 @@ const TableEditor = ({
                       </FormControl>
                     </div>
 
-                    {!isEditMode && (
+                    {(!isEditMode || newFields.includes(field)) && (
                       <IconButton
                         onClick={() => removeField(index)}
                         color="error"

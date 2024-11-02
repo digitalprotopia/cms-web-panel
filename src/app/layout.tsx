@@ -23,7 +23,7 @@ console.log(tailwind.theme);
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#1E1E1E",
+      main: tailwind?.theme?.extend?.colors.cms?.primary,
       contrastText: "#ffffff",
     },
     secondary: {
