@@ -1,8 +1,8 @@
-import { Button, TextField } from "@mui/material";
-import Link from "@mui/material/Link";
-import { gql, useMutation } from "@apollo/client";
-import { useState } from "react";
-import { useSnackbar } from "notistack";
+import { Button, TextField } from '@mui/material';
+import Link from '@mui/material/Link';
+import { gql, useMutation } from '@apollo/client';
+import { useState } from 'react';
+import { useSnackbar } from 'notistack';
 
 const SEND_PASSWORD_RECOVER_LINK = gql`
   mutation ($email: String!) {
@@ -13,7 +13,7 @@ const SEND_PASSWORD_RECOVER_LINK = gql`
 export default function Page() {
   const { enqueueSnackbar } = useSnackbar();
   const [sendPasswordRecoverLink] = useMutation(SEND_PASSWORD_RECOVER_LINK);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
 
   return (
     <div className="size-full flex items-center justify-center">
@@ -37,12 +37,12 @@ export default function Page() {
               try {
                 await sendPasswordRecoverLink({ variables: { email } });
               } catch (e) {
-                enqueueSnackbar(e.message, { variant: "error" });
+                enqueueSnackbar(e.message, { variant: 'error' });
                 return;
               }
               enqueueSnackbar(
-                "Ссылка для восстановления пароля отправлена на указанный E-Mail",
-                { variant: "success" },
+                'Ссылка для восстановления пароля отправлена на указанный E-Mail',
+                { variant: 'success' },
               );
             }}
           >

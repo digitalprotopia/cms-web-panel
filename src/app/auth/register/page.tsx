@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useSnackbar } from "notistack";
-import { gql, useMutation } from "@apollo/client";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Link from "@mui/material/Link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { MuiTelInput } from "mui-tel-input";
-import { Checkbox, FormControlLabel } from "@mui/material";
-import config from "@/config/config";
+import { useSnackbar } from 'notistack';
+import { gql, useMutation } from '@apollo/client';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { MuiTelInput } from 'mui-tel-input';
+import { Checkbox, FormControlLabel } from '@mui/material';
+import config from '@/config/config';
 
 const SIGN_UP = gql`
   mutation ($user: UserRegister!) {
@@ -23,10 +23,10 @@ export default function RegisterPage(props) {
   const router = useRouter();
 
   const [registerForm, setRegisterForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    repeatPassword: "",
+    name: '',
+    email: '',
+    password: '',
+    repeatPassword: '',
   });
   const [signUp] = useMutation(SIGN_UP);
   const { enqueueSnackbar } = useSnackbar();
@@ -42,61 +42,54 @@ export default function RegisterPage(props) {
             required
             name="name"
             value={registerForm.name}
-            onChange={(e) =>
-              setRegisterForm({ ...registerForm, name: e.target.value })
-            }
+            onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
           />
-          {/*<TextField*/}
-          {/*  margin="normal"*/}
-          {/*  label="Компания"*/}
-          {/*  name="company"*/}
-          {/*  value={registerForm.company}*/}
-          {/*  onChange={(e) =>*/}
-          {/*    setRegisterForm({ ...registerForm, company: e.target.value })*/}
-          {/*  }*/}
-          {/*/>*/}
+          {/* <TextField */}
+          {/*  margin="normal" */}
+          {/*  label="Компания" */}
+          {/*  name="company" */}
+          {/*  value={registerForm.company} */}
+          {/*  onChange={(e) => */}
+          {/*    setRegisterForm({ ...registerForm, company: e.target.value }) */}
+          {/*  } */}
+          {/* /> */}
           <TextField
             margin="normal"
             label="E-Mail"
             required
             name="email"
             value={registerForm.email}
-            onChange={(e) =>
-              setRegisterForm({ ...registerForm, email: e.target.value })
-            }
+            onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
           />
-          {/*<MuiTelInput*/}
-          {/*  className="mt-4"*/}
-          {/*  label="Номер телефона"*/}
-          {/*  value={registerForm.phone}*/}
-          {/*  onChange={(value) =>*/}
-          {/*    setRegisterForm({ ...registerForm, phone: value })*/}
-          {/*  }*/}
-          {/*  preferredCountries={["RU"]}*/}
-          {/*  defaultCountry="RU"*/}
-          {/*/>*/}
+          {/* <MuiTelInput */}
+          {/*  className="mt-4" */}
+          {/*  label="Номер телефона" */}
+          {/*  value={registerForm.phone} */}
+          {/*  onChange={(value) => */}
+          {/*    setRegisterForm({ ...registerForm, phone: value }) */}
+          {/*  } */}
+          {/*  preferredCountries={["RU"]} */}
+          {/*  defaultCountry="RU" */}
+          {/* /> */}
           <TextField
             margin="normal"
             label="Пароль"
             required
             type="password"
             value={registerForm.password}
-            onChange={(e) =>
-              setRegisterForm({ ...registerForm, password: e.target.value })
-            }
-          />{" "}
+            onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+          />
+          {' '}
           <TextField
             margin="normal"
             label="Повторите пароль"
             required
             type="password"
             value={registerForm.repeatPassword}
-            onChange={(e) =>
-              setRegisterForm({
-                ...registerForm,
-                repeatPassword: e.target.value,
-              })
-            }
+            onChange={(e) => setRegisterForm({
+              ...registerForm,
+              repeatPassword: e.target.value,
+            })}
           />
           {/* {config.license
                 && (
@@ -109,7 +102,7 @@ export default function RegisterPage(props) {
                 />
                 )} */}
           <FormControlLabel
-            control={
+            control={(
               <Checkbox
                 value={registerForm.acceptedPrivacy}
                 onChange={(e) => {
@@ -119,24 +112,25 @@ export default function RegisterPage(props) {
                   });
                 }}
               />
-            }
-            label={
+            )}
+            label={(
               <span>
-                Соглашаюсь с{" "}
+                Соглашаюсь с
+                {' '}
                 <Link className="no-underline" href="https://s3app.ru/privacy">
                   политикой обработки персональных данных
                 </Link>
               </span>
-            }
+            )}
           />
           <Button
             variant="contained"
             sx={{ mt: 1 }}
             disabled={
-              !registerForm.name ||
-              !registerForm.email ||
-              !registerForm.password ||
-              registerForm.password !== registerForm.repeatPassword
+              !registerForm.name
+              || !registerForm.email
+              || !registerForm.password
+              || registerForm.password !== registerForm.repeatPassword
               // !registerForm.acceptedPrivacy
               // || (config.license && !registerForm.license)
             }
@@ -153,23 +147,24 @@ export default function RegisterPage(props) {
                   onCompleted: () => {
                     enqueueSnackbar(
                       config.noConfirmation
-                        ? "Регистрация прошла успешно"
-                        : "Регистрация прошла успешно. Пожалуйста, подтвердите свою почту.",
+                        ? 'Регистрация прошла успешно'
+                        : 'Регистрация прошла успешно. Пожалуйста, подтвердите свою почту.',
                       {
-                        variant: "success",
+                        variant: 'success',
                       },
                     );
                   },
                 });
               } catch (e) {
-                enqueueSnackbar(e.message, { variant: "error" });
+                enqueueSnackbar(e.message, { variant: 'error' });
               }
             }}
           >
             Зарегистрироваться
           </Button>
           <span className="text-center text-base font-light mt-4 text-black/60">
-            Уже есть аккаунт?{" "}
+            Уже есть аккаунт?
+            {' '}
             <Link href="/auth/login" className="no-underline">
               Войти
             </Link>

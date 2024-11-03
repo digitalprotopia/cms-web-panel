@@ -1,7 +1,9 @@
-"use client";
+'use client';
 
-import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
-import { AddOutlined, Delete, DeleteOutlined } from "@mui/icons-material";
+import {
+  gql, useApolloClient, useMutation, useQuery,
+} from '@apollo/client';
+import { AddOutlined, Delete, DeleteOutlined } from '@mui/icons-material';
 import {
   Button,
   Checkbox,
@@ -16,11 +18,11 @@ import {
   MenuItem,
   Select,
   TextField,
-} from "@mui/material";
-import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
-import { MaterialReactTable } from "material-react-table";
-import TableEditor from "@/components/table-editor";
+} from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { useState, useMemo } from 'react';
+import { MaterialReactTable } from 'material-react-table';
+import TableEditor from '@/components/table-editor';
 
 const CREATE_TABLE = gql`
   mutation CreateTable($input: TableInput!) {
@@ -55,23 +57,23 @@ function TablesPage(props) {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "id",
-        header: "ID",
+        accessorKey: 'id',
+        header: 'ID',
         size: 400,
       },
       {
-        accessorKey: "dbName",
-        header: "DB Name",
+        accessorKey: 'dbName',
+        header: 'DB Name',
         size: 150,
       },
       {
-        accessorKey: "name",
-        header: "Имя",
+        accessorKey: 'name',
+        header: 'Имя',
         size: 150,
       },
       {
-        accessorKey: "actions",
-        header: "Действия",
+        accessorKey: 'actions',
+        header: 'Действия',
         size: 300,
         Cell: ({ row }) => (
           <div className="flex gap-2">
@@ -126,7 +128,7 @@ function TablesPage(props) {
         enableSorting
         muiTableProps={{
           sx: {
-            tableLayout: "fixed",
+            tableLayout: 'fixed',
           },
         }}
         renderTopToolbarCustomActions={() => (

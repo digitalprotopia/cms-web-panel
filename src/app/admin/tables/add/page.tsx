@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { gql, useMutation } from "@apollo/client";
-import { Button, MenuItem, TextField } from "@mui/material";
-import { useState } from "react";
+import { gql, useMutation } from '@apollo/client';
+import { Button, MenuItem, TextField } from '@mui/material';
+import { useState } from 'react';
 
 function AddTable(props) {
   const [createTable] = useMutation(gql`
@@ -15,8 +15,8 @@ function AddTable(props) {
   `);
 
   const [form, setForm] = useState({
-    name: "",
-    dbName: "",
+    name: '',
+    dbName: '',
     fields: [],
   });
 
@@ -41,9 +41,7 @@ function AddTable(props) {
         <TextField
           label="Database Name"
           value={form.dbName}
-          onChange={(e) =>
-            changeForm((_form) => (_form.dbName = e.target.value))
-          }
+          onChange={(e) => changeForm((_form) => (_form.dbName = e.target.value))}
         />
       </div>
       {form.fields.map((field, index) => (
@@ -51,26 +49,20 @@ function AddTable(props) {
           <TextField
             label="Name"
             value={field.name}
-            onChange={(e) =>
-              changeForm((_form) => (_form.fields[index].name = e.target.value))
-            }
+            onChange={(e) => changeForm((_form) => (_form.fields[index].name = e.target.value))}
           />
           <TextField
             label="Database Name"
             value={field.dbName}
-            onChange={(e) =>
-              changeForm(
-                (_form) => (_form.fields[index].dbName = e.target.value),
-              )
-            }
+            onChange={(e) => changeForm(
+              (_form) => (_form.fields[index].dbName = e.target.value),
+            )}
           />
           <TextField
             select
             label="Type"
             value={field.type}
-            onChange={(e) =>
-              changeForm((_form) => (_form.fields[index].type = e.target.value))
-            }
+            onChange={(e) => changeForm((_form) => (_form.fields[index].type = e.target.value))}
           >
             <MenuItem value="string">String</MenuItem>
             <MenuItem value="boolean">Boolean</MenuItem>
@@ -80,11 +72,7 @@ function AddTable(props) {
       ))}
       <div>
         <Button
-          onClick={() =>
-            changeForm((_form) =>
-              _form.fields.push({ name: "", dbName: "", type: "" }),
-            )
-          }
+          onClick={() => changeForm((_form) => _form.fields.push({ name: '', dbName: '', type: '' }))}
         >
           Add Field
         </Button>

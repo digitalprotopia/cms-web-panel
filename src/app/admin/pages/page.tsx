@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import React, { useState } from 'react';
+import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
   CardContent,
@@ -14,9 +14,9 @@ import {
   IconButton,
   Typography,
   CircularProgress,
-} from "@mui/material";
-import { Edit, AccessTime, Delete } from "@mui/icons-material";
-import dayjs from "dayjs";
+} from '@mui/material';
+import { Edit, AccessTime, Delete } from '@mui/icons-material';
+import dayjs from 'dayjs';
 
 export interface IEntity {
   id: string;
@@ -102,7 +102,7 @@ interface PageFormData {
   html?: string;
 }
 
-const PageForm = ({
+function PageForm({
   initialData = {},
   onSubmit,
   onCancel,
@@ -110,15 +110,15 @@ const PageForm = ({
   initialData: Partial<PageFormData>;
   onSubmit: (data: PageFormData) => void;
   onCancel: () => void;
-}) => {
+}) {
   const [formData, setFormData] = useState<PageFormData>({
-    name: initialData.name || "",
-    title: initialData.title || "",
-    url: initialData.url || "",
+    name: initialData.name || '',
+    title: initialData.title || '',
+    url: initialData.url || '',
     parentId: initialData.parentId,
     isRoot: initialData.isRoot || false,
-    seotag: initialData.seotag || "",
-    html: initialData.html || "",
+    seotag: initialData.seotag || '',
+    html: initialData.html || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -177,14 +177,14 @@ const PageForm = ({
           Отмена
         </Button>
         <Button variant="contained" type="submit">
-          {initialData.id ? "Обновить" : "Создать"}
+          {initialData.id ? 'Обновить' : 'Создать'}
         </Button>
       </div>
     </form>
   );
-};
+}
 
-const PageCard = ({
+function PageCard({
   page,
   onEdit,
   onDelete,
@@ -192,23 +192,21 @@ const PageCard = ({
   page: ISiteItem;
   onEdit: (page: ISiteItem) => void;
   onDelete: (id: string) => void;
-}) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("ru-RU", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+}) {
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   return (
     <Card>
       <CardHeader
         title={page.name}
         subheader={page.url}
-        action={
+        action={(
           <div>
             <IconButton onClick={() => onEdit(page)} size="small">
               <Edit />
@@ -221,14 +219,14 @@ const PageCard = ({
               <Delete />
             </IconButton>
           </div>
-        }
+        )}
       />
       <CardContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {page.title}
         </Typography>
         <div className="flex items-center">
-          <AccessTime sx={{ fontSize: 16, marginRight: "4px" }} />
+          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
             {dayjs(parseInt(page.createdAt)).toString()}
           </Typography>
@@ -236,9 +234,9 @@ const PageCard = ({
       </CardContent>
     </Card>
   );
-};
+}
 
-const PagesPage = () => {
+function PagesPage() {
   const [selectedPage, setSelectedPage] = useState<ISiteItem | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -250,7 +248,7 @@ const PagesPage = () => {
       refetch();
     },
     onError: (error) => {
-      console.error("Ошибка при создании страницы:", error);
+      console.error('Ошибка при создании страницы:', error);
     },
   });
 
@@ -261,7 +259,7 @@ const PagesPage = () => {
       refetch();
     },
     onError: (error) => {
-      console.error("Ошибка при обновлении страницы:", error);
+      console.error('Ошибка при обновлении страницы:', error);
     },
   });
 
@@ -270,7 +268,7 @@ const PagesPage = () => {
       refetch();
     },
     onError: (error) => {
-      console.error("Ошибка при удалении страницы:", error);
+      console.error('Ошибка при удалении страницы:', error);
     },
   });
 
@@ -289,7 +287,7 @@ const PagesPage = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Вы уверены, что хотите удалить эту страницу?")) {
+    if (window.confirm('Вы уверены, что хотите удалить эту страницу?')) {
       deletePage({ variables: { id } });
     }
   };
@@ -341,7 +339,7 @@ const PagesPage = () => {
         fullWidth
       >
         <DialogTitle>
-          {selectedPage ? "Редактировать страницу" : "Создать новую страницу"}
+          {selectedPage ? 'Редактировать страницу' : 'Создать новую страницу'}
         </DialogTitle>
         <DialogContent>
           <PageForm
@@ -356,6 +354,6 @@ const PagesPage = () => {
       </Dialog>
     </div>
   );
-};
+}
 
 export default PagesPage;

@@ -1,5 +1,4 @@
-import { useQuery } from "@apollo/client";
-import { gql } from "@apollo/client";
+import { useQuery, gql } from '@apollo/client';
 
 interface TableField {
   id: string;
@@ -42,17 +41,15 @@ export const GET_TABLE_BY_ID = gql`
 export const generateGetTableDataQuery = (
   tableName: string,
   fields: TableField[],
-) => {
-  return gql`
+) => gql`
       query GetTableData {
           getAll${tableName} {
           id
           createdAt
-          ${fields.map((field) => field.dbName).join("\n        ")}
+          ${fields.map((field) => field.dbName).join('\n        ')}
       }
       }
   `;
-};
 
 interface UseTableOptions {
   onMetaLoaded?: (meta: TableMeta) => void;
@@ -70,6 +67,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
     onCompleted: (data) => {
       options?.onMetaLoaded?.(data.getTable);
     },
+    skip: !tableId,
   });
 
   const tableMeta = tableMetaData?.getTable;
@@ -80,7 +78,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
     error: dataError,
     refetch: refetchData,
   } = useQuery(
-    generateGetTableDataQuery(tableMeta?.dbName || "", tableMeta?.fields || []),
+    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
     {
       skip: !tableMeta?.dbName || !tableMeta?.fields?.length,
       onCompleted: (data) => {
@@ -105,7 +103,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
         };
       }
     } catch (error) {
-      console.error("Error refetching table data:", error);
+      console.error('Error refetching table data:', error);
       throw error;
     }
   };
@@ -119,5 +117,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
   } as const;
 };
 
-export type { TableMeta, TableField, TableData, UseTableOptions };
+export type {
+  TableMeta, TableField, TableData, UseTableOptions,
+};
 export default useTable;

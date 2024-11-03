@@ -1,12 +1,13 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import { MaterialReactTable, type MRT_ColumnDef } from "material-react-table";
-import { Button, IconButton, TextField } from "@mui/material";
-import { Delete } from "@mui/icons-material";
-import { gql, useApolloClient, useQuery } from "@apollo/client";
-import { use, useState } from "react";
-import DynamicParse from "@/components/DynamicParse";
+import { useMemo, use, useState } from 'react';
+import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
+import { Button, IconButton, TextField } from '@mui/material';
+import { Delete } from '@mui/icons-material';
+import { gql, useApolloClient, useQuery } from '@apollo/client';
+
+import DynamicParse from '@/components/DynamicParse';
+import ParsePage from '@/components/ParsePage';
 
 const GET_SITEITEM_BY_URL = gql`
   query GetSiteItemByUrl($url: String!) {
@@ -19,7 +20,7 @@ const GET_SITEITEM_BY_URL = gql`
 function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
 
-  const { data: siteItem, loading: siteItemLoading } = useQuery(
+  const { data: siteItem, loading: siteItemLoading, error } = useQuery(
     GET_SITEITEM_BY_URL,
     {
       variables: { url: slug[0] },
@@ -30,7 +31,8 @@ function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
 
   return (
     <div>
-      <DynamicParse html={siteItem?.getSiteItemByUrl.html} replace={{}} />
+      {(error || !siteItem?.getSiteItemByUrl) ? '404'
+        : <ParsePage html={siteItem?.getSiteItemByUrl.html} />}
     </div>
   );
 }

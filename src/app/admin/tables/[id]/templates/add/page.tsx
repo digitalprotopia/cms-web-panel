@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button, TextField } from "@mui/material";
-import { gql, useMutation } from "@apollo/client";
-import DynamicParse from "../../../../../components/DynamicParse";
-import useTableData from "../../../../../components/useTableData";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button, TextField } from '@mui/material';
+import { gql, useMutation } from '@apollo/client';
+import DynamicParse from '../../../../../components/DynamicParse';
+import useTableData from '../../../../../components/useTableData';
 
 function AddTemplate() {
   const [createTemplate] = useMutation(gql`
@@ -16,11 +16,11 @@ function AddTemplate() {
   `);
 
   const router = useRouter();
-  const tableDbName = router.query["table-id"] as string;
-  const [html, setHtml] = useState("<b>{text}</b>");
-  const [title, setTitle] = useState("");
+  const tableDbName = router.query['table-id'] as string;
+  const [html, setHtml] = useState('<b>{text}</b>');
+  const [title, setTitle] = useState('');
   const { data, meta } = useTableData(tableDbName, (_meta) => {
-    setHtml(_meta.fields.map((field) => `{${field.dbName}}`).join(" "));
+    setHtml(_meta.fields.map((field) => `{${field.dbName}}`).join(' '));
   });
 
   if (!data) {

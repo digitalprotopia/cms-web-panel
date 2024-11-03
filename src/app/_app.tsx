@@ -1,22 +1,26 @@
-import App from "next/app";
-import { ApolloProvider, gql, useMutation, useQuery } from "@apollo/client";
-import { createTheme, Menu, MenuItem, ThemeProvider } from "@mui/material";
-import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { SnackbarProvider, useSnackbar } from "notistack";
+import App from 'next/app';
+import {
+  ApolloProvider, gql, useMutation, useQuery,
+} from '@apollo/client';
+import {
+  createTheme, Menu, MenuItem, ThemeProvider,
+} from '@mui/material';
+import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { SnackbarProvider, useSnackbar } from 'notistack';
 import {
   AccountCircleOutlined,
   KeyboardArrowDownRounded,
-} from "@mui/icons-material";
-import Image from "next/image";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import clsx from "clsx";
-import client from "../components/apollo-client";
-import { theme as tailwind } from "../tailwind.config";
-import "../globals.css";
+} from '@mui/icons-material';
+import Image from 'next/image';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import clsx from 'clsx';
+import client from '../components/apollo-client';
+import { theme as tailwind } from '../tailwind.config';
+import '../globals.css';
 
 function DropdownIcon(props) {
   return (
@@ -25,9 +29,9 @@ function DropdownIcon(props) {
       component="span"
       sx={{
         px: 0.5,
-        stroke: "#859CBE",
-        display: "flex",
-        alignItems: "center",
+        stroke: '#859CBE',
+        display: 'flex',
+        alignItems: 'center',
       }}
     />
   );
@@ -36,15 +40,15 @@ const theme = createTheme({
   palette: {
     primary: {
       main: tailwind.extend.colors.primary,
-      contrastText: "#ffffff",
+      contrastText: '#ffffff',
     },
     secondary: {
       main: tailwind.extend.colors.secondary,
-      contrastText: "#4B5A73",
+      contrastText: '#4B5A73',
     },
     tertiary: {
       main: tailwind.extend.colors.tertiary,
-      contrastText: "#4B5A73",
+      contrastText: '#4B5A73',
     },
   },
   variables: {
@@ -82,7 +86,7 @@ const LOG_OUT = gql`
 
 declare global {
   interface Window {
-    enqueueSnackbar: ReturnType<typeof useSnackbar>["enqueueSnackbar"];
+    enqueueSnackbar: ReturnType<typeof useSnackbar>['enqueueSnackbar'];
     router: ReturnType<typeof useRouter>;
   }
 }
@@ -113,23 +117,23 @@ function S3App({ Component, pageProps }) {
   let { data } = getMe;
   const { refetch, error, loading } = getMe;
   if (!loading && (error || !data?.me)) {
-    localStorage.removeItem("token");
+    localStorage.removeItem('token');
     data = null;
   }
 
   const allowedPathsGuest = [
-    "/",
-    "/login",
-    "/register",
-    "/restore-password/request",
-    "/restore-password/confirm",
-    "/confirm-email",
+    '/',
+    '/login',
+    '/register',
+    '/restore-password/request',
+    '/restore-password/confirm',
+    '/confirm-email',
   ];
   const disallowedPathsUser = [
-    "/login",
-    "/register",
-    "/restore-password/request",
-    "/restore-password/confirm",
+    '/login',
+    '/register',
+    '/restore-password/request',
+    '/restore-password/confirm',
   ];
 
   if (loading) {
@@ -137,20 +141,20 @@ function S3App({ Component, pageProps }) {
   }
 
   if (
-    !loading &&
-    !data?.me &&
-    !allowedPathsGuest.some((path) => router.pathname.includes(path))
+    !loading
+    && !data?.me
+    && !allowedPathsGuest.some((path) => router.pathname.includes(path))
   ) {
-    router.push("/login");
+    router.push('/login');
     return null;
   }
 
   if (
-    !loading &&
-    data &&
-    disallowedPathsUser.some((path) => router.pathname.includes(path))
+    !loading
+    && data
+    && disallowedPathsUser.some((path) => router.pathname.includes(path))
   ) {
-    router.push("/");
+    router.push('/');
     return null;
   }
 
@@ -181,9 +185,9 @@ function S3App({ Component, pageProps }) {
               <Button
                 variant="contained"
                 color="inherit"
-                aria-controls={userPopoverOpen ? "basic-menu" : undefined}
+                aria-controls={userPopoverOpen ? 'basic-menu' : undefined}
                 aria-haspopup="true"
-                aria-expanded={userPopoverOpen ? "true" : undefined}
+                aria-expanded={userPopoverOpen ? 'true' : undefined}
                 onClick={handleUserPopoverClick}
               >
                 <AccountCircleOutlined />
@@ -196,12 +200,12 @@ function S3App({ Component, pageProps }) {
                 open={userPopoverOpen}
                 onClose={handleUserPopoverClose}
                 MenuListProps={{
-                  "aria-labelledby": "basic-button",
+                  'aria-labelledby': 'basic-button',
                 }}
               >
                 <MenuItem
                   onClick={async () => {
-                    await router.push("/account");
+                    await router.push('/account');
                   }}
                 >
                   Мой аккаунт
@@ -210,13 +214,13 @@ function S3App({ Component, pageProps }) {
                   onClick={async () => {
                     await logOut();
                     handleUserPopoverClose();
-                    localStorage.removeItem("token");
+                    localStorage.removeItem('token');
                     try {
                       await refetch();
                     } catch (e) {
                       console.log(e);
                     }
-                    await router.push("/login");
+                    await router.push('/login');
                   }}
                 >
                   Выйти

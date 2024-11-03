@@ -1,6 +1,6 @@
-import { gql, useQuery } from "@apollo/client";
-import { Button } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { gql, useQuery } from '@apollo/client';
+import { Button } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 export default function Templates() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function Templates() {
     `,
     {
       variables: {
-        dbName: router.query["table-id"],
+        dbName: router.query['table-id'],
       },
     },
   );
@@ -36,11 +36,9 @@ export default function Templates() {
         {data.getTableByDbName.templates.map((template) => (
           <li key={template.id}>
             <Button
-              onClick={() =>
-                router.push(
-                  `/admin/tables/${router.query["table-id"]}/templates/${template.id}`,
-                )
-              }
+              onClick={() => router.push(
+                `/admin/tables/${router.query['table-id']}/templates/${template.id}`,
+              )}
             >
               {template.title}
             </Button>
@@ -48,9 +46,7 @@ export default function Templates() {
         ))}
       </ul>
       <Button
-        onClick={() =>
-          router.push(`/admin/tables/${router.query["table-id"]}/templates/add`)
-        }
+        onClick={() => router.push(`/admin/tables/${router.query['table-id']}/templates/add`)}
       >
         Add
       </Button>

@@ -1,7 +1,7 @@
-import { gql, useMutation } from "@apollo/client";
-import { useRouter } from "next/navigation";
-import { useSnackbar } from "notistack";
-import { useEffect } from "react";
+import { gql, useMutation } from '@apollo/client';
+import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
+import { useEffect } from 'react';
 
 const CONFIRM_EMAIL = gql`
   mutation ($code: ID!) {
@@ -16,11 +16,11 @@ function ConfirmEmail() {
 
   const [confirmEmail] = useMutation(CONFIRM_EMAIL);
 
-  const code = new URLSearchParams(window.location.search).get("code");
+  const code = new URLSearchParams(window.location.search).get('code');
 
   useEffect(() => {
     if (!code) {
-      enqueueSnackbar("Неверный код подтверждения email", { variant: "error" });
+      enqueueSnackbar('Неверный код подтверждения email', { variant: 'error' });
       return;
     }
     (async () => {
@@ -29,10 +29,10 @@ function ConfirmEmail() {
       });
 
       if (data.confirmEmail) {
-        enqueueSnackbar("Email успешно подтвержден", { variant: "success" });
-        router.push("/");
+        enqueueSnackbar('Email успешно подтвержден', { variant: 'success' });
+        router.push('/');
       } else {
-        enqueueSnackbar("Ошибка подтверждения email", { variant: "error" });
+        enqueueSnackbar('Ошибка подтверждения email', { variant: 'error' });
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps

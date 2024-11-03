@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useSnackbar } from "notistack";
-import { gql, useMutation } from "@apollo/client";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Link from "@mui/material/Link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSnackbar } from 'notistack';
+import { gql, useMutation } from '@apollo/client';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
+import { FormEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const SIGN_IN = gql`
   mutation SignIn($password: String!, $email: String!) {
@@ -24,8 +24,8 @@ export default function LoginPage() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [loginForm, setLoginForm] = useState<LoginFormData>({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
 
   const [signIn] = useMutation<{ signIn: string }>(SIGN_IN);
@@ -41,12 +41,12 @@ export default function LoginPage() {
       });
 
       if (data?.signIn) {
-        enqueueSnackbar("Вы вошли", { variant: "success" });
-        localStorage.setItem("token", data.signIn);
-        router.push("/admin");
+        enqueueSnackbar('Вы вошли', { variant: 'success' });
+        localStorage.setItem('token', data.signIn);
+        router.push('/admin');
       }
     } catch (e) {
-      enqueueSnackbar((e as Error).message, { variant: "error" });
+      enqueueSnackbar((e as Error).message, { variant: 'error' });
     }
   };
 
@@ -61,9 +61,7 @@ export default function LoginPage() {
             type="email"
             required
             value={loginForm.email}
-            onChange={(e) =>
-              setLoginForm({ ...loginForm, email: e.target.value })
-            }
+            onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
           />
           <TextField
             margin="normal"
@@ -71,9 +69,7 @@ export default function LoginPage() {
             type="password"
             required
             value={loginForm.password}
-            onChange={(e) =>
-              setLoginForm({ ...loginForm, password: e.target.value })
-            }
+            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
           />
           <Button
             variant="contained"

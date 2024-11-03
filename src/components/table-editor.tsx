@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -11,9 +11,9 @@ import {
   FormControl,
   InputLabel,
   IconButton,
-} from "@mui/material";
-import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { gql, useMutation } from "@apollo/client";
+} from '@mui/material';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { gql, useMutation } from '@apollo/client';
 
 const CREATE_TABLE = gql`
   mutation CreateTable($input: TableInput!) {
@@ -44,19 +44,19 @@ const ADD_FIELDS = gql`
 `;
 
 const initialFormState = {
-  name: "",
-  dbName: "",
-  fields: [{ name: "", dbName: "", type: "string" }],
+  name: '',
+  dbName: '',
+  fields: [{ name: '', dbName: '', type: 'string' }],
 };
 
-const TableEditor = ({
+function TableEditor({
   open,
   onClose,
   onSuccess,
-  mode = "create",
+  mode = 'create',
   initialData = {},
   tableId = {},
-}) => {
+}) {
   const [formData, setFormData] = useState(initialFormState);
   const [newFields, setNewFields] = useState([]);
   const [createTable] = useMutation(CREATE_TABLE);
@@ -64,7 +64,7 @@ const TableEditor = ({
 
   useEffect(() => {
     if (open) {
-      if (initialData && mode === "edit") {
+      if (initialData && mode === 'edit') {
         setFormData({
           name: initialData.name,
           dbName: initialData.dbName,
@@ -85,7 +85,7 @@ const TableEditor = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (mode === "create") {
+      if (mode === 'create') {
         await createTable({
           variables: {
             input: {
@@ -95,31 +95,29 @@ const TableEditor = ({
             },
           },
         });
-      } else {
-        if (newFields.length > 0) {
-          await addFields({
-            variables: {
-              tableId,
-              inputs: newFields.map(({ name, dbName, type }) => ({
-                name,
-                dbName,
-                type,
-              })),
-            },
-          });
-        }
+      } else if (newFields.length > 0) {
+        await addFields({
+          variables: {
+            tableId,
+            inputs: newFields.map(({ name, dbName, type }) => ({
+              name,
+              dbName,
+              type,
+            })),
+          },
+        });
       }
 
       if (onSuccess) {
         await onSuccess();
       }
     } catch (error) {
-      console.error("Error saving table:", error);
+      console.error('Error saving table:', error);
     }
   };
 
   const addField = useCallback(() => {
-    const newField = { name: "", dbName: "", type: "string" };
+    const newField = { name: '', dbName: '', type: 'string' };
     setFormData((prev) => ({
       ...prev,
       fields: [...prev.fields, newField],
@@ -146,22 +144,20 @@ const TableEditor = ({
         fields: prev.fields.map((f, i) => (i === index ? field : f)),
       }));
       if (newFields.includes(formData.fields[index])) {
-        setNewFields((prev) =>
-          prev.map((f) => (f === formData.fields[index] ? field : f)),
-        );
+        setNewFields((prev) => prev.map((f) => (f === formData.fields[index] ? field : f)));
       }
     },
     [formData.fields, newFields],
   );
 
-  const isEditMode = mode === "edit";
+  const isEditMode = mode === 'edit';
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <form onSubmit={handleSubmit}>
         <DialogTitle>
           <span className="text-xl font-semibold">
-            {isEditMode ? "Редактировать таблицу" : "Создать новую таблицу"}
+            {isEditMode ? 'Редактировать таблицу' : 'Создать новую таблицу'}
           </span>
         </DialogTitle>
 
@@ -170,9 +166,7 @@ const TableEditor = ({
             <TextField
               label="Название таблицы"
               value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               fullWidth
               required
               className="w-full"
@@ -181,9 +175,7 @@ const TableEditor = ({
             <TextField
               label="Имя в базе данных"
               value={formData.dbName}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, dbName: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, dbName: e.target.value }))}
               fullWidth
               required
               className="w-full"
@@ -213,9 +205,7 @@ const TableEditor = ({
                       <TextField
                         label="Название поля"
                         value={field.name}
-                        onChange={(e) =>
-                          updateField(index, { ...field, name: e.target.value })
-                        }
+                        onChange={(e) => updateField(index, { ...field, name: e.target.value })}
                         fullWidth
                         required
                         className="w-full"
@@ -224,12 +214,10 @@ const TableEditor = ({
                       <TextField
                         label="Имя в БД"
                         value={field.dbName}
-                        onChange={(e) =>
-                          updateField(index, {
-                            ...field,
-                            dbName: e.target.value,
-                          })
-                        }
+                        onChange={(e) => updateField(index, {
+                          ...field,
+                          dbName: e.target.value,
+                        })}
                         fullWidth
                         required
                         className="w-full"
@@ -240,12 +228,10 @@ const TableEditor = ({
                         <InputLabel>Тип поля</InputLabel>
                         <Select
                           value={field.type}
-                          onChange={(e) =>
-                            updateField(index, {
-                              ...field,
-                              type: e.target.value,
-                            })
-                          }
+                          onChange={(e) => updateField(index, {
+                            ...field,
+                            type: e.target.value,
+                          })}
                           label="Тип поля"
                           required
                           className="w-full"
@@ -281,13 +267,13 @@ const TableEditor = ({
               Отмена
             </Button>
             <Button type="submit" variant="contained" className="normal-case">
-              {isEditMode ? "Сохранить изменения" : "Создать таблицу"}
+              {isEditMode ? 'Сохранить изменения' : 'Создать таблицу'}
             </Button>
           </div>
         </DialogActions>
       </form>
     </Dialog>
   );
-};
+}
 
 export default TableEditor;

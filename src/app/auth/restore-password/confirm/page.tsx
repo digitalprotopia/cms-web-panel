@@ -1,8 +1,8 @@
-import { Button, TextField } from "@mui/material";
-import Link from "@mui/material/Link";
-import { gql, useMutation } from "@apollo/client";
-import { useState } from "react";
-import { useSnackbar } from "notistack";
+import { Button, TextField } from '@mui/material';
+import Link from '@mui/material/Link';
+import { gql, useMutation } from '@apollo/client';
+import { useState } from 'react';
+import { useSnackbar } from 'notistack';
 
 const CHANGE_PASSWORD_AFTER_RECOVER = gql`
   mutation ($code: ID!, $password: String!) {
@@ -16,11 +16,11 @@ export default function Page() {
     CHANGE_PASSWORD_AFTER_RECOVER,
   );
   const [form, setForm] = useState({
-    password: "",
-    passwordConfirm: "",
+    password: '',
+    passwordConfirm: '',
   });
 
-  const code = new URLSearchParams(window.location.search).get("code");
+  const code = new URLSearchParams(window.location.search).get('code');
 
   return (
     <div className="size-full flex items-center justify-center">
@@ -41,18 +41,16 @@ export default function Page() {
             label="Подтверждение пароля"
             type="password"
             value={form.passwordConfirm}
-            onChange={(e) =>
-              setForm({ ...form, passwordConfirm: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, passwordConfirm: e.target.value })}
           />
           <Button
             fullWidth
             variant="contained"
             sx={{ mt: 1 }}
             disabled={
-              !form.password ||
-              !form.passwordConfirm ||
-              form.password !== form.passwordConfirm
+              !form.password
+              || !form.passwordConfirm
+              || form.password !== form.passwordConfirm
             }
             onClick={async () => {
               try {
@@ -60,10 +58,10 @@ export default function Page() {
                   variables: { code, password: form.password },
                 });
               } catch (e) {
-                enqueueSnackbar(e.message, { variant: "error" });
+                enqueueSnackbar(e.message, { variant: 'error' });
                 return;
               }
-              enqueueSnackbar("Пароль успешно изменен", { variant: "success" });
+              enqueueSnackbar('Пароль успешно изменен', { variant: 'success' });
             }}
           >
             Сменить пароль
