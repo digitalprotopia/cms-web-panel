@@ -80,7 +80,7 @@ const TableEditor = ({
         setNewFields([]);
       }
     }
-  }, [initialData, mode, open]);
+  }, [open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
