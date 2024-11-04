@@ -12,7 +12,6 @@ function DynamicParse(props: {
   html: string;
   replace: Record<string, string>;
 }) {
-  console.log(props.replace);
   try {
     const result = useMemo(() => {
       const options: HTMLReactParserOptions = {
@@ -21,13 +20,11 @@ function DynamicParse(props: {
             function Replace() {
               const replace = useContext(ReplaceContext);
               let result = domNode.data;
-              console.log(replace);
               Object.keys(replace).forEach((key) => {
                 result = result.replaceAll(`{${key}}`, replace[key]);
               });
               return result;
             }
-            console.log('generate');
             return <Replace key={index} />;
           }
           if (

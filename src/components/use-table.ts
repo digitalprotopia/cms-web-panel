@@ -175,6 +175,28 @@ export const useAddField = (tableId: string) => {
   });
 };
 
+export const useEditField = () => {
+  const [editField] = useMutation(gql`
+    mutation($id: ID! $input: FieldInput!) {
+      editField(id: $id input: $input) {
+        id
+        name
+        type
+        tableId
+    }
+  }
+`);
+
+  return (id: string, data: Partial<IField>) => editField({
+    variables: {
+      id,
+      input: {
+        ...data,
+      },
+    },
+  });
+};
+
 export const useDeleteField = () => {
   const [deleteField] = useMutation(gql`
     mutation($id: ID!) {

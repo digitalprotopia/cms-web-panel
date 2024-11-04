@@ -21,7 +21,6 @@ const inter = Roboto({
   subsets: ['cyrillic-ext', 'latin'],
 });
 
-console.log(tailwind.theme);
 const theme = createTheme({
   palette: {
     primary: {
@@ -46,7 +45,6 @@ export default function CMSLayout({
   params: any;
 }>) {
   const path = usePathname();
-  console.log(path);
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>

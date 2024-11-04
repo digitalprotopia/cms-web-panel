@@ -134,8 +134,6 @@ function PageForm({
       }
   }`);
 
-  console.log(snippets);
-
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <div className="grid grid-cols-2 gap-4">

@@ -9,7 +9,7 @@ function FormEditPage(props) {
 
   return (
     <div>
-      <h2>Добавить форму</h2>
+      <h2>Редактировать форму</h2>
       <FormEdit id={params.id as string} />
     </div>
   );

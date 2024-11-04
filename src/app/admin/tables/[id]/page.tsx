@@ -8,8 +8,11 @@ import { MaterialReactTable, MRT_RowData, type MRT_ColumnDef } from 'material-re
 import {
   Button, IconButton, TextField, FormControl, FormControlLabel, Checkbox,
   Popover,
+  MenuItem,
 } from '@mui/material';
-import { Add, ArrowDropDown, Delete } from '@mui/icons-material';
+import {
+  Add, ArrowDropDown, Close, Delete, Save,
+} from '@mui/icons-material';
 import { gql, useApolloClient } from '@apollo/client';
 
 import TableEditor from '@/components/table-editor';
@@ -20,8 +23,9 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { FieldType, IField } from '@/components/entities/IField';
+import { FormField } from '@/components/form';
 import useTable, {
-  TableMeta, useAddField, useAddRow, useDeleteField, useEditRow,
+  TableMeta, useAddField, useAddRow, useDeleteField, useEditField, useEditRow,
 } from '../../../../components/use-table';
 
 interface Field {
@@ -189,7 +193,7 @@ function TablePage({ params }: TablePageProps) {
       setTableMetadata(meta);
     },
     onDataLoaded: (data) => {
-      console.log('Table data loaded:', data);
+      // console.log('Table data loaded:', data);
     },
   });
 
@@ -213,6 +217,10 @@ function TablePage({ params }: TablePageProps) {
         const dropDownRef = useRef();
         const [dropDownOpen, setDropDownOpen] = useState(false);
         const deleteField = useDeleteField();
+        const editField = useEditField();
+        const [editForm, setEditForm] = useState<Partial<IField>>({
+          name: field.name,
+        });
         return (
           <div onClick={(e) => {
             e.stopPropagation();
@@ -240,6 +248,24 @@ function TablePage({ params }: TablePageProps) {
               }}
             >
               <div className="p-4">
+                <h4>Редактировать поле</h4>
+                <TextField
+                  label="Название"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+                <Button
+                  variant="contained"
+                  onClick={async () => {
+                    await editField(field.id, {
+                      name: editForm.name,
+                    });
+                    setDropDownOpen(false);
+                    setTimeout(() => handleRefetch(), 2000);
+                  }}
+                >
+                  Редактировать
+                </Button>
                 <h4>Удалить поле</h4>
                 <Button
                   variant="contained"
@@ -248,6 +274,7 @@ function TablePage({ params }: TablePageProps) {
                     setDropDownOpen(false);
                     setTimeout(() => handleRefetch(), 2000);
                   }}
+                  color="error"
                 >
                   Удалить
                 </Button>
@@ -257,13 +284,15 @@ function TablePage({ params }: TablePageProps) {
         );
       }),
       Cell: ({ cell, row }) => {
-        const addRow = useEditRow(meta.dbName);
+        const [editMode, setEditMode] = useState(false);
+        const [value, setValue] = useState<any>(cell.getValue());
+        const editRow = useEditRow(meta.dbName);
         if (field.type === 'boolean') {
           return (
             <Checkbox
               checked={!!cell.getValue()}
               onChange={(e) => {
-                addRow(row.original.id, {
+                editRow(row.original.id, {
                   [field.dbName]: e.target.checked,
                 });
                 refetch();
@@ -271,7 +300,44 @@ function TablePage({ params }: TablePageProps) {
             />
           );
         }
-        return cell.getValue();
+        if (editMode) {
+          return (
+            <div>
+              <FormField
+                field={field}
+                value={value}
+                title=""
+                type={field.type}
+                onChange={(value) => setValue(value)}
+              />
+              <IconButton
+                onClick={async () => {
+                  await editRow(row.original.id, {
+                    [field.dbName]: value,
+                  });
+                  setEditMode(false);
+                  refetch();
+                }}
+              >
+                <Save />
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  setValue(cell.getValue());
+                  setEditMode(false);
+                }}
+              >
+                <Close />
+              </IconButton>
+            </div>
+          );
+        }
+        return (
+          <div onClick={() => setEditMode(true)}>
+            {cell.getValue()
+|| <i>Нет текста</i>}
+          </div>
+        );
       },
     }));
     result.push({
@@ -319,6 +385,16 @@ function TablePage({ params }: TablePageProps) {
                   value={form.dbName}
                   onChange={(e) => setForm((prev) => ({ ...prev, dbName: e.target.value }))}
                 />
+                {Object.values(FieldType).map((key) => (
+                  <div key={key}>
+                    <MenuItem
+                      onClick={() => setForm((prev) => ({ ...prev, type: key }))}
+                      selected={form.type === key}
+                    >
+                      {key}
+                    </MenuItem>
+                  </div>
+                ))}
                 <Button
                   variant="contained"
                   onClick={async () => {

@@ -66,7 +66,6 @@ function WidgetEdit(props: {
   `);
 
   const table = useTable(form.tableId || '');
-  console.log(form);
   if (!table.data) {
     return 'Loading';
   }

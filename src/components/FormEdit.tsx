@@ -2,9 +2,14 @@ import {
   gql, useLazyQuery, useMutation, useQuery,
 } from '@apollo/client';
 import { useState } from 'react';
-import { Button, TextField } from '@mui/material';
+import {
+  Button, IconButton, MenuItem, TextField,
+} from '@mui/material';
+import { Delete } from '@mui/icons-material';
 import useTable from './use-table';
 import DynamicParse from './DynamicParse';
+import { FormField } from './form';
+import { FieldType } from './entities/IField';
 
 function FormEdit(props: {
   id?: string;
@@ -114,27 +119,51 @@ function FormEdit(props: {
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
       </div>
-      {form.fields.map((field, index) => (
-        <div key={index}>
-          <TextField
-            label={`Название поля ${table.meta?.fields.find((f) => f.id === field.tableFieldId)?.name}`}
-            value={field.title}
-            onChange={(e) => {
-              const newFields = [...form.fields];
-              newFields[index] = { ...field, title: e.target.value };
-              setForm({ ...form, fields: newFields });
-            }}
-          />
-        </div>
-      ))}
+      {form.fields.map((field, index) => {
+        const tableField = table.meta?.fields.find((f) => f.id === field.tableFieldId);
+        return (
+          <div key={index}>
+            <TextField
+              label={`Название поля ${tableField?.name}`}
+              value={field.title}
+              onChange={(e) => {
+                const newFields = [...form.fields];
+                newFields[index] = { ...field, title: e.target.value };
+                setForm({ ...form, fields: newFields });
+              }}
+            />
+            <FormField title={field.title} type={tableField?.type as FieldType || 'string'} value="" onChange={() => {}} />
+            <IconButton
+              onClick={() => {
+                const newFields = [...form.fields];
+                newFields.splice(index, 1);
+                setForm({ ...form, fields: newFields });
+              }}
+            >
+              <Delete />
+            </IconButton>
+          </div>
+        );
+      })}
       {table.meta?.fields.map((field) => (
         <div
           key={field.id}
-          onClick={(e) => {
-            // setForm({ ...form, templateHtml: `${form.templateHtml}{${field.dbName}}` });
-          }}
         >
-          {`{${field.dbName}}`}
+          <MenuItem
+            onClick={(e) => {
+              // setForm({ ...form, templateHtml: `${form.templateHtml}{${field.dbName}}` });
+              const newFields = [...form.fields];
+              newFields.push({
+                name: field.name,
+                title: field.name,
+                formFieldType: field.type,
+                tableFieldId: field.id,
+              });
+              setForm({ ...form, fields: newFields });
+            }}
+          >
+            {`Add ${field.dbName}`}
+          </MenuItem>
         </div>
       ))}
       <div>

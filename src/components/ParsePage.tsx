@@ -7,6 +7,8 @@ import {
 import { useState } from 'react';
 import useTable, { useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
+import { FieldType } from './entities/IField';
+import { FormField } from './form';
 
 function PageWidget(props: {
   widgetName: string;
@@ -88,7 +90,6 @@ function FormWidget(props: {
       setForm(_form);
     },
   });
-  console.log(form);
   const addRow = useAddRow(data?.getFormByName.table.dbName);
   if (!data?.getFormByName) {
     return null;
@@ -98,23 +99,14 @@ function FormWidget(props: {
       <Typography variant="h4">{data.getFormByName.title}</Typography>
       <div>
         {data.getFormByName.fields.map((field) => {
-          let fieldComponent = null;
-          if (field.field.type === 'string') {
-            fieldComponent = (
-              <TextField
-                value={form[field.field.dbName] || ''}
-                onChange={(e) => setForm({ ...form, [field.field.dbName]: e.target.value })}
-              />
-            );
-          }
-          if (field.field.type === 'boolean') {
-            fieldComponent = (
-              <Checkbox
-                checked={form[field.field.dbName] || false}
-                onChange={(e) => setForm({ ...form, [field.field.dbName]: e.target.checked })}
-              />
-            );
-          }
+          const fieldComponent = (
+            <FormField
+              title={field.title}
+              type={field.field.type}
+              value={form[field.field.dbName]}
+              onChange={(value) => setForm({ ...form, [field.field.dbName]: value })}
+            />
+          );
 
           return (
             <div key={field.id}>
@@ -139,7 +131,6 @@ function ParsePage(props: {
     {
       transform(reactNode, domNode, index) {
         return reactStringReplace(domNode.data, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
-          console.log(match, i);
           const parts = match.split(':');
           if (parts[0] === 'widget') {
             return (<PageWidget widgetName={parts[1]} key={i} />);

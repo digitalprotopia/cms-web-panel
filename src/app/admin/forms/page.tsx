@@ -3,11 +3,17 @@
 import { IForm } from '@/components/entities/IForm';
 import { gql, useQuery } from '@apollo/client';
 import {
-  Button, CircularProgress, MenuItem, Typography,
+  Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField, Typography,
 } from '@mui/material';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 function FormsPage(props) {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedTable, setSelectedTable] = useState<string>('');
+  const router = useRouter();
+  
   const { data, loading } = useQuery(gql`
       query {
         getAllForms {
@@ -15,6 +21,10 @@ function FormsPage(props) {
           name
           title
           createdAt
+        }
+        getTables {
+          id
+          name
         }
       }
   `);
@@ -35,6 +45,7 @@ function FormsPage(props) {
           onClick={() => {
             // setSelectedForm(null);
             // setIsFormOpen(true);
+            setCreateDialogOpen(true);
           }}
         >
           Добавить форму
@@ -57,6 +68,33 @@ function FormsPage(props) {
           // />
         ))}
       </div>
+
+      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)}>
+        <DialogTitle>Добавить виджет</DialogTitle>
+        <DialogContent>
+          <TextField
+            select
+            label="Таблица"
+            value={selectedTable}
+            onChange={(e) => setSelectedTable(e.target.value)}
+            fullWidth
+          >
+            {data.getTables.map((table) => (
+              <MenuItem key={table.id} value={table.id}>{table.name}</MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateDialogOpen(false)}>Отмена</Button>
+          <Button onClick={() => {
+            router.push(`/admin/forms/add?table-id=${selectedTable}`);
+          }}
+          >
+            Создать
+
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/*
       <Dialog

@@ -10,7 +10,7 @@ function WidgetAdd(props) {
 
   return (
     <div>
-      <h2>Добавить виджет</h2>
+      <h2>Добавить форму</h2>
       <FormEdit tableId={tableId as string} />
     </div>
   );
