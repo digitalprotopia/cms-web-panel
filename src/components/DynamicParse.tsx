@@ -28,7 +28,7 @@ function DynamicParse(props: {
               return result;
             }
             console.log('generate');
-            return <Replace />;
+            return <Replace key={index} />;
           }
           if (
             domNode.type === 'tag'

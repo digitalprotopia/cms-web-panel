@@ -27,7 +27,7 @@ function WidgetEdit(props: {
           table {
             id
             name
-            title
+            dbName
             createdAt
           }
         }
@@ -57,15 +57,16 @@ function WidgetEdit(props: {
     }
   `);
 
-  const [updateWidget] = useMutation(gql`
+  const [editWidget] = useMutation(gql`
     mutation($id: ID! $input: WidgetInput! $tableView: TableViewInput! $template: TemplateInput!) {
-      updateWidget(id: $id input: $input tableViewInput: $tableView templateInput: $template) {
+      editWidget(id: $id input: $input tableViewInput: $tableView templateInput: $template) {
         id
       }
     }
   `);
 
   const table = useTable(form.tableId || '');
+  console.log(form);
   if (!table.data) {
     return 'Loading';
   }
@@ -124,7 +125,7 @@ function WidgetEdit(props: {
             },
           };
           if (props.id) {
-            updateWidget({
+            editWidget({
               variables: {
                 id: props.id,
                 ...variables,

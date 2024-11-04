@@ -1,8 +1,11 @@
 import { gql, useQuery } from '@apollo/client';
 import parse from 'html-react-parser';
 import reactStringReplace from 'react-string-replace';
-import { Typography } from '@mui/material';
-import useTable from './use-table';
+import {
+  Button, Checkbox, TextField, Typography,
+} from '@mui/material';
+import { useState } from 'react';
+import useTable, { useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
 
 function PageWidget(props: {
@@ -41,6 +44,7 @@ function PageWidget(props: {
 function FormWidget(props: {
   formName: string;
 }) {
+  const [form, setForm] = useState<any>({});
   const { data } = useQuery(gql`
             query($name: String!) {
                 getFormByName(name: $name) {
@@ -57,6 +61,7 @@ function FormWidget(props: {
                         createdAt
                         field {
                             id
+                            type
                             name
                             dbName
                         }
@@ -70,7 +75,21 @@ function FormWidget(props: {
             }
         `, {
     variables: { name: props.formName },
+    onCompleted: (_data) => {
+      const _form: any = {};
+      _data.getFormByName.fields.forEach((field) => {
+        if (field.field.type === 'string') {
+          _form[field.field.dbName] = '';
+        }
+        if (field.field.type === 'boolean') {
+          _form[field.field.dbName] = false;
+        }
+      });
+      setForm(_form);
+    },
   });
+  console.log(form);
+  const addRow = useAddRow(data?.getFormByName.table.dbName);
   if (!data?.getFormByName) {
     return null;
   }
@@ -78,11 +97,35 @@ function FormWidget(props: {
     <div>
       <Typography variant="h4">{data.getFormByName.title}</Typography>
       <div>
-        {data.getFormByName.fields.map((field) => (
-          <div key={field.id}>
-            {field.title}
-          </div>
-        ))}
+        {data.getFormByName.fields.map((field) => {
+          let fieldComponent = null;
+          if (field.field.type === 'string') {
+            fieldComponent = (
+              <TextField
+                value={form[field.field.dbName] || ''}
+                onChange={(e) => setForm({ ...form, [field.field.dbName]: e.target.value })}
+              />
+            );
+          }
+          if (field.field.type === 'boolean') {
+            fieldComponent = (
+              <Checkbox
+                checked={form[field.field.dbName] || false}
+                onChange={(e) => setForm({ ...form, [field.field.dbName]: e.target.checked })}
+              />
+            );
+          }
+
+          return (
+            <div key={field.id}>
+              {field.title}
+              {fieldComponent}
+            </div>
+          );
+        })}
+      </div>
+      <div>
+        <Button onClick={() => addRow(form)}>Добавить</Button>
       </div>
     </div>
   );

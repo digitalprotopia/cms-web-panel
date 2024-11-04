@@ -1,7 +1,11 @@
 'use client';
 
+import { IForm } from '@/components/entities/IForm';
 import { gql, useQuery } from '@apollo/client';
-import { Button, CircularProgress, Typography } from '@mui/material';
+import {
+  Button, CircularProgress, MenuItem, Typography,
+} from '@mui/material';
+import Link from 'next/link';
 
 function FormsPage(props) {
   const { data, loading } = useQuery(gql`
@@ -37,20 +41,24 @@ function FormsPage(props) {
         </Button>
       </div>
 
-      {/* <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-        {data?.getAllSiteItems?.map((form: ISiteItem) => (
-          <FormCard
-            key={form.id}
-            form={form}
-            onEdit={(form) => {
-              setSelectedForm(form);
-              setIsFormOpen(true);
-            }}
-            onDelete={handleDelete}
-          />
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
+        {data?.getAllForms?.map((form: IForm) => (
+          <Link href={`/admin/forms/${form.id}`} key={form.id}>
+            <MenuItem>{form.title}</MenuItem>
+          </Link>
+          // <FormCard
+          //   key={form.id}
+          //   form={form}
+          //   onEdit={(form) => {
+          //     setSelectedForm(form);
+          //     setIsFormOpen(true);
+          //   }}
+          //   onDelete={handleDelete}
+          // />
         ))}
       </div>
 
+      {/*
       <Dialog
         open={isFormOpen}
         onClose={() => {

@@ -33,17 +33,17 @@ function FormEdit(props: {
         name
         title
         createdAt
-        tableView {
-          table {
-            id
-            name
-            title
-            createdAt
-          }
-        }
-        template {
+        table {
           id
-          html
+          name
+          dbName
+          createdAt
+        }
+        fields {
+          name
+          title
+          formFieldType
+          tableFieldId
         }
       }
     }
@@ -53,7 +53,7 @@ function FormEdit(props: {
       setForm({
         name: _data.getForm.name,
         title: _data.getForm.title,
-        tableId: _data.getForm.tableView.table.id,
+        tableId: _data.getForm.table.id,
         fields: _data.getForm.fields.map((field) => ({
           name: field.name,
           title: field.title,
@@ -72,9 +72,9 @@ function FormEdit(props: {
     }
   `);
 
-  const [updateForm] = useMutation(gql`
+  const [editForm] = useMutation(gql`
     mutation($id: ID! $input: FormInput! $fields: [FormFieldInput]!) {
-      updateForm(id: $id input: $input fields: $fields) {
+      editForm(id: $id input: $input fields: $fields) {
         id
       }
     }
@@ -153,7 +153,7 @@ function FormEdit(props: {
             })),
           };
           if (props.id) {
-            updateForm({
+            editForm({
               variables: {
                 id: props.id,
                 ...variables,

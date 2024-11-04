@@ -1,4 +1,5 @@
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, gql, useMutation } from '@apollo/client';
+import { IField } from './entities/IField';
 
 interface TableField {
   id: string;
@@ -115,6 +116,77 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
     error,
     refetch,
   } as const;
+};
+
+export const useAddRow = (dbName: string) => {
+  const [addRow] = useMutation(gql`
+    mutation($input: ${dbName}Input!) {
+      create${dbName}(input: $input) {
+        id
+        createdAt
+      }
+    }
+`);
+
+  return (data: any) => addRow({
+    variables: {
+      input: data,
+    },
+  });
+};
+
+export const useEditRow = (dbName: string) => {
+  const [addRow] = useMutation(gql`
+    mutation($id: String $input: ${dbName}Input!) {
+      edit${dbName}(id: $id input: $input) {
+        id
+        createdAt
+      }
+    }
+`);
+
+  return (id: string, data: any) => addRow({
+    variables: {
+      id,
+      input: data,
+    },
+  });
+};
+
+export const useAddField = (tableId: string) => {
+  const [addField] = useMutation(gql`
+    mutation($tableId: ID! $input: FieldInput!) {
+      addField(tableId: $tableId input: $input) {
+        id
+        name
+        type
+        tableId
+    }
+  }
+`);
+
+  return (data: Partial<IField>) => addField({
+    variables: {
+      input: {
+        ...data,
+      },
+      tableId,
+    },
+  });
+};
+
+export const useDeleteField = () => {
+  const [deleteField] = useMutation(gql`
+    mutation($id: ID!) {
+      deleteField(id: $id)
+    }
+`);
+
+  return (id: string) => deleteField({
+    variables: {
+      id,
+    },
+  });
 };
 
 export type {

@@ -2,12 +2,14 @@
 
 import {
   useMemo, use, useState, useCallback,
+  useRef,
 } from 'react';
-import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
+import { MaterialReactTable, MRT_RowData, type MRT_ColumnDef } from 'material-react-table';
 import {
   Button, IconButton, TextField, FormControl, FormControlLabel, Checkbox,
+  Popover,
 } from '@mui/material';
-import { Delete } from '@mui/icons-material';
+import { Add, ArrowDropDown, Delete } from '@mui/icons-material';
 import { gql, useApolloClient } from '@apollo/client';
 
 import TableEditor from '@/components/table-editor';
@@ -16,7 +18,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
-import useTable, { TableMeta } from '../../../../components/use-table';
+import Link from 'next/link';
+import { FieldType, IField } from '@/components/entities/IField';
+import useTable, {
+  TableMeta, useAddField, useAddRow, useDeleteField, useEditRow,
+} from '../../../../components/use-table';
 
 interface Field {
   id: string;
@@ -36,7 +42,7 @@ interface FormData {
 
 function AddRowForm({ meta, refetch }: AddRowFormProps) {
   const [form, setForm] = useState<FormData>({});
-  const client = useApolloClient();
+  const addRow = useAddRow(meta.dbName);
 
   const handleSubmit = async () => {
     try {
@@ -57,17 +63,7 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
         }),
       );
 
-      await client.mutate({
-        mutation: gql`
-            mutation($input: ${meta.dbName}Input!) {
-            create${meta.dbName}(input: $input) {
-            id
-            createdAt
-            }
-            }
-        `,
-        variables: { input: formattedInput },
-      });
+      await addRow({});
 
       await refetch();
       setForm({});
@@ -160,14 +156,14 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
 
   return (
     <div className="border-t border-gray-200 pt-4">
-      <div className="flex flex-wrap -mx-2">
+      {/* <div className="flex flex-wrap -mx-2">
         {meta.fields.map((field) => renderField(field))}
-      </div>
+      </div> */}
 
       <Button
         variant="contained"
         onClick={handleSubmit}
-        disabled={Object.keys(form).length === 0}
+        // disabled={Object.keys(form).length === 0}
         className="mt-4 normal-case"
       >
         Добавить строку
@@ -208,11 +204,143 @@ function TablePage({ params }: TablePageProps) {
   const columns = useMemo(() => {
     if (!meta?.fields) return [];
 
-    return meta.fields.map((field) => ({
+    const result = meta.fields.map((field): MRT_ColumnDef<MRT_RowData> => ({
       accessorKey: field.dbName,
       header: field.name,
-      type: field.type === 'number' ? 'numeric' : 'string',
+      Header: (({
+        header,
+      }) => {
+        const dropDownRef = useRef();
+        const [dropDownOpen, setDropDownOpen] = useState(false);
+        const deleteField = useDeleteField();
+        return (
+          <div onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+          >
+            {field.name}
+            <IconButton
+              ref={dropDownRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setDropDownOpen(true);
+              }}
+            >
+              <ArrowDropDown />
+            </IconButton>
+            <Popover
+              anchorEl={dropDownRef.current}
+              open={dropDownOpen}
+              onClose={() => setDropDownOpen(false)}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+            >
+              <div className="p-4">
+                <h4>Удалить поле</h4>
+                <Button
+                  variant="contained"
+                  onClick={async () => {
+                    await deleteField(field.id);
+                    setDropDownOpen(false);
+                    setTimeout(() => handleRefetch(), 2000);
+                  }}
+                >
+                  Удалить
+                </Button>
+              </div>
+            </Popover>
+          </div>
+        );
+      }),
+      Cell: ({ cell, row }) => {
+        const addRow = useEditRow(meta.dbName);
+        if (field.type === 'boolean') {
+          return (
+            <Checkbox
+              checked={!!cell.getValue()}
+              onChange={(e) => {
+                addRow(row.original.id, {
+                  [field.dbName]: e.target.checked,
+                });
+                refetch();
+              }}
+            />
+          );
+        }
+        return cell.getValue();
+      },
     }));
+    result.push({
+      header: '+',
+      Header: () => {
+        const dropDownRef = useRef();
+        const [dropDownOpen, setDropDownOpen] = useState(false);
+        const [form, setForm] = useState<Partial<IField>>({
+          name: '',
+          dbName: '',
+          type: FieldType.STRING,
+        });
+        const addField = useAddField(meta.id);
+
+        return (
+          <div>
+            <IconButton
+              ref={dropDownRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setDropDownOpen(true);
+              }}
+            >
+              <Add />
+            </IconButton>
+            <Popover
+              anchorEl={dropDownRef.current}
+              open={dropDownOpen}
+              onClose={() => setDropDownOpen(false)}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+            >
+              <div className="p-4">
+                <h4>Добавить поле</h4>
+                <TextField
+                  label="Название"
+                  value={form.name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+                <TextField
+                  label="Имя в базе данных"
+                  value={form.dbName}
+                  onChange={(e) => setForm((prev) => ({ ...prev, dbName: e.target.value }))}
+                />
+                <Button
+                  variant="contained"
+                  onClick={async () => {
+                    await addField({
+                      name: form.name,
+                      dbName: form.dbName,
+                      type: form.type,
+                    });
+                    setDropDownOpen(false);
+                    setTimeout(() => handleRefetch(), 2000);
+                  }}
+                >
+                  Добавить
+                </Button>
+              </div>
+            </Popover>
+          </div>
+        );
+      },
+      enableColumnActions: false,
+    });
+    return result;
   }, [meta?.fields]);
 
   const handleDeleteRow = async (row: any) => {
@@ -254,13 +382,31 @@ function TablePage({ params }: TablePageProps) {
     <div className="rounded-lg p-4 shadow-lg bg-white">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">{meta?.name}</h2>
-        <Button
-          variant="contained"
-          onClick={() => setIsEditModalOpen(true)}
-          className="normal-case"
-        >
-          Редактировать таблицу
-        </Button>
+        <div className="flex gap-4">
+          <Button
+            variant="contained"
+            onClick={() => setIsEditModalOpen(true)}
+            className="normal-case"
+          >
+            Редактировать таблицу
+          </Button>
+          <Link href={`/admin/widgets/add?table-id=${id}`}>
+            <Button
+              variant="contained"
+              className="normal-case"
+            >
+              Добавить виджет
+            </Button>
+          </Link>
+          <Link href={`/admin/forms/add?table-id=${id}`}>
+            <Button
+              variant="contained"
+              className="normal-case"
+            >
+              Добавить форму
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <TableEditor

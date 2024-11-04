@@ -1,7 +1,11 @@
 'use client';
 
+import { IWidget } from '@/components/entities/IWidget';
 import { gql, useQuery } from '@apollo/client';
-import { Button, CircularProgress, Typography } from '@mui/material';
+import {
+  Button, CircularProgress, MenuItem, Typography,
+} from '@mui/material';
+import Link from 'next/link';
 
 function WidgetsPage(props) {
   const { data, loading } = useQuery(gql`
@@ -38,8 +42,10 @@ function WidgetsPage(props) {
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-        {data?.getAllWidgets?.map((widget) => (
-          <div key={widget.id}>{widget.title}</div>
+        {data?.getAllWidgets?.map((widget: IWidget) => (
+          <Link key={widget.id} href={`/admin/widgets/${widget.id}`}>
+            <MenuItem>{widget.title}</MenuItem>
+          </Link>
           // <WidgetCard
           //   key={widget.id}
           //   widget={widget}

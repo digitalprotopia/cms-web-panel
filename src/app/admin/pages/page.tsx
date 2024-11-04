@@ -14,25 +14,17 @@ import {
   IconButton,
   Typography,
   CircularProgress,
+  MenuItem,
+  FormControl,
+  FormControlLabel,
 } from '@mui/material';
-import { Edit, AccessTime, Delete } from '@mui/icons-material';
+import {
+  Edit, AccessTime, Delete, Visibility,
+} from '@mui/icons-material';
 import dayjs from 'dayjs';
-
-export interface IEntity {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ISiteItem extends IEntity {
-  name: string;
-  title: string;
-  url: string;
-  parentId: string;
-  isRoot: boolean;
-  seotag: string;
-  html: string;
-}
+import Link from 'next/link';
+import DefaultEditor, { Editor, EditorProvider } from 'react-simple-wysiwyg';
+import { ISiteItem } from '@/components/entities/ISiteItem';
 
 const GET_PAGES = gql`
   query GetAllSiteItems {
@@ -126,16 +118,34 @@ function PageForm({
     onSubmit(formData);
   };
 
+  const snippets = useQuery(gql`
+    query {
+      getAllWidgets {
+        id
+        name
+        title
+        createdAt
+      }
+      getAllForms {
+        id
+        name
+        title
+        createdAt
+      }
+  }`);
+
+  console.log(snippets);
+
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <div className="grid grid-cols-2 gap-4">
-        <TextField
+        {/* <TextField
           label="Название"
           fullWidth
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           required
-        />
+        /> */}
         <TextField
           label="Заголовок"
           fullWidth
@@ -161,16 +171,28 @@ function PageForm({
         onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
         sx={{ mt: 2 }}
       />
-
-      <TextField
-        label="Контент"
-        fullWidth
-        multiline
-        rows={8}
+      <h4>Контент</h4>
+      <DefaultEditor
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
-        sx={{ mt: 2 }}
       />
+
+      <h4>Добавить виджеты</h4>
+      <div>
+        {snippets.data?.getAllWidgets?.map((widget) => (
+          <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
+            {widget.title}
+          </MenuItem>
+        ))}
+      </div>
+      <h4>Добавить формы</h4>
+      <div>
+        {snippets.data?.getAllForms?.map((form) => (
+          <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
+            {form.title}
+          </MenuItem>
+        ))}
+      </div>
 
       <div className="flex justify-end gap-2 mt-5">
         <Button variant="outlined" onClick={onCancel}>
@@ -211,6 +233,11 @@ function PageCard({
             <IconButton onClick={() => onEdit(page)} size="small">
               <Edit />
             </IconButton>
+            <Link href={`/${page.url}`}>
+              <IconButton size="small">
+                <Visibility />
+              </IconButton>
+            </Link>
             <IconButton
               onClick={() => onDelete(page.id)}
               size="small"
