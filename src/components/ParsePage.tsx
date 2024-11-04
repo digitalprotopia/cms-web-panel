@@ -1,5 +1,7 @@
 import { gql, useQuery } from '@apollo/client';
 import parse from 'html-react-parser';
+import reactStringReplace from 'react-string-replace';
+import { Typography } from '@mui/material';
 import useTable from './use-table';
 import DynamicParse from './DynamicParse';
 
@@ -36,6 +38,56 @@ function PageWidget(props: {
   ));
 }
 
+function FormWidget(props: {
+  formName: string;
+}) {
+  const { data } = useQuery(gql`
+            query($name: String!) {
+                getFormByName(name: $name) {
+                    id
+                    name
+                    title
+                    createdAt
+                    fields {
+                        id
+                        title
+                        name
+                        tableFieldId
+                        formFieldType
+                        createdAt
+                        field {
+                            id
+                            name
+                            dbName
+                        }
+                    }
+                    table {
+                        id
+                        name
+                        dbName
+                    }
+                }
+            }
+        `, {
+    variables: { name: props.formName },
+  });
+  if (!data?.getFormByName) {
+    return null;
+  }
+  return (
+    <div>
+      <Typography variant="h4">{data.getFormByName.title}</Typography>
+      <div>
+        {data.getFormByName.fields.map((field) => (
+          <div key={field.id}>
+            {field.title}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ParsePage(props: {
   html: string;
 }) {
@@ -43,19 +95,17 @@ function ParsePage(props: {
     props.html,
     {
       transform(reactNode, domNode, index) {
-        if (domNode.type === 'text') {
-          const matches = domNode.data.match(/^(.*)\{widget:([a-zA-Z0-9]+)\}(.*)$/);
-          console.log(domNode.data);
-          if (matches) {
-            return (
-              <>
-                {matches[1]}
-                <PageWidget widgetName={matches[2]} />
-                {matches[3]}
-              </>
-            );
+        return reactStringReplace(domNode.data, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
+          console.log(match, i);
+          const parts = match.split(':');
+          if (parts[0] === 'widget') {
+            return (<PageWidget widgetName={parts[1]} key={i} />);
           }
-        }
+          if (parts[0] === 'form') {
+            return <FormWidget formName={parts[1]} key={i} />;
+          }
+          return match;
+        });
         return reactNode;
       },
     },

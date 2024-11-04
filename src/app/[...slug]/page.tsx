@@ -2,7 +2,7 @@
 
 import { useMemo, use, useState } from 'react';
 import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
-import { Button, IconButton, TextField } from '@mui/material';
+import { Button, IconButton, TextField, Typography } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import { gql, useApolloClient, useQuery } from '@apollo/client';
 
@@ -12,6 +12,8 @@ import ParsePage from '@/components/ParsePage';
 const GET_SITEITEM_BY_URL = gql`
   query GetSiteItemByUrl($url: String!) {
     getSiteItemByUrl(url: $url) {
+      url
+      title
       html
       id
     }
@@ -32,7 +34,12 @@ function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   return (
     <div>
       {(error || !siteItem?.getSiteItemByUrl) ? '404'
-        : <ParsePage html={siteItem?.getSiteItemByUrl.html} />}
+        : (
+          <div>
+            <Typography variant="h4">{siteItem.getSiteItemByUrl.title}</Typography>
+            <ParsePage html={siteItem.getSiteItemByUrl.html} />
+          </div>
+        )}
     </div>
   );
 }

@@ -101,8 +101,13 @@ const menuItems: SidebarItem[] = [
   },
   {
     icon: DashboardOutlined,
-    label: 'Формы и виджеты',
+    label: 'Виджеты',
     href: '/admin/widgets',
+  },
+  {
+    icon: DashboardOutlined,
+    label: 'Формы',
+    href: '/admin/forms',
   },
   {
     icon: SmartToyOutlined,
