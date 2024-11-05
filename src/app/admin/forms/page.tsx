@@ -1,125 +1,134 @@
-'use client';
+"use client";
 
-import { IForm } from '@/components/entities/IForm';
-import { gql, useQuery } from '@apollo/client';
+import React, { useState } from "react";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import {
-  Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField, Typography,
-} from '@mui/material';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+  Card,
+  CardHeader,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+import { Edit, Delete } from "@mui/icons-material";
+import dayjs from "dayjs";
+import FormEdit from "@/components/FormEdit";
 
-function FormsPage(props) {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedTable, setSelectedTable] = useState<string>('');
-  const router = useRouter();
-  
-  const { data, loading } = useQuery(gql`
-      query {
-        getAllForms {
-          id
-          name
-          title
-          createdAt
+const GET_FORMS_AND_TABLES = gql`
+  query {
+    getAllForms {
+      id
+      name
+      title
+      createdAt
+    }
+    getTables {
+      id
+      name
+    }
+  }
+`;
+
+function FormCard({ form, onEdit, onDelete }) {
+  return (
+    <Card>
+      <CardHeader
+        title={form.title}
+        subheader={
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-gray-600">Код: {form.name}</span>
+            <span className="text-sm text-gray-500">
+              Создано: {dayjs(parseInt(form.createdAt)).format("DD.MM.YYYY")}
+            </span>
+          </div>
         }
-        getTables {
-          id
-          name
+        action={
+          <div className="flex gap-2">
+            <IconButton onClick={() => onEdit(form)} size="small">
+              <Edit />
+            </IconButton>
+            <IconButton
+              onClick={() => onDelete(form.id)}
+              size="small"
+              color="error"
+            >
+              <Delete />
+            </IconButton>
+          </div>
         }
-      }
-  `);
+      />
+    </Card>
+  );
+}
+
+function FormsPage() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedForm, setSelectedForm] = useState(null);
+
+  const { data, loading, refetch } = useQuery(GET_FORMS_AND_TABLES);
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setSelectedForm(null);
+    refetch();
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Вы уверены, что хотите удалить эту форму?")) {
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen">
         <CircularProgress />
       </div>
     );
   }
 
   return (
-    <div className="rounded p-4 shadow-lg bg-white">
-      <div className="flex items-center gap-4">
+    <div className="p-6 bg-white rounded shadow-lg">
+      <div className="flex items-center justify-between mb-6">
         <Typography variant="h4">Формы</Typography>
-        <Button
-          variant="contained"
-          onClick={() => {
-            // setSelectedForm(null);
-            // setIsFormOpen(true);
-            setCreateDialogOpen(true);
-          }}
-        >
+        <Button variant="contained" onClick={() => setIsFormOpen(true)}>
           Добавить форму
         </Button>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-        {data?.getAllForms?.map((form: IForm) => (
-          <Link href={`/admin/forms/${form.id}`} key={form.id}>
-            <MenuItem>{form.title}</MenuItem>
-          </Link>
-          // <FormCard
-          //   key={form.id}
-          //   form={form}
-          //   onEdit={(form) => {
-          //     setSelectedForm(form);
-          //     setIsFormOpen(true);
-          //   }}
-          //   onDelete={handleDelete}
-          // />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {data?.getAllForms?.map((form) => (
+          <FormCard
+            key={form.id}
+            form={form}
+            onEdit={(form) => {
+              setSelectedForm(form);
+              setIsFormOpen(true);
+            }}
+            onDelete={handleDelete}
+          />
         ))}
       </div>
 
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)}>
-        <DialogTitle>Добавить виджет</DialogTitle>
-        <DialogContent>
-          <TextField
-            select
-            label="Таблица"
-            value={selectedTable}
-            onChange={(e) => setSelectedTable(e.target.value)}
-            fullWidth
-          >
-            {data.getTables.map((table) => (
-              <MenuItem key={table.id} value={table.id}>{table.name}</MenuItem>
-            ))}
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Отмена</Button>
-          <Button onClick={() => {
-            router.push(`/admin/forms/add?table-id=${selectedTable}`);
-          }}
-          >
-            Создать
-
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/*
       <Dialog
         open={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedForm(null);
-        }}
-        maxWidth="md"
+        onClose={handleCloseForm}
+        maxWidth="xl"
         fullWidth
       >
         <DialogTitle>
-          {selectedForm ? "Редактировать страницу" : "Создать новую страницу"}
+          {selectedForm ? "Редактировать форму" : "Создать форму"}
         </DialogTitle>
         <DialogContent>
-          <FormForm
-            initialData={selectedForm || {}}
-            onSubmit={selectedForm ? handleUpdate : handleCreate}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setSelectedForm(null);
-            }}
+          <FormEdit
+            id={selectedForm?.id}
+            onClose={handleCloseForm}
+            tables={data?.getTables || []}
           />
         </DialogContent>
-      </Dialog> */}
+      </Dialog>
     </div>
   );
 }

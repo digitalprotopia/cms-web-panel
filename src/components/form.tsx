@@ -1,5 +1,10 @@
-import { Checkbox, FormControl, FormControlLabel, TextField } from '@mui/material';
-import { FieldType } from './entities/IField';
+import {
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  TextField,
+} from "@mui/material";
+import { FieldType } from "./entities/IField";
 
 export function FormField(props: {
   title: string;
@@ -11,7 +16,7 @@ export function FormField(props: {
     return (
       <TextField
         label={props.title}
-        value={props.value || ''}
+        value={props.value || ""}
         onChange={(e) => props.onChange(e.target.value)}
       />
     );
@@ -31,7 +36,7 @@ export function FormField(props: {
       <TextField
         label={props.title}
         value={props.value || new Date()}
-        type="date"
+        type="datetime-local"
         onChange={(e) => props.onChange(e.target.value)}
       />
     );
@@ -41,12 +46,12 @@ export function FormField(props: {
       <FormControl>
         <FormControlLabel
           label={props.title}
-          control={(
+          control={
             <Checkbox
               checked={props.value || false}
               onChange={(e) => props.onChange(e.target.checked)}
             />
-)}
+          }
         />
       </FormControl>
     );

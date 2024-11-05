@@ -1,37 +1,49 @@
-'use client';
+"use client";
 
+import { useMemo, use, useState, useCallback, useRef } from "react";
 import {
-  useMemo, use, useState, useCallback,
-  useRef,
-} from 'react';
-import { MaterialReactTable, MRT_RowData, type MRT_ColumnDef } from 'material-react-table';
+  MaterialReactTable,
+  MRT_RowData,
+  type MRT_ColumnDef,
+} from "material-react-table";
 import {
-  Button, IconButton, TextField, FormControl, FormControlLabel, Checkbox,
+  Button,
+  IconButton,
+  TextField,
+  FormControl,
+  FormControlLabel,
+  Checkbox,
   Popover,
   MenuItem,
-} from '@mui/material';
-import {
-  Add, ArrowDropDown, Close, Delete, Save,
-} from '@mui/icons-material';
-import { gql, useApolloClient } from '@apollo/client';
+  Select,
+  InputLabel,
+} from "@mui/material";
+import { Add, ArrowDropDown, Close, Delete, Save } from "@mui/icons-material";
+import { gql, useApolloClient } from "@apollo/client";
 
-import TableEditor from '@/components/table-editor';
+import TableEditor from "@/components/table-editor";
 
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import dayjs from 'dayjs';
-import Link from 'next/link';
-import { FieldType, IField } from '@/components/entities/IField';
-import { FormField } from '@/components/form';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import Link from "next/link";
+import { FieldType, IField } from "@/components/entities/IField";
+import { FormField } from "@/components/form";
 import useTable, {
-  TableMeta, useAddField, useAddRow, useDeleteField, useEditField, useEditRow,
-} from '../../../../components/use-table';
+  TableMeta,
+  useAddField,
+  useAddRow,
+  useDeleteField,
+  useEditField,
+  useEditRow,
+} from "../../../../components/use-table";
 
 interface Field {
   id: string;
   name: string;
-  type: 'string' | 'number' | 'boolean' | 'date';
+  type: "string" | "number" | "boolean" | "date";
   dbName: string;
 }
 
@@ -44,6 +56,7 @@ interface FormData {
   [key: string]: string | number | boolean | Date | null;
 }
 
+dayjs.extend(utc);
 function AddRowForm({ meta, refetch }: AddRowFormProps) {
   const [form, setForm] = useState<FormData>({});
   const addRow = useAddRow(meta.dbName);
@@ -55,11 +68,11 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
           const field = meta.fields.find((f) => f.dbName === key);
 
           switch (field?.type) {
-            case 'number':
-              return [key, value === '' ? null : Number(value)];
-            case 'boolean':
+            case "number":
+              return [key, value === "" ? null : Number(value)];
+            case "boolean":
               return [key, Boolean(value)];
-            case 'date':
+            case "date":
               return [key, value instanceof Date ? value.getTime() : null];
             default:
               return [key, value];
@@ -72,26 +85,28 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
       await refetch();
       setForm({});
     } catch (error) {
-      console.error('Error adding row:', error);
+      console.error("Error adding row:", error);
     }
   };
 
   const renderField = (field: Field) => {
     switch (field.type) {
-      case 'boolean':
+      case "boolean":
         return (
           <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
             <FormControl fullWidth className="mt-2">
               <FormControlLabel
-                control={(
+                control={
                   <Checkbox
                     checked={Boolean(form[field.dbName])}
-                    onChange={(e) => setForm((prev) => ({
-                      ...prev,
-                      [field.dbName]: e.target.checked,
-                    }))}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        [field.dbName]: e.target.checked,
+                      }))
+                    }
                   />
-                )}
+                }
                 label={field.name}
                 className="m-0"
               />
@@ -99,30 +114,30 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
           </div>
         );
 
-      case 'date':
+      case "date":
         return (
           <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DateTimePicker
-                label={field.name}
-                value={form[field.dbName] ? dayjs(form[field.dbName]) : null}
-                onChange={(newValue) => setForm((prev) => ({
+            <DateTimePicker
+              label={field.name}
+              value={form[field.dbName] ? dayjs(form[field.dbName]) : null}
+              onChange={(newValue) =>
+                setForm((prev) => ({
                   ...prev,
                   [field.dbName]: newValue ? newValue.toDate() : null,
-                }))}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    fullWidth: true,
-                    className: 'mt-2',
-                  },
-                }}
-              />
-            </LocalizationProvider>
+                }))
+              }
+              slotProps={{
+                textField: {
+                  size: "small",
+                  fullWidth: true,
+                  className: "mt-2",
+                },
+              }}
+            />
           </div>
         );
 
-      case 'number':
+      case "number":
         return (
           <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
             <TextField
@@ -132,9 +147,10 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
               variant="outlined"
               size="small"
               className="mt-2"
-              value={form[field.dbName] || ''}
+              value={form[field.dbName] || ""}
               onChange={(e) => {
-                const value = e.target.value === '' ? '' : Number(e.target.value);
+                const value =
+                  e.target.value === "" ? "" : Number(e.target.value);
                 setForm((prev) => ({ ...prev, [field.dbName]: value }));
               }}
             />
@@ -150,8 +166,10 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
               variant="outlined"
               size="small"
               className="mt-2"
-              value={form[field.dbName] || ''}
-              onChange={(e) => setForm((prev) => ({ ...prev, [field.dbName]: e.target.value }))}
+              value={form[field.dbName] || ""}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, [field.dbName]: e.target.value }))
+              }
             />
           </div>
         );
@@ -186,9 +204,7 @@ function TablePage({ params }: TablePageProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [tableMetadata, setTableMetadata] = useState<TableMeta | null>(null);
 
-  const {
-    data, meta, loading, error, refetch,
-  } = useTable(id, {
+  const { data, meta, loading, error, refetch } = useTable(id, {
     onMetaLoaded: (meta) => {
       setTableMetadata(meta);
     },
@@ -201,153 +217,156 @@ function TablePage({ params }: TablePageProps) {
     try {
       await refetch();
     } catch (error) {
-      console.error('Error refetching data:', error);
+      console.error("Error refetching data:", error);
     }
   }, [refetch]);
 
   const columns = useMemo(() => {
     if (!meta?.fields) return [];
 
-    const result = meta.fields.map((field): MRT_ColumnDef<MRT_RowData> => ({
-      accessorKey: field.dbName,
-      header: field.name,
-      Header: (({
-        header,
-      }) => {
-        const dropDownRef = useRef();
-        const [dropDownOpen, setDropDownOpen] = useState(false);
-        const deleteField = useDeleteField();
-        const editField = useEditField();
-        const [editForm, setEditForm] = useState<Partial<IField>>({
-          name: field.name,
-        });
-        return (
-          <div onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-          }}
-          >
-            {field.name}
-            <IconButton
-              ref={dropDownRef}
+    const result = meta.fields.map(
+      (field): MRT_ColumnDef<MRT_RowData> => ({
+        accessorKey: field.dbName,
+        header: field.name,
+        Header: ({ header }) => {
+          const dropDownRef = useRef();
+          const [dropDownOpen, setDropDownOpen] = useState(false);
+          const deleteField = useDeleteField();
+          const editField = useEditField();
+          const [editForm, setEditForm] = useState<Partial<IField>>({
+            name: field.name,
+          });
+          return (
+            <div
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
-                setDropDownOpen(true);
               }}
             >
-              <ArrowDropDown />
-            </IconButton>
-            <Popover
-              anchorEl={dropDownRef.current}
-              open={dropDownOpen}
-              onClose={() => setDropDownOpen(false)}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-            >
-              <div className="p-4">
-                <h4>Редактировать поле</h4>
-                <TextField
-                  label="Название"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                />
-                <Button
-                  variant="contained"
-                  onClick={async () => {
-                    await editField(field.id, {
-                      name: editForm.name,
-                    });
-                    setDropDownOpen(false);
-                    setTimeout(() => handleRefetch(), 2000);
-                  }}
-                >
-                  Редактировать
-                </Button>
-                <h4>Удалить поле</h4>
-                <Button
-                  variant="contained"
-                  onClick={async () => {
-                    await deleteField(field.id);
-                    setDropDownOpen(false);
-                    setTimeout(() => handleRefetch(), 2000);
-                  }}
-                  color="error"
-                >
-                  Удалить
-                </Button>
-              </div>
-            </Popover>
-          </div>
-        );
-      }),
-      Cell: ({ cell, row }) => {
-        const [editMode, setEditMode] = useState(false);
-        const [value, setValue] = useState<any>(cell.getValue());
-        const editRow = useEditRow(meta.dbName);
-        if (field.type === 'boolean') {
-          return (
-            <Checkbox
-              checked={!!cell.getValue()}
-              onChange={(e) => {
-                editRow(row.original.id, {
-                  [field.dbName]: e.target.checked,
-                });
-                refetch();
-              }}
-            />
-          );
-        }
-        if (editMode) {
-          return (
-            <div>
-              <FormField
-                field={field}
-                value={value}
-                title=""
-                type={field.type}
-                onChange={(value) => setValue(value)}
-              />
+              {field.name}
               <IconButton
-                onClick={async () => {
-                  await editRow(row.original.id, {
-                    [field.dbName]: value,
-                  });
-                  setEditMode(false);
-                  refetch();
+                ref={dropDownRef}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setDropDownOpen(true);
                 }}
               >
-                <Save />
+                <ArrowDropDown />
               </IconButton>
-              <IconButton
-                onClick={() => {
-                  setValue(cell.getValue());
-                  setEditMode(false);
+              <Popover
+                anchorEl={dropDownRef.current}
+                open={dropDownOpen}
+                onClose={() => setDropDownOpen(false)}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
                 }}
               >
-                <Close />
-              </IconButton>
+                <div className="p-4">
+                  <h4>Редактировать поле</h4>
+                  <TextField
+                    label="Название"
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={async () => {
+                      await editField(field.id, {
+                        name: editForm.name,
+                      });
+                      setDropDownOpen(false);
+                      setTimeout(() => handleRefetch(), 2000);
+                    }}
+                  >
+                    Редактировать
+                  </Button>
+                  <h4>Удалить поле</h4>
+                  <Button
+                    variant="contained"
+                    onClick={async () => {
+                      await deleteField(field.id);
+                      setDropDownOpen(false);
+                      setTimeout(() => handleRefetch(), 2000);
+                    }}
+                    color="error"
+                  >
+                    Удалить
+                  </Button>
+                </div>
+              </Popover>
             </div>
           );
-        }
-        return (
-          <div onClick={() => setEditMode(true)}>
-            {cell.getValue()
-|| <i>Нет текста</i>}
-          </div>
-        );
-      },
-    }));
+        },
+        Cell: ({ cell, row }) => {
+          const [editMode, setEditMode] = useState(false);
+          const [value, setValue] = useState<any>(cell.getValue());
+          const editRow = useEditRow(meta.dbName);
+          if (field.type === "boolean") {
+            return (
+              <Checkbox
+                checked={!!cell.getValue()}
+                onChange={(e) => {
+                  editRow(row.original.id, {
+                    [field.dbName]: e.target.checked,
+                  });
+                  refetch();
+                }}
+              />
+            );
+          }
+          if (editMode) {
+            return (
+              <div>
+                <FormField
+                  field={field}
+                  value={value}
+                  title=""
+                  type={field.type}
+                  onChange={(value) => setValue(value)}
+                />
+                <IconButton
+                  onClick={async () => {
+                    console.log(value);
+                    await editRow(row.original.id, {
+                      [field.dbName]: value,
+                    });
+                    setEditMode(false);
+                    refetch();
+                  }}
+                >
+                  <Save />
+                </IconButton>
+                <IconButton
+                  onClick={() => {
+                    setValue(cell.getValue());
+                    setEditMode(false);
+                  }}
+                >
+                  <Close />
+                </IconButton>
+              </div>
+            );
+          }
+          return (
+            <div onClick={() => setEditMode(true)}>
+              {cell.getValue() || <i>Нет текста</i>}
+            </div>
+          );
+        },
+      }),
+    );
     result.push({
-      header: '+',
+      header: "+",
       Header: () => {
         const dropDownRef = useRef();
         const [dropDownOpen, setDropDownOpen] = useState(false);
         const [form, setForm] = useState<Partial<IField>>({
-          name: '',
-          dbName: '',
+          name: "",
+          dbName: "",
           type: FieldType.STRING,
         });
         const addField = useAddField(meta.id);
@@ -369,33 +388,60 @@ function TablePage({ params }: TablePageProps) {
               open={dropDownOpen}
               onClose={() => setDropDownOpen(false)}
               anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                className: "w-80",
               }}
             >
-              <div className="p-4">
-                <h4>Добавить поле</h4>
+              <div className="p-6 flex flex-col space-y-4">
+                <h4 className="text-lg font-medium text-gray-900">
+                  Добавить поле
+                </h4>
+
                 <TextField
+                  fullWidth
+                  size="small"
                   label="Название"
                   value={form.name}
-                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
                 />
+
                 <TextField
+                  fullWidth
+                  size="small"
                   label="Имя в базе данных"
                   value={form.dbName}
-                  onChange={(e) => setForm((prev) => ({ ...prev, dbName: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, dbName: e.target.value }))
+                  }
                 />
-                {Object.values(FieldType).map((key) => (
-                  <div key={key}>
-                    <MenuItem
-                      onClick={() => setForm((prev) => ({ ...prev, type: key }))}
-                      selected={form.type === key}
-                    >
-                      {key}
+
+                <FormControl fullWidth size="small">
+                  <InputLabel>Тип поля</InputLabel>
+                  <Select
+                    value={form.type}
+                    label="Тип поля"
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, type: e.target.value }))
+                    }
+                  >
+                    <MenuItem value="" disabled>
+                      <em>Выберите тип поля</em>
                     </MenuItem>
-                  </div>
-                ))}
+                    {Object.values(FieldType).map((key) => (
+                      <MenuItem key={key} value={key}>
+                        {key}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
                 <Button
+                  fullWidth
                   variant="contained"
                   onClick={async () => {
                     await addField({
@@ -406,6 +452,8 @@ function TablePage({ params }: TablePageProps) {
                     setDropDownOpen(false);
                     setTimeout(() => handleRefetch(), 2000);
                   }}
+                  disabled={!form.name || !form.dbName || !form.type}
+                  className="mt-2"
                 >
                   Добавить
                 </Button>
@@ -430,7 +478,7 @@ function TablePage({ params }: TablePageProps) {
       });
       await handleRefetch();
     } catch (error) {
-      console.error('Error deleting row:', error);
+      console.error("Error deleting row:", error);
     }
   };
 
@@ -466,22 +514,16 @@ function TablePage({ params }: TablePageProps) {
           >
             Редактировать таблицу
           </Button>
-          <Link href={`/admin/widgets/add?table-id=${id}`}>
-            <Button
-              variant="contained"
-              className="normal-case"
-            >
-              Добавить виджет
-            </Button>
-          </Link>
-          <Link href={`/admin/forms/add?table-id=${id}`}>
-            <Button
-              variant="contained"
-              className="normal-case"
-            >
-              Добавить форму
-            </Button>
-          </Link>
+          {/* <Link href={`/admin/widgets/add?table-id=${id}`}> */}
+          {/*  <Button variant="contained" className="normal-case"> */}
+          {/*    Добавить виджет */}
+          {/*  </Button> */}
+          {/* </Link> */}
+          {/* <Link href={`/admin/forms/add?table-id=${id}`}> */}
+          {/*  <Button variant="contained" className="normal-case"> */}
+          {/*    Добавить форму */}
+          {/*  </Button> */}
+          {/* </Link> */}
         </div>
       </div>
 
@@ -511,8 +553,8 @@ function TablePage({ params }: TablePageProps) {
         muiTablePaperProps={{
           elevation: 0,
           sx: {
-            borderRadius: '0',
-            border: '1px solid #e0e0e0',
+            borderRadius: "0",
+            border: "1px solid #e0e0e0",
           },
         }}
       />

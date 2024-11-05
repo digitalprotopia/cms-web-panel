@@ -1,143 +1,233 @@
+import { gql, useMutation, useQuery } from "@apollo/client";
+import { useState } from "react";
 import {
-  gql, useLazyQuery, useMutation, useQuery,
-} from '@apollo/client';
-import { useState } from 'react';
-import { Button, TextField } from '@mui/material';
-import useTable from './use-table';
-import DynamicParse from './DynamicParse';
+  Button,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+import { ITable } from "@/components/entities/ITable";
+import useTable from "./use-table";
+import DynamicParse from "./DynamicParse";
 
-function WidgetEdit(props: {
+interface WidgetEditProps {
   id?: string;
   tableId?: string;
-}) {
-  const [form, setForm] = useState({
-    name: '',
-    title: '',
-    tableId: props.id ? '' : props.tableId,
-    templateHtml: '',
-  });
-  const { data, loading } = useQuery(gql`
-    query($id: ID!) {
-      getWidget(id: $id) {
-        id
-        name
-        title
-        createdAt
-        tableView {
-          table {
-            id
-            name
-            dbName
-            createdAt
-          }
-        }
-        template {
+  onClose: () => void;
+}
+
+const GET_TABLES = gql`
+  query {
+    getTables {
+      id
+      name
+      dbName
+      createdAt
+    }
+  }
+`;
+
+const GET_WIDGET = gql`
+  query GetWidget($id: ID!) {
+    getWidget(id: $id) {
+      id
+      name
+      title
+      createdAt
+      tableView {
+        table {
           id
-          html
+          name
+          dbName
+          createdAt
         }
       }
+      template {
+        id
+        html
+      }
     }
-  `, {
-    variables: { id: props.id },
-    onCompleted: (_data) => {
+  }
+`;
+
+const CREATE_WIDGET = gql`
+  mutation CreateWidget(
+    $input: WidgetInput!
+    $tableView: TableViewInput!
+    $template: TemplateInput!
+  ) {
+    createWidget(
+      input: $input
+      tableViewInput: $tableView
+      templateInput: $template
+    ) {
+      id
+    }
+  }
+`;
+
+const UPDATE_WIDGET = gql`
+  mutation EditWidget(
+    $id: ID!
+    $input: WidgetInput!
+    $tableView: TableViewInput!
+    $template: TemplateInput!
+  ) {
+    editWidget(
+      id: $id
+      input: $input
+      tableViewInput: $tableView
+      templateInput: $template
+    ) {
+      id
+    }
+  }
+`;
+
+function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
+  const [form, setForm] = useState({
+    name: "",
+    title: "",
+    tableId: tableId || "",
+    templateHtml: "",
+  });
+
+  const isEditMode = Boolean(id && tableId);
+
+  const { loading: widgetLoading } = useQuery(GET_WIDGET, {
+    variables: { id },
+    skip: !isEditMode,
+    onCompleted: (data) => {
       setForm({
-        name: _data.getWidget.name,
-        title: _data.getWidget.title,
-        tableId: _data.getWidget.tableView.table.id,
-        templateHtml: _data.getWidget.template.html,
+        name: data.getWidget.name,
+        title: data.getWidget.title,
+        tableId: data.getWidget.tableView.table.id,
+        templateHtml: data.getWidget.template.html,
       });
     },
-    skip: !props.id,
   });
-  const [createWidget] = useMutation(gql`
-    mutation($input: WidgetInput! $tableView: TableViewInput! $template: TemplateInput!) {
-      createWidget(input: $input tableViewInput: $tableView templateInput: $template) {
-        id
-      }
-    }
-  `);
 
-  const [editWidget] = useMutation(gql`
-    mutation($id: ID! $input: WidgetInput! $tableView: TableViewInput! $template: TemplateInput!) {
-      editWidget(id: $id input: $input tableViewInput: $tableView templateInput: $template) {
-        id
-      }
-    }
-  `);
+  const { data: tablesQuery, loading: tablesLoading } = useQuery(GET_TABLES);
 
-  const table = useTable(form.tableId || '');
-  if (!table.data) {
-    return 'Loading';
+  const [createWidget] = useMutation(CREATE_WIDGET);
+  const [updateWidget] = useMutation(UPDATE_WIDGET);
+
+  const widgetTable = useTable(form.tableId);
+
+  if ((isEditMode && widgetLoading && tablesLoading) || tablesLoading) {
+    return <div>Loading...</div>;
   }
+
+  const handleSave = () => {
+    const variables = {
+      input: {
+        name: form.name,
+        title: form.title,
+      },
+      tableView: {
+        title: form.title,
+        name: form.name,
+        tableId: form.tableId,
+      },
+      template: {
+        title: form.title,
+        html: form.templateHtml,
+      },
+    };
+
+    if (isEditMode) {
+      updateWidget({ variables: { id, ...variables } }).then(() => {
+        onClose();
+      });
+    } else {
+      createWidget({ variables }).then(() => {
+        onClose();
+      });
+    }
+  };
+
   return (
-    <div>
-      <div>
-        <TextField
-          label="Название"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-      </div>
-      <div>
-        <TextField
-          label="Код"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
-      </div>
-      <div>
-        <TextField
-          label="HTML"
-          value={form.templateHtml}
-          onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
-          multiline
-        />
-      </div>
-      <div>
-        <DynamicParse html={form.templateHtml} replace={table.data[0] || {}} />
-      </div>
-      {table.meta?.fields.map((field) => (
-        <div
-          key={field.id}
-          onClick={(e) => {
-            setForm({ ...form, templateHtml: `${form.templateHtml}{${field.dbName}}` });
-          }}
+    <div className="flex flex-col gap-4 py-2">
+      <TextField
+        label="Название"
+        variant="outlined"
+        fullWidth
+        value={form.title}
+        onChange={(e) => setForm({ ...form, title: e.target.value })}
+      />
+
+      <TextField
+        label="Код"
+        variant="outlined"
+        fullWidth
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+      />
+
+      <FormControl fullWidth variant="outlined">
+        <InputLabel id="table-select-label">Выберите таблицу</InputLabel>
+        <Select
+          labelId="table-select-label"
+          label="Выберите таблицу"
+          value={form.tableId}
+          onChange={(e) => setForm({ ...form, tableId: e.target.value })}
         >
-          {`{${field.dbName}}`}
-        </div>
-      ))}
-      <div>
-        <Button onClick={() => {
-          const variables = {
-            input: {
-              name: form.name,
-              title: form.title,
-            },
-            tableView: {
-              title: form.title,
-              name: form.name,
-              tableId: form.tableId,
-            },
-            template: {
-              title: form.title,
-              html: form.templateHtml,
-            },
-          };
-          if (props.id) {
-            editWidget({
-              variables: {
-                id: props.id,
-                ...variables,
-              },
-            });
-          } else {
-            createWidget({ variables });
-          }
-        }}
-        >
-          {props.id ? 'Сохранить' : 'Создать'}
-        </Button>
+          {tablesQuery?.getTables.map((table: ITable) => (
+            <MenuItem key={table.id} value={table.id}>
+              {table.name} ({table.dbName})
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <TextField
+        label="HTML"
+        variant="outlined"
+        fullWidth
+        multiline
+        rows={4}
+        value={form.templateHtml}
+        onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
+      />
+
+      <DynamicParse
+        html={form.templateHtml}
+        replace={widgetTable.data?.[0] || {}}
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {widgetTable.meta?.fields.map((field) => (
+          <Button
+            key={field.id}
+            variant="contained"
+            color="primary"
+            onClick={() =>
+              setForm({
+                ...form,
+                templateHtml: `${form.templateHtml}{${field.dbName}}`,
+              })
+            }
+          >
+            {`{${field.dbName}}`}
+          </Button>
+        ))}
+        {widgetTable.meta?.fields.length === 0 && (
+          <span>В таблице нет полей</span>
+        )}
       </div>
+
+      <Button
+        variant="contained"
+        className="w-full mt-4"
+        onClick={handleSave}
+        disabled={
+          !form.name || !form.title! || !form.tableId || !form.templateHtml
+        }
+      >
+        {isEditMode ? "Сохранить" : "Создать"}
+      </Button>
     </div>
   );
 }

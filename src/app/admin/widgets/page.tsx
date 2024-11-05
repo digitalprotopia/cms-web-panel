@@ -1,39 +1,118 @@
-'use client';
+"use client";
 
-import { IWidget } from '@/components/entities/IWidget';
-import { gql, useQuery } from '@apollo/client';
+import React, { useState } from "react";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import {
-  Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField, Typography,
-} from '@mui/material';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+  Card,
+  CardContent,
+  CardHeader,
+  Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Typography,
+  CircularProgress,
+  MenuItem,
+} from "@mui/material";
+import { Edit, AccessTime, Delete, Visibility } from "@mui/icons-material";
+import dayjs from "dayjs";
+import Link from "next/link";
+import { IWidget } from "@/components/entities/IWidget";
+import WidgetEdit from "@/components/WidgetEdit";
 
-function WidgetsPage(props) {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedTable, setSelectedTable] = useState<string>('');
-  const router = useRouter();
+const GET_WIDGETS = gql`
+  query GetAllWidgets {
+    getAllWidgets {
+      id
+      name
+      title
+      createdAt
+      tableView {
+        id
+        tableId
+      }
+    }
+  }
+`;
 
-  const { data, loading } = useQuery(gql`
-      query {
-        getAllWidgets {
-          id
-          name
-          title
-          createdAt
+const DELETE_WIDGET = gql`
+  mutation DeleteWidget($id: ID!) {
+    deleteWidget(id: $id)
+  }
+`;
+
+function WidgetCard({
+  widget,
+  onEdit,
+  onDelete,
+}: {
+  widget: IWidget;
+  onEdit: (widget: IWidget) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader
+        title={widget.name}
+        action={
+          <div>
+            <IconButton onClick={() => onEdit(widget)} size="small">
+              <Edit />
+            </IconButton>
+            <IconButton
+              onClick={() => onDelete(widget.id)}
+              size="small"
+              color="error"
+            >
+              <Delete />
+            </IconButton>
+          </div>
         }
-        getTables {
-          id
-          name
-        }
-      }
-  `, {
-    onCompleted: (_data) => {
-      if (_data.getTables.length) {
-        setSelectedTable(_data.getTables[0].id);
-      }
+      />
+      <CardContent>
+        <Typography variant="body2" color="text.secondary">
+          {widget.title}
+        </Typography>
+        <div className="flex items-center mt-2">
+          <AccessTime sx={{ fontSize: 16, marginRight: "4px" }} />
+          <Typography variant="caption" color="text.secondary">
+            {dayjs(parseInt(widget.createdAt)).toString()}
+          </Typography>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function WidgetsPage() {
+  const [selectedWidget, setSelectedWidget] = useState<IWidget | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
+
+  const { data, loading, refetch } = useQuery(GET_WIDGETS);
+
+  const [deleteWidget] = useMutation(DELETE_WIDGET, {
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.error("Ошибка при удалении виджета:", error);
     },
   });
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Вы уверены, что хотите удалить этот виджет?")) {
+      deleteWidget({ variables: { id } });
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedWidgetId(null);
+    setIsModalOpen(false);
+  };
 
   if (loading) {
     return (
@@ -45,14 +124,26 @@ function WidgetsPage(props) {
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <div className="flex items-center gap-4">
+      <Dialog
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {selectedWidgetId ? "Редактировать виджет" : "Создать новый виджет"}
+        </DialogTitle>
+        <DialogContent>
+          <WidgetEdit id={selectedWidgetId} onClose={handleCloseModal} />
+        </DialogContent>
+      </Dialog>
+      <div className="flex items-center justify-between gap-4">
         <Typography variant="h4">Виджеты</Typography>
         <Button
           variant="contained"
           onClick={() => {
-            // setSelectedWidget(null);
-            // setIsFormOpen(true);
-            setCreateDialogOpen(true);
+            setSelectedWidget(null);
+            setIsFormOpen(true);
           }}
         >
           Добавить виджет
@@ -61,48 +152,20 @@ function WidgetsPage(props) {
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
         {data?.getAllWidgets?.map((widget: IWidget) => (
-          <Link key={widget.id} href={`/admin/widgets/${widget.id}`}>
-            <MenuItem>{widget.title}</MenuItem>
-          </Link>
-          // <WidgetCard
-          //   key={widget.id}
-          //   widget={widget}
-          //   onEdit={(widget) => {
-          //     setSelectedWidget(widget);
-          //     setIsFormOpen(true);
-          //   }}
-          //   onDelete={handleDelete}
-          // />
+          <WidgetCard
+            key={widget.id}
+            widget={widget}
+            onEdit={(widget) => {
+              console.log(widget);
+              setSelectedWidget(widget);
+              setIsFormOpen(true);
+            }}
+            onDelete={handleDelete}
+          />
         ))}
       </div>
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)}>
-        <DialogTitle>Добавить виджет</DialogTitle>
-        <DialogContent>
-          <TextField
-            select
-            label="Таблица"
-            value={selectedTable}
-            onChange={(e) => setSelectedTable(e.target.value)}
-            fullWidth
-          >
-            {data.getTables.map((table) => (
-              <MenuItem key={table.id} value={table.id}>{table.name}</MenuItem>
-            ))}
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Отмена</Button>
-          <Button onClick={() => {
-            router.push(`/admin/widgets/add?table-id=${selectedTable}`);
-          }}
-          >
-            Создать
 
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* <Dialog
+      <Dialog
         open={isFormOpen}
         onClose={() => {
           setIsFormOpen(false);
@@ -112,19 +175,19 @@ function WidgetsPage(props) {
         fullWidth
       >
         <DialogTitle>
-          {selectedWidget ? "Редактировать страницу" : "Создать новую страницу"}
+          {selectedWidget ? "Редактировать виджет" : "Создать новый виджет"}
         </DialogTitle>
         <DialogContent>
-          <WidgetForm
-            initialData={selectedWidget || {}}
-            onSubmit={selectedWidget ? handleUpdate : handleCreate}
-            onCancel={() => {
+          <WidgetEdit
+            id={selectedWidget?.id}
+            tableId={selectedWidget?.tableView?.tableId}
+            onClose={() => {
               setIsFormOpen(false);
-              setSelectedWidget(null);
+              refetch();
             }}
           />
         </DialogContent>
-      </Dialog> */}
+      </Dialog>
     </div>
   );
 }
