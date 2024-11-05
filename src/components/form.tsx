@@ -5,6 +5,7 @@ import {
   TextField,
 } from "@mui/material";
 import { FieldType } from "./entities/IField";
+import dayjs from "dayjs";
 
 export function FormField(props: {
   title: string;
@@ -27,7 +28,7 @@ export function FormField(props: {
         label={props.title}
         value={props.value || 0}
         type="number"
-        onChange={(e) => props.onChange(e.target.value)}
+        onChange={(e) => props.onChange(parseInt(e.target.value))}
       />
     );
   }
@@ -35,9 +36,9 @@ export function FormField(props: {
     return (
       <TextField
         label={props.title}
-        value={props.value || new Date()}
+        value={dayjs(props.value || new Date()).format('YYYY-MM-DD\THH:mm')}
         type="datetime-local"
-        onChange={(e) => props.onChange(e.target.value)}
+        onChange={(e) => props.onChange(new Date(e.target.value))}
       />
     );
   }

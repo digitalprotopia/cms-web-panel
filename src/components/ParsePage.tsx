@@ -9,6 +9,7 @@ import useTable, { useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
 import { FormField } from './form';
+import dayjs from 'dayjs';
 
 function PageWidget(props: {
   widgetName: string;
@@ -36,11 +37,20 @@ function PageWidget(props: {
     return null;
   }
 
-  return table.data.map((row) => (
-    <div key={row.id}>
+  return table.data.map((row) => {
+    row = {...row};
+    table.meta?.fields.forEach((field) => {
+      if (field.type === FieldType.DATE) {
+        row[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
+      }
+      if (field.type === FieldType.BOOLEAN) {
+        row[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
+      }
+    });
+    return <div key={row.id}>
       <DynamicParse html={data.getWidgetByName.template.html} replace={row} />
     </div>
-  ));
+  });
 }
 
 function FormWidget(props: {
@@ -110,7 +120,6 @@ function FormWidget(props: {
 
           return (
             <div key={field.id}>
-              {field.title}
               {fieldComponent}
             </div>
           );
@@ -130,16 +139,18 @@ function ParsePage(props: {
     props.html,
     {
       transform(reactNode, domNode, index) {
-        return reactStringReplace(domNode.data, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
-          const parts = match.split(':');
-          if (parts[0] === 'widget') {
-            return (<PageWidget widgetName={parts[1]} key={i} />);
-          }
-          if (parts[0] === 'form') {
-            return <FormWidget formName={parts[1]} key={i} />;
-          }
-          return match;
-        });
+        if (domNode.type === 'text') {
+          return reactStringReplace(domNode.data, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
+            const parts = match.split(':');
+            if (parts[0] === 'widget') {
+              return (<PageWidget widgetName={parts[1]} key={i} />);
+            }
+            if (parts[0] === 'form') {
+              return <FormWidget formName={parts[1]} key={i} />;
+            }
+            return match;
+          });
+        }
         return reactNode;
       },
     },

@@ -224,7 +224,7 @@ function PageCard({
   return (
     <Card>
       <CardHeader
-        title={page.name}
+        title={page.title}
         subheader={page.url}
         action={(
           <div>
@@ -248,7 +248,7 @@ function PageCard({
       />
       <CardContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {page.title}
+          {/* {page.url} */}
         </Typography>
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />

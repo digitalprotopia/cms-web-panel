@@ -1,5 +1,5 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { useState } from "react";
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { useState } from 'react';
 import {
   Button,
   TextField,
@@ -7,10 +7,12 @@ import {
   Select,
   FormControl,
   InputLabel,
-} from "@mui/material";
-import { ITable } from "@/components/entities/ITable";
-import useTable from "./use-table";
-import DynamicParse from "./DynamicParse";
+} from '@mui/material';
+import { ITable } from '@/components/entities/ITable';
+import dayjs from 'dayjs';
+import useTable from './use-table';
+import DynamicParse from './DynamicParse';
+import { FieldType } from './entities/IField';
 
 interface WidgetEditProps {
   id?: string;
@@ -88,10 +90,10 @@ const UPDATE_WIDGET = gql`
 
 function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
   const [form, setForm] = useState({
-    name: "",
-    title: "",
-    tableId: tableId || "",
-    templateHtml: "",
+    name: '',
+    title: '',
+    tableId: tableId || '',
+    templateHtml: '',
   });
 
   const isEditMode = Boolean(id && tableId);
@@ -148,6 +150,16 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
     }
   };
 
+  const row = widgetTable.data?.[0] || {};
+  widgetTable.meta?.fields.forEach((field) => {
+    if (field.type === FieldType.DATE) {
+      row[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
+    }
+    if (field.type === FieldType.BOOLEAN) {
+      row[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
+    }
+  });
+
   return (
     <div className="flex flex-col gap-4 py-2">
       <TextField
@@ -176,7 +188,11 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         >
           {tablesQuery?.getTables.map((table: ITable) => (
             <MenuItem key={table.id} value={table.id}>
-              {table.name} ({table.dbName})
+              {table.name}
+              {' '}
+              (
+              {table.dbName}
+              )
             </MenuItem>
           ))}
         </Select>
@@ -192,10 +208,20 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
       />
 
-      <DynamicParse
-        html={form.templateHtml}
-        replace={widgetTable.data?.[0] || {}}
-      />
+      <div style={{
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderRadius: 4,
+        borderColor: 'black',
+        padding: 8,
+      }}
+      >
+        <DynamicParse
+          html={form.templateHtml}
+          replace={row}
+        />
+
+      </div>
 
       <div className="flex flex-wrap gap-2">
         {widgetTable.meta?.fields.map((field) => (
@@ -203,12 +229,10 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
             key={field.id}
             variant="contained"
             color="primary"
-            onClick={() =>
-              setForm({
-                ...form,
-                templateHtml: `${form.templateHtml}{${field.dbName}}`,
-              })
-            }
+            onClick={() => setForm({
+              ...form,
+              templateHtml: `${form.templateHtml}{${field.dbName}}`,
+            })}
           >
             {`{${field.dbName}}`}
           </Button>
@@ -226,7 +250,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
           !form.name || !form.title! || !form.tableId || !form.templateHtml
         }
       >
-        {isEditMode ? "Сохранить" : "Создать"}
+        {isEditMode ? 'Сохранить' : 'Создать'}
       </Button>
     </div>
   );

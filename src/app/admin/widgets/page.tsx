@@ -55,7 +55,7 @@ function WidgetCard({
   return (
     <Card>
       <CardHeader
-        title={widget.name}
+        title={widget.title}
         action={
           <div>
             <IconButton onClick={() => onEdit(widget)} size="small">
@@ -73,7 +73,7 @@ function WidgetCard({
       />
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-          {widget.title}
+          {widget.name}
         </Typography>
         <div className="flex items-center mt-2">
           <AccessTime sx={{ fontSize: 16, marginRight: "4px" }} />

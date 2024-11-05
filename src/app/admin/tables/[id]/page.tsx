@@ -351,9 +351,13 @@ function TablePage({ params }: TablePageProps) {
               </div>
             );
           }
+          let cellValue = cell.getValue();
+          if (field.type === FieldType.DATE) {
+            cellValue = dayjs(value).format("YYYY-MM-DD HH:mm");
+          }
           return (
             <div onClick={() => setEditMode(true)}>
-              {cell.getValue() || <i>Нет текста</i>}
+              {cellValue || <i>Нет текста</i>}
             </div>
           );
         },

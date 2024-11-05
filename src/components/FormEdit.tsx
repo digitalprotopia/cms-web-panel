@@ -168,7 +168,7 @@ function FormEdit({ id, onClose, tables }) {
             Поля формы
           </Typography>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {form.fields.map((field, index) => {
               const tableField = table.meta?.fields.find(
                 (f) => f.id === field.tableFieldId,
@@ -211,7 +211,7 @@ function FormEdit({ id, onClose, tables }) {
           {table.meta?.fields && (
             <div className="mt-4">
               <Typography variant="h6">Доступные поля</Typography>
-              <div className="grid grid-cols-2 gap-4 mt-2">
+              <div className="grid grid-cols-1 gap-4 mt-2">
                 {table.meta.fields.map((field) => (
                   <Button
                     key={field.id}
