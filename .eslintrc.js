@@ -27,5 +27,8 @@ module.exports = {
     "jsx-a11y/control-has-associated-label": "off",
     "import/extensions": "off",
     "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "consistent-return": "off",
+    "no-param-reassign": "off",
   },
 };

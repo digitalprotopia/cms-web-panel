@@ -1,4 +1,3 @@
-import App from 'next/app';
 import {
   ApolloProvider, gql, useMutation, useQuery,
 } from '@apollo/client';
@@ -17,7 +16,6 @@ import {
 import Image from 'next/image';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import clsx from 'clsx';
 import client from '../components/apollo-client';
 import { theme as tailwind } from '../tailwind.config';
 import '../globals.css';

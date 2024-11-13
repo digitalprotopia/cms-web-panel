@@ -5,11 +5,11 @@ import {
   Button, Checkbox, TextField, Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import dayjs from 'dayjs';
 import useTable, { useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
 import { FormField } from './form';
-import dayjs from 'dayjs';
 
 function PageWidget(props: {
   widgetName: string;
@@ -38,7 +38,7 @@ function PageWidget(props: {
   }
 
   return table.data.map((row) => {
-    row = {...row};
+    row = { ...row };
     table.meta?.fields.forEach((field) => {
       if (field.type === FieldType.DATE) {
         row[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
@@ -47,9 +47,11 @@ function PageWidget(props: {
         row[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
       }
     });
-    return <div key={row.id}>
-      <DynamicParse html={data.getWidgetByName.template.html} replace={row} />
-    </div>
+    return (
+      <div key={row.id}>
+        <DynamicParse html={data.getWidgetByName.template.html} replace={row} />
+      </div>
+    );
   });
 }
 

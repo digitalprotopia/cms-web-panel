@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import React, { useState } from 'react';
+import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
   CardContent,
@@ -15,12 +15,14 @@ import {
   Typography,
   CircularProgress,
   MenuItem,
-} from "@mui/material";
-import { Edit, AccessTime, Delete, Visibility } from "@mui/icons-material";
-import dayjs from "dayjs";
-import Link from "next/link";
-import { IWidget } from "@/components/entities/IWidget";
-import WidgetEdit from "@/components/WidgetEdit";
+} from '@mui/material';
+import {
+  Edit, AccessTime, Delete, Visibility,
+} from '@mui/icons-material';
+import dayjs from 'dayjs';
+import Link from 'next/link';
+import { IWidget } from '@/components/entities/IWidget';
+import WidgetEdit from '@/components/WidgetEdit';
 
 const GET_WIDGETS = gql`
   query GetAllWidgets {
@@ -56,7 +58,7 @@ function WidgetCard({
     <Card>
       <CardHeader
         title={widget.title}
-        action={
+        action={(
           <div>
             <IconButton onClick={() => onEdit(widget)} size="small">
               <Edit />
@@ -69,14 +71,14 @@ function WidgetCard({
               <Delete />
             </IconButton>
           </div>
-        }
+        )}
       />
       <CardContent>
         <Typography variant="body2" color="text.secondary">
           {widget.name}
         </Typography>
         <div className="flex items-center mt-2">
-          <AccessTime sx={{ fontSize: 16, marginRight: "4px" }} />
+          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
             {dayjs(parseInt(widget.createdAt)).toString()}
           </Typography>
@@ -99,12 +101,12 @@ function WidgetsPage() {
       refetch();
     },
     onError: (error) => {
-      console.error("Ошибка при удалении виджета:", error);
+      console.error('Ошибка при удалении виджета:', error);
     },
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Вы уверены, что хотите удалить этот виджет?")) {
+    if (window.confirm('Вы уверены, что хотите удалить этот виджет?')) {
       deleteWidget({ variables: { id } });
     }
   };
@@ -131,7 +133,7 @@ function WidgetsPage() {
         fullWidth
       >
         <DialogTitle>
-          {selectedWidgetId ? "Редактировать виджет" : "Создать новый виджет"}
+          {selectedWidgetId ? 'Редактировать виджет' : 'Создать новый виджет'}
         </DialogTitle>
         <DialogContent>
           <WidgetEdit id={selectedWidgetId} onClose={handleCloseModal} />
@@ -175,7 +177,7 @@ function WidgetsPage() {
         fullWidth
       >
         <DialogTitle>
-          {selectedWidget ? "Редактировать виджет" : "Создать новый виджет"}
+          {selectedWidget ? 'Редактировать виджет' : 'Создать новый виджет'}
         </DialogTitle>
         <DialogContent>
           <WidgetEdit

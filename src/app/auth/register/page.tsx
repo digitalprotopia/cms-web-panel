@@ -7,7 +7,6 @@ import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MuiTelInput } from 'mui-tel-input';
 import { Checkbox, FormControlLabel } from '@mui/material';
 import config from '@/config/config';
 
@@ -19,9 +18,7 @@ const SIGN_UP = gql`
   }
 `;
 
-export default function RegisterPage(props) {
-  const router = useRouter();
-
+export default function RegisterPage() {
   const [registerForm, setRegisterForm] = useState({
     name: '',
     email: '',

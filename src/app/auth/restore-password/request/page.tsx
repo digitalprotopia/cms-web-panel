@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, TextField } from '@mui/material';
 import Link from '@mui/material/Link';
 import { gql, useMutation } from '@apollo/client';

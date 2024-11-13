@@ -1,3 +1,5 @@
+'use client';
+
 import { gql, useMutation } from '@apollo/client';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
@@ -15,8 +17,6 @@ function ConfirmEmail() {
   const router = useRouter();
 
   const [confirmEmail] = useMutation(CONFIRM_EMAIL);
-
-  const code = new URLSearchParams(window.location.search).get('code');
 
   useEffect(() => {
     if (!code) {
@@ -37,6 +37,12 @@ function ConfirmEmail() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (!global.window) {
+    return null;
+  }
+
+  const code = new URLSearchParams(window.location.search).get('code');
 
   return <div />;
 }

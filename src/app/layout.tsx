@@ -12,7 +12,7 @@ import { SnackbarProvider } from 'notistack';
 import tailwind from '@/../tailwind.config';
 import { Roboto } from 'next/font/google';
 import { ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 const inter = Roboto({
@@ -24,15 +24,15 @@ const inter = Roboto({
 const theme = createTheme({
   palette: {
     primary: {
-      main: tailwind?.theme?.extend?.colors.cms?.primary,
+      main: tailwind?.theme?.extend?.colors?.cms?.primary,
       contrastText: '#ffffff',
     },
     secondary: {
-      main: tailwind?.theme?.extend?.colors.cms?.secondary,
+      main: tailwind?.theme?.extend?.colors?.cms?.secondary,
       contrastText: '#4B5A73',
     },
     tertiary: {
-      main: tailwind?.theme?.extend?.colors.cms?.tertiary,
+      main: tailwind?.theme?.extend?.colors?.cms?.tertiary,
       contrastText: '#4B5A73',
     },
   },

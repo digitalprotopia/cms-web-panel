@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState } from 'react';
 import {
   Button,
   Menu,
@@ -10,10 +10,10 @@ import {
   Paper,
   Avatar,
   Divider,
-} from "@mui/material";
-import Link from "next/link";
-import { gql, useQuery } from "@apollo/client";
-import Image from "next/image";
+} from '@mui/material';
+import Link from 'next/link';
+import { gql, useQuery } from '@apollo/client';
+import Image from 'next/image';
 import {
   NotificationsNoneOutlined,
   KeyboardArrowDownRounded,
@@ -26,11 +26,11 @@ import {
   DashboardOutlined,
   SmartToyOutlined,
   SvgIconComponent,
-} from "@mui/icons-material";
-import { usePathname, useRouter } from "next/navigation";
-import clsx from "clsx";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+} from '@mui/icons-material';
+import { usePathname, useRouter } from 'next/navigation';
+import clsx from 'clsx';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 interface User {
   id: string;
@@ -58,13 +58,12 @@ const GET_ME = gql`
   }
 `;
 
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase();
+const getInitials = (name: string) => name
+  .split(' ')
+  .slice(0, 2)
+  .map((word) => word[0])
+  .join('')
+  .toUpperCase();
 
 interface SidebarItem {
   icon: SvgIconComponent;
@@ -79,59 +78,61 @@ interface MenuItemProps extends SidebarItem {
 const menuItems: SidebarItem[] = [
   {
     icon: HouseOutlined,
-    label: "Главная",
-    href: "/admin",
+    label: 'Главная',
+    href: '/admin',
   },
   {
     icon: PeopleAltOutlined,
-    label: "Аккаунты",
-    href: "/admin/accounts",
+    label: 'Аккаунты',
+    href: '/admin/accounts',
   },
   {
     icon: CopyAllOutlined,
-    label: "Страницы",
-    href: "/admin/pages",
+    label: 'Страницы',
+    href: '/admin/pages',
   },
   {
     icon: ArticleOutlined,
-    label: "Записи",
-    href: "/admin/posts",
+    label: 'Записи',
+    href: '/admin/posts',
   },
   {
     icon: TableChartOutlined,
-    label: "Таблицы данных",
-    href: "/admin/tables",
+    label: 'Таблицы данных',
+    href: '/admin/tables',
   },
   {
     icon: DashboardOutlined,
-    label: "Виджеты",
-    href: "/admin/widgets",
+    label: 'Виджеты',
+    href: '/admin/widgets',
   },
   {
     icon: DashboardOutlined,
-    label: "Формы",
-    href: "/admin/forms",
+    label: 'Формы',
+    href: '/admin/forms',
   },
   {
     icon: SmartToyOutlined,
-    label: "Боты",
-    href: "/admin/bots",
+    label: 'Боты',
+    href: '/admin/bots',
   },
 ];
 
-function SidebarItem({ href, icon: Icon, label, isActive }: MenuItemProps) {
+function SidebarItem({
+  href, icon: Icon, label, isActive,
+}: MenuItemProps) {
   return (
     <li
       className={clsx(
-        "rounded-md p-2",
-        isActive ? "bg-cms-primary" : "bg-cms-gray-light",
+        'rounded-md p-2',
+        isActive ? 'bg-cms-primary' : 'bg-cms-gray-light',
       )}
     >
       <Link
         href={href}
         className={clsx(
-          "flex items-center",
-          isActive ? "text-white" : "text-cms-gray-dark",
+          'flex items-center',
+          isActive ? 'text-white' : 'text-cms-gray-dark',
         )}
       >
         <Icon />
@@ -147,7 +148,7 @@ interface MenuNavigationProps {
 
 function MenuNavigation({ items }: MenuNavigationProps) {
   const pathname = usePathname();
-  const currentPath = `/${pathname.split("/").slice(1, 3).join("/")}`;
+  const currentPath = `/${pathname.split('/').slice(1, 3).join('/')}`;
 
   return (
     <ul className="flex flex-col gap-2">
@@ -179,18 +180,20 @@ export default function AdminLayout({
     setUserPopoverEl(null);
   };
 
-  const { data, refetch, error, loading } = useQuery<MeQueryResponse>(GET_ME);
+  const {
+    data, refetch, error, loading,
+  } = useQuery<MeQueryResponse>(GET_ME);
 
   if (!loading && (error || !data?.me)) {
-    localStorage.removeItem("token");
+    localStorage.removeItem('token');
   }
 
   const handleLogout = async () => {
     handleUserPopoverClose();
-    localStorage.removeItem("token");
+    localStorage.removeItem('token');
     try {
       await refetch();
-      router.push("/auth/login");
+      router.push('/auth/login');
     } catch (e) {
       console.error(e);
     }
@@ -238,15 +241,15 @@ export default function AdminLayout({
                       open={userPopoverOpen}
                       onClose={handleUserPopoverClose}
                       anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "right",
+                        vertical: 'bottom',
+                        horizontal: 'right',
                       }}
                       transformOrigin={{
-                        vertical: "top",
-                        horizontal: "right",
+                        vertical: 'top',
+                        horizontal: 'right',
                       }}
                     >
-                      <MenuItem onClick={() => router.push("/account")}>
+                      <MenuItem onClick={() => router.push('/account')}>
                         Мой аккаунт
                       </MenuItem>
                       <MenuItem onClick={handleLogout}>Выйти</MenuItem>

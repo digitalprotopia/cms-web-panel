@@ -18,4 +18,3 @@ export interface IUser extends IEntity {
   confirmEmailCode?: string;
   role: UserRole;
 }
-

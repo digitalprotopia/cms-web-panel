@@ -1,5 +1,7 @@
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
-import React, { useState } from "react";
+import {
+  gql, useMutation, useQuery,
+} from '@apollo/client';
+import React, { useState } from 'react';
 import {
   Button,
   Card,
@@ -10,18 +12,17 @@ import {
   Select,
   TextField,
   Typography,
-} from "@mui/material";
-import { Delete } from "@mui/icons-material";
-import useTable from "./use-table";
-import DynamicParse from "./DynamicParse";
-import { FormField } from "./form";
-import { FieldType } from "./entities/IField";
+} from '@mui/material';
+import { Delete } from '@mui/icons-material';
+import useTable from './use-table';
+import { FormField } from './form';
+import { FieldType } from './entities/IField';
 
 function FormEdit({ id, onClose, tables }) {
   const [form, setForm] = useState({
-    name: "",
-    title: "",
-    tableId: "",
+    name: '',
+    title: '',
+    tableId: '',
     fields: [],
   });
 
@@ -49,7 +50,7 @@ function FormEdit({ id, onClose, tables }) {
           fields: meta.fields.map((field) => ({
             name: field.name,
             title: field.name,
-            formFieldType: "string",
+            formFieldType: 'string',
             tableFieldId: field.id,
           })),
         }));
@@ -117,7 +118,7 @@ function FormEdit({ id, onClose, tables }) {
       }
       onClose();
     } catch (error) {
-      console.error("Error saving form:", error);
+      console.error('Error saving form:', error);
     }
   };
 
@@ -127,18 +128,14 @@ function FormEdit({ id, onClose, tables }) {
         <TextField
           label="Название"
           value={form.title}
-          onChange={(e) =>
-            setForm((prev) => ({ ...prev, title: e.target.value }))
-          }
+          onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
           fullWidth
         />
 
         <TextField
           label="Код"
           value={form.name}
-          onChange={(e) =>
-            setForm((prev) => ({ ...prev, name: e.target.value }))
-          }
+          onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
           fullWidth
         />
       </div>
@@ -148,9 +145,7 @@ function FormEdit({ id, onClose, tables }) {
           <InputLabel>Таблица</InputLabel>
           <Select
             value={form.tableId}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, tableId: e.target.value }))
-            }
+            onChange={(e) => setForm((prev) => ({ ...prev, tableId: e.target.value }))}
             label="Таблица"
           >
             {tables.map((table) => (
@@ -188,7 +183,7 @@ function FormEdit({ id, onClose, tables }) {
                     />
                     <FormField
                       title={field.title}
-                      type={(tableField?.type as FieldType) || "string"}
+                      type={(tableField?.type as FieldType) || 'string'}
                       value=""
                       onChange={() => {}}
                     />
@@ -250,7 +245,7 @@ function FormEdit({ id, onClose, tables }) {
           onClick={handleSave}
           disabled={!form.name || !form.title || !form.tableId}
         >
-          {id ? "Сохранить" : "Создать"}
+          {id ? 'Сохранить' : 'Создать'}
         </Button>
       </div>
     </div>

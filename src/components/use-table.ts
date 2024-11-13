@@ -103,9 +103,9 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
           data: dataResult.data[`getAll${newMeta.dbName}`],
         };
       }
-    } catch (error) {
-      console.error('Error refetching table data:', error);
-      throw error;
+    } catch (_error) {
+      console.error('Error refetching table data:', _error);
+      throw _error;
     }
   };
 

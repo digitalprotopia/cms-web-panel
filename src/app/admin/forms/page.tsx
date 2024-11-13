@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import React, { useState } from 'react';
+import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
   CardHeader,
@@ -12,10 +12,10 @@ import {
   IconButton,
   Typography,
   CircularProgress,
-} from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
-import dayjs from "dayjs";
-import FormEdit from "@/components/FormEdit";
+} from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
+import dayjs from 'dayjs';
+import FormEdit from '@/components/FormEdit';
 
 const GET_FORMS_AND_TABLES = gql`
   query {
@@ -37,15 +37,20 @@ function FormCard({ form, onEdit, onDelete }) {
     <Card>
       <CardHeader
         title={form.title}
-        subheader={
+        subheader={(
           <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-600">Код: {form.name}</span>
+            <span className="text-sm text-gray-600">
+              Код:
+              {form.name}
+            </span>
             <span className="text-sm text-gray-500">
-              Создано: {dayjs(parseInt(form.createdAt)).format("DD.MM.YYYY")}
+              Создано:
+              {' '}
+              {dayjs(parseInt(form.createdAt)).format('DD.MM.YYYY')}
             </span>
           </div>
-        }
-        action={
+        )}
+        action={(
           <div className="flex gap-2">
             <IconButton onClick={() => onEdit(form)} size="small">
               <Edit />
@@ -58,7 +63,7 @@ function FormCard({ form, onEdit, onDelete }) {
               <Delete />
             </IconButton>
           </div>
-        }
+        )}
       />
     </Card>
   );
@@ -77,7 +82,7 @@ function FormsPage() {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Вы уверены, что хотите удалить эту форму?")) {
+    if (window.confirm('Вы уверены, что хотите удалить эту форму?')) {
     }
   };
 
@@ -119,7 +124,7 @@ function FormsPage() {
         fullWidth
       >
         <DialogTitle>
-          {selectedForm ? "Редактировать форму" : "Создать форму"}
+          {selectedForm ? 'Редактировать форму' : 'Создать форму'}
         </DialogTitle>
         <DialogContent>
           <FormEdit

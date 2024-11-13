@@ -12,7 +12,7 @@ export interface IFormField extends IEntity {
   name: string;
   tableFieldId: string;
   formId: string;
-  formFieldType: FormFieldType; 
+  formFieldType: FormFieldType;
   // templateId: string;
   // TODO: Доступы
 }

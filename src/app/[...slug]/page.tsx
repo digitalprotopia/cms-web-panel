@@ -1,12 +1,11 @@
 'use client';
 
-import { useMemo, use, useState } from 'react';
-import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
-import { Button, IconButton, TextField, Typography } from '@mui/material';
-import { Delete } from '@mui/icons-material';
-import { gql, useApolloClient, useQuery } from '@apollo/client';
+import { use } from 'react';
+import {
+  Typography,
+} from '@mui/material';
+import { gql, useQuery } from '@apollo/client';
 
-import DynamicParse from '@/components/DynamicParse';
 import ParsePage from '@/components/ParsePage';
 
 const GET_SITEITEM_BY_URL = gql`

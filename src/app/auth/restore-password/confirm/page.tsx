@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, TextField } from '@mui/material';
 import Link from '@mui/material/Link';
 import { gql, useMutation } from '@apollo/client';
@@ -19,6 +21,10 @@ export default function Page() {
     password: '',
     passwordConfirm: '',
   });
+
+  if (!global.window) {
+    return null;
+  }
 
   const code = new URLSearchParams(window.location.search).get('code');
 
