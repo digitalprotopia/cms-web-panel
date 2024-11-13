@@ -32,32 +32,18 @@ const GET_TEMPLATE = gql`
       name
       title
       createdAt
-      tableView {
-        table {
-          id
-          name
-          dbName
-          createdAt
-        }
-      }
-      template {
-        id
-        html
-      }
+      templateGroupId
     }
   }
 `;
 
 const CREATE_TEMPLATE = gql`
   mutation CreateTemplate(
-    $input: TemplateInput!
-    $tableView: TableViewInput!
-    $template: TemplateInput!
+    $input: ITemplate!
   ) {
     createTemplate(
+      id: $id
       input: $input
-      tableViewInput: $tableView
-      templateInput: $template
     ) {
       id
     }
@@ -67,15 +53,11 @@ const CREATE_TEMPLATE = gql`
 const UPDATE_TEMPLATE = gql`
   mutation EditTemplate(
     $id: ID!
-    $input: TemplateInput!
-    $tableView: TableViewInput!
-    $template: TemplateInput!
+    $input: ITemplate!
   ) {
     editTemplate(
       id: $id
       input: $input
-      tableViewInput: $tableView
-      templateInput: $template
     ) {
       id
     }

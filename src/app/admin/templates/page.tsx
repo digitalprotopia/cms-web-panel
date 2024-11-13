@@ -14,7 +14,7 @@ import {
   IconButton,
   Typography,
   CircularProgress,
-  MenuItem,
+  Autocomplete,
 } from '@mui/material';
 import {
   Edit, AccessTime, Delete,
@@ -22,13 +22,12 @@ import {
 import dayjs from 'dayjs';
 import DefaultEditor from 'react-simple-wysiwyg';
 import { ITemplate } from '@/components/entities/ITemplate';
-import { IWidget } from '@/components/entities/IWidget';
-import { IForm } from '@/components/entities/IForm';
 
 const GET_TEMPLATES = gql`
   query GetTemplates {
     getTemplates {
       id
+      name
       title
       html
       createdAt
@@ -50,7 +49,9 @@ const UPDATE_TEMPLATE = gql`
   mutation UpdateTemplate($id: ID!, $input: TemplateInput!) {
     editTemplate(id: $id, input: $input) {
       id
+      name
       title
+      templateGroupId
       html
       createdAt
       updatedAt
@@ -66,11 +67,9 @@ const DELETE_TEMPLATE = gql`
 
 interface TemplateFormData {
   id?: string;
+  name?: string;
   title: string;
-  url: string;
-  parentId?: string;
-  isRoot?: boolean;
-  seotag?: string;
+  templateGroupId?: string;
   html?: string;
 }
 
@@ -83,14 +82,11 @@ function TemplateForm({
   onSubmit: (data: TemplateFormData) => void;
   onCancel: () => void;
 }) {
+  const {
+    id = '', name = '', title = '', templateGroupId, html = '',
+  } = initialData;
   const [formData, setFormData] = useState<TemplateFormData>({
-    id: initialData.id || '',
-    title: initialData.title || '',
-    url: initialData.url || '',
-    parentId: initialData.parentId,
-    isRoot: initialData.isRoot || false,
-    seotag: initialData.seotag || '',
-    html: initialData.html || '',
+    id, name, title, templateGroupId, html,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,32 +94,16 @@ function TemplateForm({
     onSubmit(formData);
   };
 
-  const snippets = useQuery(gql`
-    query {
-      getAllWidgets {
-        id
-        name
-        title
-        createdAt
-      }
-      getAllForms {
-        id
-        name
-        title
-        createdAt
-      }
-  }`);
-
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <div className="grid grid-cols-2 gap-4">
-        {/* <TextField
+        <TextField
           label="Название"
           fullWidth
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           required
-        /> */}
+        />
         <TextField
           label="Заголовок"
           fullWidth
@@ -131,41 +111,19 @@ function TemplateForm({
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           required
         />
+        <Autocomplete
+          fullWidth
+          options={[]}
+          value={formData.templateGroupId}
+          renderInput={(params) => <TextField {...params} label="Группа шаблонов" />}
+        />
       </div>
 
-      <h4>Контент</h4>
+      <h4>HTML</h4>
       <DefaultEditor
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
       />
-
-      <h4>Добавить виджеты</h4>
-      <div>
-        {snippets.data?.getAllWidgets?.map((widget: IWidget) => (
-          <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
-            {widget.title}
-          </MenuItem>
-        ))}
-      </div>
-      <h4>Добавить формы</h4>
-      <div>
-        {snippets.data?.getAllForms?.map((form: IForm) => (
-          <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
-            {form.title}
-          </MenuItem>
-        ))}
-      </div>
-      <h4>Добавить шаблоны</h4>
-      <div>
-        {useQuery(GET_TEMPLATES).data?.getTemplates?.map((form: IForm) => (
-          <MenuItem
-            key={form.id}
-            onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}
-          >
-            {form.title}
-          </MenuItem>
-        ))}
-      </div>
 
       <div className="flex justify-end gap-2 mt-5">
         <Button variant="outlined" onClick={onCancel}>
@@ -242,7 +200,7 @@ function TemplatesPage() {
       refetch();
     },
     onError: (error) => {
-      console.error('Ошибка при создании страницы:', error);
+      console.error('Ошибка при создании шаблона:', error);
     },
   });
 
@@ -253,21 +211,23 @@ function TemplatesPage() {
       refetch();
     },
     onError: (error) => {
-      console.error('Ошибка при обновлении страницы:', error);
+      console.error('Ошибка при обновлении шаблона:', error);
     },
   });
 
   const [deleteTemplate] = useMutation(DELETE_TEMPLATE, {
+
     onCompleted: () => {
       refetch();
     },
     onError: (error) => {
-      console.error('Ошибка при удалении страницы:', error);
+      console.error('Ошибка при удалении шаблона:', error);
     },
   });
 
   const handleCreate = (formData: TemplateFormData) => {
-    createTemplate({ variables: { input: formData } });
+    const { id, ...inputData } = formData;
+    createTemplate({ variables: { input: inputData } });
   };
 
   const handleUpdate = (formData: TemplateFormData) => {
@@ -281,7 +241,7 @@ function TemplatesPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить эту страницу?')) {
+    if (window.confirm('Вы уверены, что хотите удалить этот шаблон?')) {
       deleteTemplate({ variables: { id } });
     }
   };
@@ -297,7 +257,7 @@ function TemplatesPage() {
   return (
     <div className="rounded p-4 shadow-lg bg-white">
       <div className="flex items-center justify-between gap-4">
-        <Typography variant="h4">Страницы</Typography>
+        <Typography variant="h4">Шаблоны</Typography>
         <Button
           variant="contained"
           onClick={() => {
@@ -333,7 +293,7 @@ function TemplatesPage() {
         fullWidth
       >
         <DialogTitle>
-          {selectedTemplate ? 'Редактировать страницу' : 'Создать новую страницу'}
+          {selectedTemplate ? 'Редактировать шаблон' : 'Создать новый шаблон'}
         </DialogTitle>
         <DialogContent>
           <TemplateForm
