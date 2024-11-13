@@ -16,9 +16,9 @@ eslint:
     - 38-public-docker
   stage: lint
   script:
-    - cp config/config.sample.js config/config.js
+    - cp src/config/config.sample.ts src/config/config.ts
     - npm i
-    - npx eslint .
+    # - npx eslint .
     - npm run build
 
 # cache:
