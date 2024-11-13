@@ -1,24 +1,32 @@
 'use client';
 
 import React, { useState } from 'react';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
+  CardContent,
   CardHeader,
   Button,
+  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   IconButton,
   Typography,
   CircularProgress,
+  MenuItem,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import {
+  Edit, AccessTime, Delete,
+} from '@mui/icons-material';
 import dayjs from 'dayjs';
-import TemplateEdit from '@/components/TemplateEdit';
+import DefaultEditor from 'react-simple-wysiwyg';
+import { ITemplate } from '@/components/entities/ITemplate';
+import { IWidget } from '@/components/entities/IWidget';
+import { IForm } from '@/components/entities/IForm';
 
-const GET_TEMPLATES_AND_TABLES = gql`
-  query {
+const GET_TEMPLATES = gql`
+  query GetTemplates {
     getTemplates {
       id
       title
@@ -26,47 +34,174 @@ const GET_TEMPLATES_AND_TABLES = gql`
       createdAt
       updatedAt
     }
-    getTables {
+  }
+`;
+
+const CREATE_TEMPLATE = gql`
+  mutation CreateTemplate($input: TemplateInput!) {
+    createTemplate(input: $input) {
       id
-      name
+      html
     }
   }
 `;
 
-type Template = {
-  id: string,
-  title: string,
-  html: string,
-  createdAt: string
-  updatedAt: string
-};
+const UPDATE_TEMPLATE = gql`
+  mutation UpdateTemplate($id: ID!, $input: TemplateInput!) {
+    editTemplate(id: $id, input: $input) {
+      id
+      title
+      html
+      createdAt
+      updatedAt
+    }
+  }
+`;
 
-type TemplateCardProps = {
-  template: Template;
-  onEdit: (template: any) => void;
+const DELETE_TEMPLATE = gql`
+  mutation DeleteTemplate($id: ID!) {
+    deleteTemplate(id: $id)
+  }
+`;
+
+interface TemplateFormData {
+  id?: string;
+  title: string;
+  url: string;
+  parentId?: string;
+  isRoot?: boolean;
+  seotag?: string;
+  html?: string;
+}
+
+function TemplateForm({
+  initialData = {},
+  onSubmit,
+  onCancel,
+}: {
+  initialData: Partial<TemplateFormData>;
+  onSubmit: (data: TemplateFormData) => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState<TemplateFormData>({
+    id: initialData.id || '',
+    title: initialData.title || '',
+    url: initialData.url || '',
+    parentId: initialData.parentId,
+    isRoot: initialData.isRoot || false,
+    seotag: initialData.seotag || '',
+    html: initialData.html || '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const snippets = useQuery(gql`
+    query {
+      getAllWidgets {
+        id
+        name
+        title
+        createdAt
+      }
+      getAllForms {
+        id
+        name
+        title
+        createdAt
+      }
+  }`);
+
+  return (
+    <form onSubmit={handleSubmit} className="p-4">
+      <div className="grid grid-cols-2 gap-4">
+        {/* <TextField
+          label="Название"
+          fullWidth
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+        /> */}
+        <TextField
+          label="Заголовок"
+          fullWidth
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
+      </div>
+
+      <h4>Контент</h4>
+      <DefaultEditor
+        value={formData.html}
+        onChange={(e) => setFormData({ ...formData, html: e.target.value })}
+      />
+
+      <h4>Добавить виджеты</h4>
+      <div>
+        {snippets.data?.getAllWidgets?.map((widget: IWidget) => (
+          <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
+            {widget.title}
+          </MenuItem>
+        ))}
+      </div>
+      <h4>Добавить формы</h4>
+      <div>
+        {snippets.data?.getAllForms?.map((form: IForm) => (
+          <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
+            {form.title}
+          </MenuItem>
+        ))}
+      </div>
+      <h4>Добавить шаблоны</h4>
+      <div>
+        {useQuery(GET_TEMPLATES).data?.getTemplates?.map((form: IForm) => (
+          <MenuItem
+            key={form.id}
+            onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}
+          >
+            {form.title}
+          </MenuItem>
+        ))}
+      </div>
+
+      <div className="flex justify-end gap-2 mt-5">
+        <Button variant="outlined" onClick={onCancel}>
+          Отмена
+        </Button>
+        <Button variant="contained" type="submit">
+          {initialData.id ? 'Обновить' : 'Создать'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function TemplateCard({
+  template,
+  onEdit,
+  onDelete,
+}: {
+  template: ITemplate;
+  onEdit: (template: ITemplate) => void;
   onDelete: (id: string) => void;
-};
+}) {
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) {
   return (
     <Card>
       <CardHeader
         title={template.title}
-        subheader={(
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-600">
-              Код:
-              {template.name}
-            </span>
-            <span className="text-sm text-gray-500">
-              Создано:
-              {' '}
-              {dayjs(parseInt(template.createdAt, 10)).format('DD.MM.YYYY')}
-            </span>
-          </div>
-        )}
         action={(
-          <div className="flex gap-2">
+          <div>
             <IconButton onClick={() => onEdit(template)} size="small">
               <Edit />
             </IconButton>
@@ -80,75 +215,134 @@ function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) {
           </div>
         )}
       />
+      <CardContent>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {/* {template.url} */}
+        </Typography>
+        <div className="flex items-center">
+          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
+          <Typography variant="caption" color="text.secondary">
+            {dayjs(parseInt(String(template.createdAt), 10)).toString()}
+          </Typography>
+        </div>
+      </CardContent>
     </Card>
   );
 }
 
 function TemplatesPage() {
-  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<ITemplate | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const { data, loading, refetch } = useQuery(GET_TEMPLATES_AND_TABLES);
+  const { data, loading, refetch } = useQuery(GET_TEMPLATES);
 
-  const handleCloseTemplate = () => {
-    setIsTemplateOpen(false);
-    setSelectedTemplate(null);
-    refetch();
+  const [createTemplate] = useMutation(CREATE_TEMPLATE, {
+    onCompleted: () => {
+      setIsFormOpen(false);
+      refetch();
+    },
+    onError: (error) => {
+      console.error('Ошибка при создании страницы:', error);
+    },
+  });
+
+  const [updateTemplate] = useMutation(UPDATE_TEMPLATE, {
+    onCompleted: () => {
+      setIsFormOpen(false);
+      setSelectedTemplate(null);
+      refetch();
+    },
+    onError: (error) => {
+      console.error('Ошибка при обновлении страницы:', error);
+    },
+  });
+
+  const [deleteTemplate] = useMutation(DELETE_TEMPLATE, {
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.error('Ошибка при удалении страницы:', error);
+    },
+  });
+
+  const handleCreate = (formData: TemplateFormData) => {
+    createTemplate({ variables: { input: formData } });
   };
 
-  const handleDelete = () => {
-    if (window.confirm('Вы уверены, что хотите удалить этот шаблонв?')) {
-      // no action required
+  const handleUpdate = (formData: TemplateFormData) => {
+    if (!selectedTemplate) return;
+    updateTemplate({
+      variables: {
+        id: selectedTemplate.id,
+        input: formData,
+      },
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Вы уверены, что хотите удалить эту страницу?')) {
+      deleteTemplate({ variables: { id } });
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center">
         <CircularProgress />
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-white rounded shadow-lg">
-      <div className="flex items-center justify-between mb-6">
-        <Typography variant="h4">Шаблоны</Typography>
-        <Button variant="contained" onClick={() => setIsTemplateOpen(true)}>
+    <div className="rounded p-4 shadow-lg bg-white">
+      <div className="flex items-center justify-between gap-4">
+        <Typography variant="h4">Страницы</Typography>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setSelectedTemplate(null);
+            setIsFormOpen(true);
+          }}
+        >
           Добавить шаблон
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data?.getAllTemplates?.map(
-          (template: Template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onEdit={(editedtemplate: React.SetStateAction<null>) => {
-                setSelectedTemplate(editedtemplate);
-                setIsTemplateOpen(true);
-              }}
-              onDelete={handleDelete}
-            />
-          ),
-        )}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
+        {data?.getTemplates?.map((template: ITemplate) => (
+          <TemplateCard
+            key={template.id}
+            template={template}
+            onEdit={(editedTemplate) => {
+              setSelectedTemplate(editedTemplate);
+              setIsFormOpen(true);
+            }}
+            onDelete={handleDelete}
+          />
+        ))}
       </div>
 
       <Dialog
-        open={isTemplateOpen}
-        onClose={handleCloseTemplate}
-        maxWidth="xl"
+        open={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedTemplate(null);
+        }}
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle>
-          {selectedTemplate ? 'Редактировать форму' : 'Создать форму'}
+          {selectedTemplate ? 'Редактировать страницу' : 'Создать новую страницу'}
         </DialogTitle>
         <DialogContent>
-          <TemplateEdit
-            id={selectedTemplate?.id}
-            onClose={handleCloseTemplate}
-            // tables={data?.getTables || []}
+          <TemplateForm
+            initialData={selectedTemplate || {}}
+            onSubmit={selectedTemplate ? handleUpdate : handleCreate}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setSelectedTemplate(null);
+            }}
           />
         </DialogContent>
       </Dialog>

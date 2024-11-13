@@ -82,29 +82,35 @@ const UPDATE_TEMPLATE = gql`
   }
 `;
 
-interface TemplateEditProps {
-  id?: string;
-  tableId?: string;
-  onClose: () => void;
-//   tables: ITable[];
+interface TemplateFormData {
+  id: string;
+  title: string;
+  tableId: string;
+  templateHtml: string;
 }
 
-function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
-  const [form, setForm] = useState({
-    name: '',
-    title: '',
-    tableId: tableId || '',
-    templateHtml: '',
+interface TemplateEditProps {
+  initialData: TemplateFormData | null;
+  onClose: () => void;
+  //   tables: ITable[];
+}
+
+function TemplateEdit({ initialData, onClose }: TemplateEditProps) {
+  const [template, setTemplate] = useState<TemplateFormData>({
+    id: initialData?.id || '',
+    title: initialData?.title || '',
+    tableId: initialData?.tableId || '',
+    templateHtml: initialData?.templateHtml || '',
   });
 
-  const isEditMode = Boolean(id && tableId);
+  const isEditMode = Boolean(template.id && template.tableId);
 
   const { loading: templateLoading } = useQuery(GET_TEMPLATE, {
     variables: { id },
     skip: !isEditMode,
     onCompleted: (data) => {
-      setForm({
-        name: data.getTemplate.name,
+      setTemplate({
+        id: data.getTemplate.name,
         title: data.getTemplate.title,
         tableId: data.getTemplate.tableView.table.id,
         templateHtml: data.getTemplate.template.html,
@@ -117,7 +123,7 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
   const [createTemplate] = useMutation(CREATE_TEMPLATE);
   const [updateTemplate] = useMutation(UPDATE_TEMPLATE);
 
-  const templateTable = useTable(form.tableId);
+  const templateTable = useTable(template.tableId);
 
   if ((isEditMode && templateLoading && tablesLoading) || tablesLoading) {
     return <div>Loading...</div>;
@@ -126,17 +132,17 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
   const handleSave = () => {
     const variables = {
       input: {
-        name: form.name,
-        title: form.title,
+        name: template.id,
+        title: template.title,
       },
       tableView: {
-        title: form.title,
-        name: form.name,
-        tableId: form.tableId,
+        title: template.title,
+        name: template.id,
+        tableId: template.tableId,
       },
       template: {
-        title: form.title,
-        html: form.templateHtml,
+        title: template.title,
+        html: template.templateHtml,
       },
     };
 
@@ -167,16 +173,16 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
         label="Название"
         variant="outlined"
         fullWidth
-        value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
+        value={template.title}
+        onChange={(e) => setTemplate({ ...template, title: e.target.value })}
       />
 
       <TextField
         label="Код"
         variant="outlined"
         fullWidth
-        value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        value={template.id}
+        onChange={(e) => setTemplate({ ...template, id: e.target.value })}
       />
 
       <FormControl fullWidth variant="outlined">
@@ -184,8 +190,8 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
         <Select
           labelId="table-select-label"
           label="Выберите таблицу"
-          value={form.tableId}
-          onChange={(e) => setForm({ ...form, tableId: e.target.value })}
+          value={template.tableId}
+          onChange={(e) => setTemplate({ ...template, tableId: e.target.value })}
         >
           {tablesQuery?.getTables.map((table: ITable) => (
             <MenuItem key={table.id} value={table.id}>
@@ -205,8 +211,8 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
         fullWidth
         multiline
         rows={4}
-        value={form.templateHtml}
-        onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
+        value={template.templateHtml}
+        onChange={(e) => setTemplate({ ...template, templateHtml: e.target.value })}
       />
 
       <div style={{
@@ -218,7 +224,7 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
       }}
       >
         <DynamicParse
-          html={form.templateHtml}
+          html={template.templateHtml}
           replace={row}
         />
 
@@ -230,9 +236,9 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
             key={field.id}
             variant="contained"
             color="primary"
-            onClick={() => setForm({
-              ...form,
-              templateHtml: `${form.templateHtml}{${field.dbName}}`,
+            onClick={() => setTemplate({
+              ...template,
+              templateHtml: `${template.templateHtml}{${field.dbName}}`,
             })}
           >
             {`{${field.dbName}}`}
@@ -248,7 +254,7 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
         className="w-full mt-4"
         onClick={handleSave}
         disabled={
-          !form.name || !form.title! || !form.tableId || !form.templateHtml
+          !template.id || !template.title! || !template.tableId || !template.templateHtml
         }
       >
         {isEditMode ? 'Сохранить' : 'Создать'}
@@ -256,10 +262,5 @@ function TemplateEdit({ id, tableId, onClose }: TemplateEditProps) {
     </div>
   );
 }
-
-TemplateEdit.defaultProps = {
-  id: '',
-  tableId: '',
-};
 
 export default TemplateEdit;
