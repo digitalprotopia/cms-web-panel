@@ -112,6 +112,11 @@ const menuItems: SidebarItem[] = [
     href: '/admin/forms',
   },
   {
+    icon: DashboardOutlined,
+    label: "Шаблоны",
+    href: "/admin/templates",
+  },
+  {
     icon: SmartToyOutlined,
     label: 'Боты',
     href: '/admin/bots',
