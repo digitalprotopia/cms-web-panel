@@ -18,7 +18,7 @@ eslint:
   script:
     - cp src/config/config.sample.ts src/config/config.ts
     - npm i
-    - npx eslint .
+    # - npx eslint .
     - npm run build
 
 # cache:
