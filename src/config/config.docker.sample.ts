@@ -1,11 +1,8 @@
-import getConfig from 'next/config';
 import { Config } from './config.sample';
 
-const { publicRuntimeConfig } = getConfig();
-
 const config: Config = {
-  server: publicRuntimeConfig?.server || '',
-  noConfirmation: publicRuntimeConfig?.noConfirmation || false,
+  server: process.env.NEXT_PUBLIC_S3APP_LICENSE_REPOSITORY_SERVER || '',
+  noConfirmation: !!process.env.NEXT_PUBLIC_S3APP_LICENSE_REPOSITORY_NO_CONFIRMATION || false,
 };
 console.log(config);
 
