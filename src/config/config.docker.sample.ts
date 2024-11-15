@@ -1,9 +1,9 @@
 import { Config } from './config.sample';
 
-const config: Config = {
-  server: process.env.NEXT_PUBLIC_S3APP_LICENSE_REPOSITORY_SERVER || '',
-  noConfirmation: !!process.env.NEXT_PUBLIC_S3APP_LICENSE_REPOSITORY_NO_CONFIRMATION || false,
-};
+async function config(): Promise<Config> {
+  const data = await (await fetch('/config.json')).json();
+  return data;
+}
 console.log(config);
 
 export default config;

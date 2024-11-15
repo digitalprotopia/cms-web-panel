@@ -3,8 +3,12 @@ export interface Config {
   noConfirmation?: boolean;
 }
 
-const config: Config = {
-  server: process.env.NEXT_PUBLIC_S3APP_LICENSE_REPOSITORY_SERVER || '',
-};
+async function config(): Promise<Config> {
+  return {
+    server: '',
+    noConfirmation: false,
+  };
+}
+console.log(config);
 
 export default config;

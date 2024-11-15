@@ -10,4 +10,4 @@ RUN npm run build
 
 ENV PORT=80
 
-CMD ["npm", "run", "start"]
+CMD ["bash", "entrypoint.sh"]

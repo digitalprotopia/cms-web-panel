@@ -7,13 +7,14 @@ import {
   StyledEngineProvider,
   ThemeProvider,
 } from '@mui/material';
-import { ApolloProvider } from '@apollo/client';
+import { ApolloClient, ApolloProvider, NormalizedCacheObject } from '@apollo/client';
 import { SnackbarProvider } from 'notistack';
 import tailwind from '@/../tailwind.config';
 import { Roboto } from 'next/font/google';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import config from '@/config/config';
 
 const inter = Roboto({
   weight: ['100', '300', '400', '500', '700', '900'],
@@ -44,11 +45,28 @@ export default function CMSLayout({
   children: ReactNode;
   params: any;
 }>) {
+  const [clientCached, setClientCached] = useState<
+  ApolloClient<NormalizedCacheObject> | null>(null);
+
   const path = usePathname();
+
+  useEffect(() => {
+    (async () => {
+      const _config = await config();
+      console.log(_config);
+      window.config = _config;
+      setClientCached(client(_config.server));
+    })()
+  }, []);
+
+  if (clientCached === null) {
+    return null;
+  }
+
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <ApolloProvider client={client}>
+        <ApolloProvider client={clientCached}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
               <SnackbarProvider maxSnack={3}>

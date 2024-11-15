@@ -143,7 +143,7 @@ export default function RegisterPage() {
                   },
                   onCompleted: () => {
                     enqueueSnackbar(
-                      config.noConfirmation
+                      window.config.noConfirmation
                         ? 'Регистрация прошла успешно'
                         : 'Регистрация прошла успешно. Пожалуйста, подтвердите свою почту.',
                       {
