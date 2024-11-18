@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogTitle } from '@mui/material';
-import SiteForm from '../SiteEdit';
+import SiteEditForm from '../SiteEditForm';
 import { ISite, SiteFormData } from '../entities/ISite';
 
 interface SiteEditDialogProps {
@@ -23,7 +23,7 @@ export default function SiteEditDialog({
         {selectedSite ? 'Редактировать сайт' : 'Создать новый сайт'}
       </DialogTitle>
       <DialogContent>
-        <SiteForm
+        <SiteEditForm
           initialData={selectedSite || {}}
           onSubmit={onSubmit}
           onCancel={onCancel}

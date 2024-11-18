@@ -5,11 +5,11 @@ import { GET_TEMPLATE_GROUPS } from '@/app/admin/templateGroups/page';
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import {
-  Button, FormControl, InputLabel, FormLabel,
+  Button,
 } from '@mui/material';
 import { SiteFormData } from './entities/ISite';
 
-export default function SiteForm({
+export default function SiteEditForm({
   initialData = {},
   onSubmit,
   onCancel,
