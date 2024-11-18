@@ -1,4 +1,4 @@
-import S3Autocomplete from '@/components/gui/S3Autocomplete';
+import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
 import { GET_TEMPLATE_GROUPS } from '@/app/admin/templateGroups/page';
 import DefaultEditor from 'react-simple-wysiwyg';

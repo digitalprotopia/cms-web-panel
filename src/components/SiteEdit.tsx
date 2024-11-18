@@ -1,6 +1,6 @@
-import textField from '@/components/gui/TextField';
+import textField from '@/components/guiElements/TextField';
 import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
-import S3Autocomplete from '@/components/gui/S3Autocomplete';
+import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 import { GET_TEMPLATE_GROUPS } from '@/app/admin/templateGroups/page';
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';

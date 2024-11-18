@@ -19,7 +19,7 @@ import {
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
-import textField from '@/components/gui/TextField';
+import textField from '@/components/guiElements/TextField';
 
 export const GET_TEMPLATE_GROUPS = gql`
   query GetTemplateGroups {
