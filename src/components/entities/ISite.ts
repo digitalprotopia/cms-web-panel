@@ -1,10 +1,13 @@
 import { IEntity } from './IEntity';
 
-export interface ISite extends IEntity {
-  name: string;
+export interface SiteFormData {
+  id: string;
+  name?: string;
   title: string;
   favicon: string;
   url: string;
-  templateId: string;
-  platformId: string;
+  templateGroupId: string | null;
+  platformId?: string;
 }
+
+export interface ISite extends IEntity, SiteFormData {}

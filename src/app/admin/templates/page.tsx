@@ -14,7 +14,6 @@ import {
   IconButton,
   Typography,
   CircularProgress,
-  Autocomplete,
 } from '@mui/material';
 import {
   Edit, AccessTime, Delete,
@@ -22,6 +21,9 @@ import {
 import dayjs from 'dayjs';
 import DefaultEditor from 'react-simple-wysiwyg';
 import { ITemplate } from '@/components/entities/ITemplate';
+import S3Autocomplete from '@/components/gui/S3Autocomplete';
+import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
+import { GET_TEMPLATE_GROUPS } from '../templateGroups/page';
 
 const GET_TEMPLATES = gql`
   query GetTemplates {
@@ -30,6 +32,7 @@ const GET_TEMPLATES = gql`
       name
       title
       html
+      templateGroupId
       createdAt
       updatedAt
     }
@@ -48,7 +51,6 @@ const CREATE_TEMPLATE = gql`
 const UPDATE_TEMPLATE = gql`
   mutation UpdateTemplate($id: ID!, $input: TemplateInput!) {
     editTemplate(id: $id, input: $input) {
-      id
       name
       title
       templateGroupId
@@ -69,7 +71,7 @@ interface TemplateFormData {
   id?: string;
   name?: string;
   title: string;
-  templateGroupId?: string;
+  templateGroupId?: string | null;
   html?: string;
 }
 
@@ -93,6 +95,7 @@ function TemplateForm({
     e.preventDefault();
     onSubmit(formData);
   };
+  const templateGroups: ITemplateGroup[] = useQuery(GET_TEMPLATE_GROUPS).data?.getTemplateGroups;
 
   return (
     <form onSubmit={handleSubmit} className="p-4">
@@ -111,11 +114,14 @@ function TemplateForm({
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           required
         />
-        <Autocomplete
-          fullWidth
-          options={[]}
+
+        <S3Autocomplete
           value={formData.templateGroupId}
-          renderInput={(params) => <TextField {...params} label="Группа шаблонов" />}
+          options={templateGroups}
+          onChange={(e) => setFormData({
+            ...formData,
+            templateGroupId: typeof e === 'string' || e === null ? e : e[0],
+          })}
         />
       </div>
 
@@ -124,6 +130,24 @@ function TemplateForm({
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
       />
+
+      <div className="flex flex-wrap gap-2">
+        {[{ templateName: 'Add menu', templateHTML: 'menu' },
+          { templateName: 'Add content', templateHTML: 'content' }]
+          .map((field) => (
+            <Button
+              key={field.templateName}
+              variant="contained"
+              color="primary"
+              onClick={() => setFormData({
+                ...formData,
+                html: `${formData.html}{${field.templateHTML}}`,
+              })}
+            >
+              {`${field.templateName}`}
+            </Button>
+          ))}
+      </div>
 
       <div className="flex justify-end gap-2 mt-5">
         <Button variant="outlined" onClick={onCancel}>
@@ -146,14 +170,6 @@ function TemplateCard({
   onEdit: (template: ITemplate) => void;
   onDelete: (id: string) => void;
 }) {
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
   return (
     <Card>
       <CardHeader
@@ -232,10 +248,11 @@ function TemplatesPage() {
 
   const handleUpdate = (formData: TemplateFormData) => {
     if (!selectedTemplate) return;
+    const { id, ...inputData } = formData;
     updateTemplate({
       variables: {
         id: selectedTemplate.id,
-        input: formData,
+        input: inputData,
       },
     });
   };

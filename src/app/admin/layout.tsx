@@ -113,8 +113,18 @@ const menuItems: SidebarItem[] = [
   },
   {
     icon: DashboardOutlined,
-    label: "Шаблоны",
-    href: "/admin/templates",
+    label: 'Сайты',
+    href: '/admin/sites',
+  },
+  {
+    icon: DashboardOutlined,
+    label: 'Группы шаблонов',
+    href: '/admin/templateGroups',
+  },
+  {
+    icon: DashboardOutlined,
+    label: 'Шаблоны',
+    href: '/admin/templates',
   },
   {
     icon: SmartToyOutlined,
