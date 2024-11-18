@@ -7,9 +7,6 @@ import {
   CardContent,
   CardHeader,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   IconButton,
   Typography,
   CircularProgress,
@@ -19,7 +16,7 @@ import {
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { ISite, SiteFormData } from '@/components/entities/ISite';
-import SiteForm from '@/components/SiteEdit';
+import SiteEditDialog from '@/components/dialogs/SiteEditDialog';
 
 const GET_SITES = gql`
   query getAllSites {
@@ -212,29 +209,16 @@ function SitesPage() {
         ))}
       </div>
 
-      <Dialog
-        open={isFormOpen}
-        onClose={() => {
+      <SiteEditDialog
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        selectedSite={selectedSite}
+        onSubmit={selectedSite ? handleUpdate : handleCreate}
+        onCancel={() => {
           setIsFormOpen(false);
           setSelectedSite(null);
         }}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {selectedSite ? 'Редактировать сайт' : 'Создать новый сайт'}
-        </DialogTitle>
-        <DialogContent>
-          <SiteForm
-            initialData={selectedSite || {}}
-            onSubmit={selectedSite ? handleUpdate : handleCreate}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setSelectedSite(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      />
     </div>
   );
 }

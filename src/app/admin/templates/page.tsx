@@ -7,9 +7,6 @@ import {
   CardContent,
   CardHeader,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   IconButton,
   Typography,
   CircularProgress,
@@ -19,7 +16,7 @@ import {
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { ITemplate, TemplateFormData } from '@/components/entities/ITemplate';
-import TemplateEdit from '@/components/TemplateEdit';
+import TemplateEditDialog from '@/components/dialogs/TemplateEditDialog';
 
 const GET_TEMPLATES = gql`
   query GetTemplates {
@@ -199,30 +196,13 @@ function TemplatesPage() {
           />
         ))}
       </div>
-
-      <Dialog
-        open={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedTemplate(null);
-        }}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {selectedTemplate ? 'Редактировать шаблон' : 'Создать новый шаблон'}
-        </DialogTitle>
-        <DialogContent>
-          <TemplateEdit
-            initialData={selectedTemplate || {}}
-            onSubmit={selectedTemplate ? handleUpdate : handleCreate}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setSelectedTemplate(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      <TemplateEditDialog
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={selectedTemplate ? handleUpdate : handleCreate}
+        onCancel={() => setIsFormOpen(false)}
+        selectedTemplate={selectedTemplate}
+      />
     </div>
   );
 }
