@@ -1,0 +1,65 @@
+import textField from '@/components/gui/TextField';
+import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
+import S3Autocomplete from '@/components/gui/S3Autocomplete';
+import { GET_TEMPLATE_GROUPS } from '@/app/admin/templateGroups/page';
+import { useState } from 'react';
+import { useQuery } from '@apollo/client';
+import {
+  Button, FormControl, InputLabel, FormLabel,
+} from '@mui/material';
+import { SiteFormData } from './entities/ISite';
+
+export default function SiteForm({
+  initialData = {},
+  onSubmit,
+  onCancel,
+}: {
+  initialData: Partial<SiteFormData>;
+  onSubmit: (data: SiteFormData) => void;
+  onCancel: () => void;
+}) {
+  const {
+    id = '', name = '', title = '', templateGroupId = null, favicon = '', url = '', platformId = undefined,
+  } = initialData;
+  const [formData, setFormData] = useState<SiteFormData>({
+    id, name, title, favicon, url, templateGroupId, platformId,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+  const templateGroups: ITemplateGroup[] = useQuery(GET_TEMPLATE_GROUPS).data?.getTemplateGroups;
+
+  return (
+    <form onSubmit={handleSubmit} className="p-4">
+      <div className="grid grid-cols-2 gap-4">
+        {textField('Название', formData.name, (e) => setFormData({ ...formData, name: e.target.value }))}
+        {textField('Заголовок', formData.title, (e) => setFormData({ ...formData, title: e.target.value }))}
+        {textField('URL', formData.url, (e) => setFormData({ ...formData, url: e.target.value }))}
+        <div className="grid grid-cols-2 gap-4">
+          <S3Autocomplete
+            value={formData.templateGroupId}
+            options={templateGroups}
+            label="Шаблоны сайта"
+            variant="outlined"
+            onChange={(e) => setFormData({
+              ...formData,
+              templateGroupId: typeof e === 'string' || e === null ? e : e[0],
+            })}
+          />
+          <Button variant="outlined" onClick={() => {}}>Редактировать</Button>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 mt-5">
+        <Button variant="outlined" onClick={onCancel}>
+          Отмена
+        </Button>
+        <Button variant="contained" type="submit">
+          {initialData.id ? 'Обновить' : 'Создать'}
+        </Button>
+      </div>
+    </form>
+  );
+}

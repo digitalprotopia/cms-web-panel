@@ -7,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   Button,
-  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,10 +19,7 @@ import {
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { ISite, SiteFormData } from '@/components/entities/ISite';
-import textField from '@/components/gui/TextField';
-import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
-import S3Autocomplete from '@/components/gui/S3Autocomplete';
-import { GET_TEMPLATE_GROUPS } from '../templateGroups/page';
+import SiteForm from '@/components/SiteEdit';
 
 const GET_SITES = gql`
   query getAllSites {
@@ -76,56 +72,6 @@ const DELETE_SITE = gql`
     deleteSite(id: $id)
   }
 `;
-
-function SiteForm({
-  initialData = {},
-  onSubmit,
-  onCancel,
-}: {
-  initialData: Partial<SiteFormData>;
-  onSubmit: (data: SiteFormData) => void;
-  onCancel: () => void;
-}) {
-  const {
-    id = '', name = '', title = '', templateGroupId = null, favicon = '', url = '', platformId = undefined,
-  } = initialData;
-  const [formData, setFormData] = useState<SiteFormData>({
-    id, name, title, favicon, url, templateGroupId, platformId,
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-  const templateGroups: ITemplateGroup[] = useQuery(GET_TEMPLATE_GROUPS).data?.getTemplateGroups;
-
-  return (
-    <form onSubmit={handleSubmit} className="p-4">
-      <div className="grid grid-cols-2 gap-4">
-        {textField('Название', formData.name, (e) => setFormData({ ...formData, name: e.target.value }))}
-        {textField('Заголовок', formData.title, (e) => setFormData({ ...formData, title: e.target.value }))}
-        {textField('URL', formData.url, (e) => setFormData({ ...formData, url: e.target.value }))}
-        <S3Autocomplete
-          value={formData.templateGroupId}
-          options={templateGroups}
-          onChange={(e) => setFormData({
-            ...formData,
-            templateGroupId: typeof e === 'string' || e === null ? e : e[0],
-          })}
-        />
-      </div>
-
-      <div className="flex justify-end gap-2 mt-5">
-        <Button variant="outlined" onClick={onCancel}>
-          Отмена
-        </Button>
-        <Button variant="contained" type="submit">
-          {initialData.id ? 'Обновить' : 'Создать'}
-        </Button>
-      </div>
-    </form>
-  );
-}
 
 function SiteCard({
   site,

@@ -6,14 +6,16 @@ type Option = {
 };
 
 interface S3AutocompleteProps {
+  label?: string;
   value: string | undefined | null;
   multiple?: boolean ;
   options: Option[] | undefined;
   onChange: (value: string | string[] | null) => void;
+  variant?: 'standard' | 'outlined';
 }
 
 function S3Autocomplete({
-  value, multiple, options, onChange,
+  label, value, multiple, options, onChange, variant,
 }: S3AutocompleteProps) {
   return (
     <Autocomplete
@@ -29,8 +31,9 @@ function S3Autocomplete({
       renderInput={(params) => (
         <TextField
           {...params}
-          variant="standard"
+          variant={variant}
           color="secondary"
+          label={label}
         />
       )}
     />
@@ -38,7 +41,9 @@ function S3Autocomplete({
 }
 
 S3Autocomplete.defaultProps = {
+  label: null,
   multiple: false,
+  variant: 'standard',
 };
 
 export default S3Autocomplete;
