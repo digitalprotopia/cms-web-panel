@@ -17,6 +17,7 @@ import {
 import dayjs from 'dayjs';
 import { ITemplate, TemplateFormData } from '@/components/entities/ITemplate';
 import TemplateEditDialog from '@/components/dialogs/TemplateEditDialog';
+import { useSearchParams } from 'next/navigation';
 
 const GET_TEMPLATES = gql`
   query GetTemplates {
@@ -104,6 +105,10 @@ function TemplateCard({
 }
 
 function TemplatesPage() {
+  const searchParams = useSearchParams();
+  const templateGroupId = searchParams.get('templateGroupId');
+  // TODO: investigate, why this is called many times:
+  // alert('many times');
   const [selectedTemplate, setSelectedTemplate] = useState<ITemplate | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -184,7 +189,11 @@ function TemplatesPage() {
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-        {data?.getTemplates?.map((template: ITemplate) => (
+        {data?.getTemplates?.filter(
+          (template: ITemplate) => (templateGroupId
+            ? template.templateGroupId === templateGroupId
+            : true),
+        ).map((template: ITemplate) => (
           <TemplateCard
             key={template.id}
             template={template}

@@ -48,7 +48,7 @@ export default function SiteEditForm({
               templateGroupId: typeof e === 'string' || e === null ? e : e[0],
             })}
           />
-          <Button variant="outlined" onClick={() => {}}>Редактировать</Button>
+          <Button variant="outlined" href={`/admin/templates?templateGroupId=${formData.templateGroupId}`}>Редактировать</Button>
         </div>
       </div>
 
