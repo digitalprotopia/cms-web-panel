@@ -158,7 +158,7 @@ function PageForm({
         fullWidth
         value={formData.url}
         onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-        required
+        // required
         sx={{ mt: 2 }}
       />
 
