@@ -87,11 +87,6 @@ const menuItems: SidebarItem[] = [
     href: '/admin/accounts',
   },
   {
-    icon: CopyAllOutlined,
-    label: 'Страницы',
-    href: '/admin/pages',
-  },
-  {
     icon: ArticleOutlined,
     label: 'Записи',
     href: '/admin/posts',
@@ -117,14 +112,14 @@ const menuItems: SidebarItem[] = [
     href: '/admin/sites',
   },
   {
-    icon: DashboardOutlined,
-    label: 'Группы шаблонов',
-    href: '/admin/templateGroups',
+    icon: CopyAllOutlined,
+    label: 'Страницы',
+    href: '/admin/pages',
   },
   {
     icon: DashboardOutlined,
-    label: 'Шаблоны',
-    href: '/admin/templates',
+    label: 'Группы шаблонов',
+    href: '/admin/templateGroups',
   },
   {
     icon: SmartToyOutlined,

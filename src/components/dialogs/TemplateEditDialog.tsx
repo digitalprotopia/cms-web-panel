@@ -1,10 +1,10 @@
 import { Dialog, DialogContent, DialogTitle } from '@mui/material';
 import TemplateEdit from '../TemplateEdit';
-import { ITemplate, TemplateFormData } from '../entities/ITemplate';
+import { ITemplate, ITemplateFormData } from '../entities/ITemplate';
 
 interface TemplateEditDialogProps {
   isOpen: boolean,
-  selectedTemplate: ITemplate | null, onSubmit: (data: TemplateFormData) => void,
+  selectedTemplate: ITemplate | null, onSubmit: (data: ITemplateFormData) => void,
   onClose: () => void,
   onCancel: () => void,
 }

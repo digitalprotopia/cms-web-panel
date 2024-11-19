@@ -1,6 +1,6 @@
 import { IEntity } from './IEntity';
 
-export interface TemplateFormData {
+export interface ITemplateFormData {
   name: string;
   title: string;
   templateGroupId: string | null | undefined;
@@ -8,6 +8,6 @@ export interface TemplateFormData {
   css: string;
 }
 
-export interface ITemplate extends IEntity, TemplateFormData {
+export interface ITemplate extends IEntity, ITemplateFormData {
   isMultiple: boolean;
 }

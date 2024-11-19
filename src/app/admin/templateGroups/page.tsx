@@ -20,6 +20,7 @@ import {
 import dayjs from 'dayjs';
 import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
 import textField from '@/components/guiElements/TextField';
+import { useRouter } from 'next/navigation';
 
 export const GET_TEMPLATE_GROUPS = gql`
   query GetTemplateGroups {
@@ -76,6 +77,7 @@ function TemplateGroupForm({
   onSubmit: (data: TemplateGroupFormData) => void;
   onCancel: () => void;
 }) {
+  const router = useRouter();
   const {
     id = '', name = '', title = '',
   } = initialData;
@@ -91,11 +93,14 @@ function TemplateGroupForm({
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <div className="grid grid-cols-2 gap-4">
-        {textField('Название', formData.name, (e) => setFormData({ ...formData, name: e.target.value }))}
+        {textField('Код', formData.name, (e) => setFormData({ ...formData, name: e.target.value }))}
         {textField('Заголовок', formData.title, (e) => setFormData({ ...formData, title: e.target.value }))}
       </div>
 
       <div className="flex justify-end gap-2 mt-5">
+        <Button hidden={!initialData.id} variant="outlined" onClick={() => router.push(`/admin/templateGroups/${id}`)}>
+          Шаблоны
+        </Button>
         <Button variant="outlined" onClick={onCancel}>
           Отмена
         </Button>
@@ -219,7 +224,7 @@ function TemplateGroupsPage() {
   return (
     <div className="rounded p-4 shadow-lg bg-white">
       <div className="flex items-center justify-between gap-4">
-        <Typography variant="h4">Шаблоны</Typography>
+        <Typography variant="h4">Группы шаблонов</Typography>
         <Button
           variant="contained"
           onClick={() => {
