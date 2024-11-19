@@ -355,6 +355,9 @@ function TablePage({ params }: TablePageProps) {
           if (field.type === FieldType.TEXT) {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
           }
+          if (field.type === FieldType.GEO) {
+            cellValue = `${cellValue?.lat}, ${cellValue?.lng}`;
+          }
           return (
             <div onClick={() => setEditMode(true)}>
               {cellValue || <i>Нет текста</i>}

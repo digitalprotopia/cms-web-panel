@@ -10,9 +10,10 @@ import {
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
-import useTable from './use-table';
+import useTable, { TableField } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
+import { parseRow } from './ParsePage';
 
 interface WidgetEditProps {
   id?: string;
@@ -216,11 +217,8 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         padding: 8,
       }}
       >
-        <DynamicParse
-          html={form.templateHtml}
-          replace={row}
-        />
-
+        {widgetTable.meta
+          ? parseRow(form.templateHtml, row, widgetTable.meta?.fields as TableField[]) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
