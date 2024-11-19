@@ -46,6 +46,9 @@ function PageWidget(props: {
       if (field.type === FieldType.BOOLEAN) {
         row[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
       }
+      if (field.type === FieldType.TEXT) {
+        row[field.dbName] = <div style={{ whiteSpace: 'pre' }}>{row[field.dbName]}</div>;
+      }
     });
     return (
       <div key={row.id}>

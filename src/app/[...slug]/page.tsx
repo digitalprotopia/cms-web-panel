@@ -31,15 +31,22 @@ function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   if (siteItemLoading) return <span>Loading...</span>;
 
   return (
-    <div>
-      {(error || !siteItem?.getSiteItemByUrl) ? '404'
-        : (
-          <div>
-            <Typography variant="h4">{siteItem.getSiteItemByUrl.title}</Typography>
-            <ParsePage html={siteItem.getSiteItemByUrl.html} />
-          </div>
-        )}
-    </div>
+    <>
+      <style>
+        {`.page a{
+          text-decoration: underline;
+        }`}
+      </style>
+      <div className="page">
+        {(error || !siteItem?.getSiteItemByUrl) ? '404'
+          : (
+            <div>
+              <Typography variant="h4">{siteItem.getSiteItemByUrl.title}</Typography>
+              <ParsePage html={siteItem.getSiteItemByUrl.html} />
+            </div>
+          )}
+      </div>
+    </>
   );
 }
 

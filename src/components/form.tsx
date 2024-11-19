@@ -22,6 +22,16 @@ export function FormField(props: {
       />
     );
   }
+  if (props.type === FieldType.TEXT) {
+    return (
+      <TextField
+        label={props.title}
+        value={props.value || ''}
+        onChange={(e) => props.onChange(e.target.value)}
+        multiline
+      />
+    );
+  }
   if (props.type === FieldType.NUMBER) {
     return (
       <TextField
