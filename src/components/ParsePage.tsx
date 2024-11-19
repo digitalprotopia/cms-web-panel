@@ -7,7 +7,7 @@ import {
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
-import { createPortal } from 'react-dom';
+import { createPortal, render } from 'react-dom';
 import { Close } from '@mui/icons-material';
 import useTable, { TableField, useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
@@ -68,7 +68,7 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = fu
         >
           {props.data.map((row: any) => {
             const field = props.fields.find((f) => f.type === FieldType.GEO);
-            if (!field) {
+            if (!field || !row[field.dbName]) {
               return null;
             }
             return (
@@ -91,7 +91,8 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = fu
           left: -20,
           top: -20,
           backgroundColor: 'white',
-          width: 200,
+          minWidth: 200,
+          minHeight: 200,
         }}
         >
           <div style={{ float: 'right' }}>
@@ -136,20 +137,20 @@ export function parseRow(html: string, row: any, fields: TableField[]) {
   const resultRow = { ...row };
   fields.forEach((field) => {
     if (field.type === FieldType.DATE) {
-      resultRow[field.dbName] = dayjs(resultRow[field.dbName]).format('YYYY-MM-DD HH:mm');
+      resultRow[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
     }
     if (field.type === FieldType.BOOLEAN) {
-      resultRow[field.dbName] = resultRow[field.dbName] ? 'Да' : 'Нет';
+      resultRow[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
     }
     if (field.type === FieldType.TEXT) {
-      resultRow[field.dbName] = <div style={{ whiteSpace: 'pre' }}>{resultRow[field.dbName]}</div>;
+      resultRow[field.dbName] = <div style={{ whiteSpace: 'pre' }}>{row[field.dbName]}</div>;
     }
     if (field.type === FieldType.GEO) {
       // resultRow[field.dbName] = resultRow[field.dbName] ? (
       //   <WidgetMap row={row} field={field} />
       // ) : null;
 
-      resultRow[field.dbName] = resultRow[field.dbName] ? (`${resultRow[field.dbName].lat}, ${resultRow[field.dbName].lng}`) : null;
+      resultRow[field.dbName] = row[field.dbName] ? (`${row[field.dbName].lat}, ${row[field.dbName].lng}`) : null;
     }
   });
   return (
@@ -157,6 +158,28 @@ export function parseRow(html: string, row: any, fields: TableField[]) {
       <DynamicParse html={html} replace={resultRow} />
     </div>
   );
+}
+
+export function renderWidget(
+  widgetViewType: string,
+  html: string,
+  fields: TableField[],
+  data: any,
+) {
+  if (widgetViewType === 'map') {
+    return (
+      <WidgetMap
+        data={data}
+        fields={fields}
+        html={html}
+      />
+    );
+  }
+  return data.map((row) => (
+    <div key={row.id}>
+      {parseRow(html, row, fields)}
+    </div>
+  ));
 }
 
 function PageWidget(props: {
@@ -167,6 +190,7 @@ function PageWidget(props: {
             getWidgetByName(name: $name) {
                 id
                 name
+                widgetViewType
                 template {
                     html
                 }
@@ -181,22 +205,16 @@ function PageWidget(props: {
 
   const table = useTable(data?.getWidgetByName.tableView.tableId);
 
-  if (!table.data) {
+  if (!data || !table.data) {
     return null;
   }
 
-  return (
-    <WidgetMap
-      data={table.data}
-      fields={table.meta?.fields as TableField[]}
-      html={data.getWidgetByName.template.html}
-    />
+  return renderWidget(
+    data.getWidgetByName.widgetViewType,
+    data.getWidgetByName.template.html,
+    table.meta?.fields as TableField[],
+    table.data,
   );
-  return table.data.map((row) => (
-    <div key={row.id}>
-      {parseRow(data.getWidgetByName.template.html, row, table.meta?.fields as TableField[])}
-    </div>
-  ));
 }
 
 function FormWidget(props: {
