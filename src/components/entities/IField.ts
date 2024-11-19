@@ -6,6 +6,7 @@ export enum FieldType {
   NUMBER = 'number',
   BOOLEAN = 'boolean',
   DATE = 'date',
+  GEO = 'geo',
 }
 
 export interface IField extends IEntity {

@@ -10,9 +10,10 @@ import {
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
-import useTable from './use-table';
+import useTable, { TableField } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
+import { parseRow, renderWidget } from './ParsePage';
 
 interface WidgetEditProps {
   id?: string;
@@ -38,6 +39,7 @@ const GET_WIDGET = gql`
       name
       title
       createdAt
+      widgetViewType
       tableView {
         table {
           id
@@ -94,6 +96,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
     title: '',
     tableId: tableId || '',
     templateHtml: '',
+    widgetViewType: 'list',
   });
 
   const isEditMode = Boolean(id && tableId);
@@ -107,6 +110,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         title: data.getWidget.title,
         tableId: data.getWidget.tableView.table.id,
         templateHtml: data.getWidget.template.html,
+        widgetViewType: data.getWidget.widgetViewType,
       });
     },
   });
@@ -199,6 +203,21 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       </FormControl>
 
       <TextField
+        select
+        label="Тип виджета"
+        variant="outlined"
+        fullWidth
+        value={form.widgetViewType}
+        onChange={(e) => setForm({ ...form, widgetViewType: e.target.value })}
+      >
+        {['list', 'map'].map((type) => (
+          <MenuItem key={type} value={type}>
+            {type}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      <TextField
         label="HTML"
         variant="outlined"
         fullWidth
@@ -216,11 +235,13 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         padding: 8,
       }}
       >
-        <DynamicParse
-          html={form.templateHtml}
-          replace={row}
-        />
-
+        {widgetTable.meta
+          ? renderWidget(
+            form.widgetViewType,
+            form.templateHtml,
+            widgetTable.meta?.fields as TableField[],
+            [row],
+          ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
