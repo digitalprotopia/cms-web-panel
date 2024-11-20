@@ -131,6 +131,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       input: {
         name: form.name,
         title: form.title,
+        widgetViewType: form.widgetViewType,
       },
       tableView: {
         title: form.title,
