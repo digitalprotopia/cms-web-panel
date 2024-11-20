@@ -3,8 +3,12 @@ import React, {
   createContext,
   useContext,
 } from 'react';
-import parse, { Element, Text, HTMLReactParserOptions } from 'html-react-parser';
+import parse, {
+  Element, Text, HTMLReactParserOptions, domToReact,
+  attributesToProps,
+} from 'html-react-parser';
 import Script from 'next/script';
+import reactStringReplace from 'react-string-replace';
 
 const ReplaceContext = createContext({});
 
@@ -21,7 +25,7 @@ function DynamicParse(props: {
               const replace = useContext(ReplaceContext);
               let result = domNode.data;
               Object.keys(replace).forEach((key) => {
-                result = result.replaceAll(`{${key}}`, replace[key]);
+                result = reactStringReplace(result, `{${key}}`, (match, i) => replace[key]);
               });
               return result;
             }
@@ -32,6 +36,21 @@ function DynamicParse(props: {
             && !domNode.name.match(/^[a-z]+$/)
           ) {
             return null;
+          }
+          if (domNode.type === 'tag' && domNode.attribs && Object.keys(domNode.attribs).length) {
+            const Tag = domNode.name;
+            Object.keys(domNode.attribs).forEach((attr) => {
+              Object.keys(props.replace).forEach((key) => {
+                domNode.attribs[attr] = domNode.attribs[attr].replaceAll(`{${key}}`, props.replace[key]);
+              });
+            });
+            const _props = attributesToProps(domNode.attribs);
+            console.log(Tag);
+            return (
+              <Tag {..._props}>
+                {domToReact(domNode.children, options)}
+              </Tag>
+            );
           }
           if (domNode.type === 'tag' && domNode.attribs?.onclick) {
             const Tag:React.ElementType = domNode.name as any;

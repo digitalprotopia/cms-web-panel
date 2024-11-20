@@ -47,7 +47,7 @@ import useTable, {
 interface Field {
   id: string;
   name: string;
-  type: 'string' | 'number' | 'boolean' | 'date';
+  type: 'string' | 'number' | 'boolean' | 'date' | 'text'
   dbName: string;
 }
 
@@ -351,6 +351,12 @@ function TablePage({ params }: TablePageProps) {
           let cellValue = cell.getValue();
           if (field.type === FieldType.DATE) {
             cellValue = dayjs(value).format('YYYY-MM-DD HH:mm');
+          }
+          if (field.type === FieldType.TEXT) {
+            cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
+          }
+          if (field.type === FieldType.GEO) {
+            cellValue = `${cellValue?.lat}, ${cellValue?.lng}`;
           }
           return (
             <div onClick={() => setEditMode(true)}>

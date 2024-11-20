@@ -24,22 +24,29 @@ function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { data: siteItem, loading: siteItemLoading, error } = useQuery(
     GET_SITEITEM_BY_URL,
     {
-      variables: { url: slug[0] },
+      variables: { url: slug?.[0] || '' },
     },
   );
 
   if (siteItemLoading) return <span>Loading...</span>;
 
   return (
-    <div>
-      {(error || !siteItem?.getSiteItemByUrl) ? '404'
-        : (
-          <div>
-            <Typography variant="h4">{siteItem.getSiteItemByUrl.title}</Typography>
-            <ParsePage html={siteItem.getSiteItemByUrl.html} />
-          </div>
-        )}
-    </div>
+    <>
+      <style>
+        {`.page a{
+          text-decoration: underline;
+        }`}
+      </style>
+      <div className="page">
+        {(error || !siteItem?.getSiteItemByUrl) ? '404'
+          : (
+            <div>
+              <Typography variant="h4">{siteItem.getSiteItemByUrl.title}</Typography>
+              <ParsePage html={siteItem.getSiteItemByUrl.html} />
+            </div>
+          )}
+      </div>
+    </>
   );
 }
 

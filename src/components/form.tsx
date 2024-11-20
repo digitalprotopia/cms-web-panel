@@ -22,6 +22,34 @@ export function FormField(props: {
       />
     );
   }
+  if (props.type === FieldType.TEXT) {
+    return (
+      <TextField
+        label={props.title}
+        value={props.value || ''}
+        onChange={(e) => props.onChange(e.target.value)}
+        multiline
+      />
+    );
+  }
+  if (props.type === FieldType.GEO) {
+    return (
+      <>
+        <TextField
+          label={`${props.title} lat`}
+          value={props.value.lat || 0}
+          type="number"
+          onChange={(e) => props.onChange({ ...props.value, lat: parseFloat(e.target.value) })}
+        />
+        <TextField
+          label={`${props.title} lng`}
+          value={props.value.lng || 0}
+          type="number"
+          onChange={(e) => props.onChange({ ...props.value, lng: parseFloat(e.target.value) })}
+        />
+      </>
+    );
+  }
   if (props.type === FieldType.NUMBER) {
     return (
       <TextField
