@@ -91,7 +91,7 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = fu
           left: -20,
           top: -20,
           backgroundColor: 'white',
-          minWidth: 200,
+          width: 200,
           minHeight: 200,
         }}
         >
