@@ -7,17 +7,14 @@ import {
   MenuItem,
   IconButton,
   Badge,
-  Paper,
   Avatar,
   Divider,
 } from '@mui/material';
 import Link from 'next/link';
 import { gql, useQuery } from '@apollo/client';
-import Image from 'next/image';
 import {
   NotificationsNoneOutlined,
   KeyboardArrowDownRounded,
-  AccountCircleOutlined,
   HouseOutlined,
   PeopleAltOutlined,
   CopyAllOutlined,
@@ -27,6 +24,8 @@ import {
   SmartToyOutlined,
   SvgIconComponent,
 } from '@mui/icons-material';
+import LanguageIcon from '@mui/icons-material/Language';
+import WidgetsOutlinedIcon from '@mui/icons-material/Widgets';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -87,11 +86,6 @@ const menuItems: SidebarItem[] = [
     href: '/admin/accounts',
   },
   {
-    icon: CopyAllOutlined,
-    label: 'Страницы',
-    href: '/admin/pages',
-  },
-  {
     icon: ArticleOutlined,
     label: 'Записи',
     href: '/admin/posts',
@@ -102,7 +96,7 @@ const menuItems: SidebarItem[] = [
     href: '/admin/tables',
   },
   {
-    icon: DashboardOutlined,
+    icon: WidgetsOutlinedIcon,
     label: 'Виджеты',
     href: '/admin/widgets',
   },
@@ -110,6 +104,21 @@ const menuItems: SidebarItem[] = [
     icon: DashboardOutlined,
     label: 'Формы',
     href: '/admin/forms',
+  },
+  {
+    icon: LanguageIcon,
+    label: 'Сайты',
+    href: '/admin/sites',
+  },
+  {
+    icon: CopyAllOutlined,
+    label: 'Страницы',
+    href: '/admin/pages',
+  },
+  {
+    icon: DashboardOutlined,
+    label: 'Шаблоны сайта',
+    href: '/admin/templateGroups',
   },
   {
     icon: SmartToyOutlined,
@@ -169,7 +178,6 @@ export default function AdminLayout({
   children: ReactNode;
 }>) {
   const router = useRouter();
-  const pathname = usePathname();
   const [userPopoverEl, setUserPopoverEl] = useState<null | HTMLElement>(null);
   const userPopoverOpen = Boolean(userPopoverEl);
 
