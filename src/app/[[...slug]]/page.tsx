@@ -24,7 +24,7 @@ function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { data: siteItem, loading: siteItemLoading, error } = useQuery(
     GET_SITEITEM_BY_URL,
     {
-      variables: { url: slug[0] },
+      variables: { url: slug?.[0] || '' },
     },
   );
 
