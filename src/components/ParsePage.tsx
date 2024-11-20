@@ -298,13 +298,20 @@ function FormWidget(props: {
 
 function ParsePage(props: {
   html: string;
+  args?: Record<string, string | React.JSX.Element>
 }) {
   return parse(
     props.html,
     {
       transform(reactNode, domNode, index) {
         if (domNode.type === 'text') {
-          return reactStringReplace(domNode.data, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
+          let result = domNode.data;
+          if (props.args) {
+            Object.keys(props.args).forEach((key) => {
+              result = reactStringReplace(result, `{${key}}`, (match, i) => props.args[key]);
+            });
+          }
+          return reactStringReplace(result, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
             const parts = match.split(':');
             if (parts[0] === 'widget') {
               return (<PageWidget widgetName={parts[1]} key={i} />);
