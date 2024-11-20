@@ -121,8 +121,9 @@ function TemplateGroupCard({
   onEdit: (templateGroup: ITemplateGroup) => void;
   onDelete: (id: string) => void;
 }) {
+  const router = useRouter();
   return (
-    <Card>
+    <Card onClick={() => router.push(`/admin/templateGroups/${templateGroup.id}`)}>
       <CardHeader
         title={templateGroup.title}
         action={(
@@ -224,7 +225,7 @@ function TemplateGroupsPage() {
   return (
     <div className="rounded p-4 shadow-lg bg-white">
       <div className="flex items-center justify-between gap-4">
-        <Typography variant="h4">Группы шаблонов</Typography>
+        <Typography variant="h4">Шаблоны сайта</Typography>
         <Button
           variant="contained"
           onClick={() => {

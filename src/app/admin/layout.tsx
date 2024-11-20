@@ -118,7 +118,7 @@ const menuItems: SidebarItem[] = [
   },
   {
     icon: DashboardOutlined,
-    label: 'Группы шаблонов',
+    label: 'Шаблоны сайта',
     href: '/admin/templateGroups',
   },
   {
