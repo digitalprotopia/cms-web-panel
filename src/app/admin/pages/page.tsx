@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 import Link from 'next/link';
 import DefaultEditor, { Editor, EditorProvider } from 'react-simple-wysiwyg';
 import { ISiteItem } from '@/components/entities/ISiteItem';
+import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 
 const GET_PAGES = gql`
   query GetAllSiteItems {
@@ -134,16 +135,19 @@ function PageForm({
       }
   }`);
 
+  const { data: pagesData, loading } = useQuery(GET_PAGES);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center">
+        <CircularProgress />
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="p-4">
-      <div className="grid grid-cols-2 gap-4">
-        {/* <TextField
-          label="Название"
-          fullWidth
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          required
-        /> */}
+      <div className="grid p-2 grid-cols-2 gap-4">
         <TextField
           label="Заголовок"
           fullWidth
@@ -151,24 +155,32 @@ function PageForm({
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           required
         />
+        <TextField
+          label="SEO Тег"
+          fullWidth
+          value={formData.seotag}
+          onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
+        />
       </div>
 
-      <TextField
-        label="URL"
-        fullWidth
-        value={formData.url}
-        onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-        // required
-        sx={{ mt: 2 }}
-      />
+      <div className="grid p-2 grid-cols-2 gap-4">
+        <TextField
+          label="URL"
+          fullWidth
+          value={formData.url}
+          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+        />
 
-      <TextField
-        label="SEO Тег"
-        fullWidth
-        value={formData.seotag}
-        onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
-        sx={{ mt: 2 }}
-      />
+        <S3Autocomplete
+          label="Родитель"
+          variant="outlined"
+          value={formData.parentId}
+          options={pagesData.getAllSiteItems}
+          getOptionLabelFromKey="title"
+          onChange={(e) => setFormData({ ...formData, parentId: typeof (e) === 'string' ? e : e?.[0] })}
+        />
+      </div>
+
       <h4>Контент</h4>
       <DefaultEditor
         value={formData.html}

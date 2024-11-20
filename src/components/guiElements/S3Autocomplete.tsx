@@ -12,17 +12,20 @@ interface S3AutocompleteProps {
   options: Option[] | undefined;
   onChange: (value: string | string[] | null) => void;
   variant?: 'standard' | 'outlined';
+  getOptionLabelFromKey?: string;
 }
 
 function S3Autocomplete({
-  label, value, multiple, options, onChange, variant,
+  label, value, multiple, options, onChange, variant, getOptionLabelFromKey,
 }: S3AutocompleteProps) {
   return (
     <Autocomplete
       fullWidth
       multiple={multiple}
       options={options?.map((option) => option.id) || []}
-      getOptionLabel={(_value) => options?.find((option) => option.id === _value)?.name || _value}
+      getOptionLabel={(_value) => options?.find(
+        (option) => option.id === _value,
+      )?.[getOptionLabelFromKey as keyof Option] || _value}
       value={value ?? ''}
       onChange={(e, _value) => {
         onChange(_value);
@@ -44,6 +47,7 @@ S3Autocomplete.defaultProps = {
   label: null,
   multiple: false,
   variant: 'standard',
+  getOptionLabelFromKey: 'name',
 };
 
 export default S3Autocomplete;
