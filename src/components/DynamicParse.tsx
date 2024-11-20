@@ -14,7 +14,7 @@ const ReplaceContext = createContext({});
 
 function DynamicParse(props: {
   html: string;
-  replace: Record<string, string>;
+  replace: Record<string, string | React.JSX.Element>;
 }) {
   try {
     const result = useMemo(() => {

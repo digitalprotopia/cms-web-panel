@@ -47,7 +47,9 @@ export default function TemplateEdit({
         </div>
 
         <h4>HTML</h4>
-        <DefaultEditor
+        <TextField
+          multiline
+          fullWidth
           value={formData.html}
           onChange={(e) => setFormData({ ...formData, html: e.target.value })}
         />

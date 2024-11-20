@@ -7,6 +7,8 @@ import {
 import { gql, useQuery } from '@apollo/client';
 
 import ParsePage from '@/components/ParsePage';
+import DynamicParse from '@/components/DynamicParse';
+import Link from 'next/link';
 
 const GET_SITEITEM_BY_URL = gql`
   query GetSiteItemByUrl($url: String!) {
@@ -15,6 +17,18 @@ const GET_SITEITEM_BY_URL = gql`
       title
       html
       id
+    }
+    getAllSites {
+      templateGroup {
+        templates {
+          name
+          html
+        }
+      }
+    }
+    getAllSiteItems {
+      title
+      url
     }
   }
 `;
@@ -30,6 +44,31 @@ function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
 
   if (siteItemLoading) return <span>Loading...</span>;
 
+  const args = {
+    content:
+  <div className="page">
+    {(error || !siteItem?.getSiteItemByUrl) ? '404'
+      : (
+        <div>
+          <Typography variant="h4">{siteItem.getSiteItemByUrl.title}</Typography>
+          <ParsePage html={siteItem.getSiteItemByUrl.html} />
+        </div>
+      )}
+  </div>,
+    menu: siteItem?.getAllSiteItems.map((item) => (
+      <Link key={item.url} href={item.url}>
+        <span className="mx-3">{item.title}</span>
+      </Link>
+    )),
+  };
+
+  const site = siteItem?.getAllSites?.[0];
+  const template = site?.templateGroup?.templates?.find((template) => template.name === 'layout');
+  const html = template ? template.html : `<div>
+  <div>{menu}</div>
+  <div>{content}</div>
+  </div>`;
+
   return (
     <>
       <style>
@@ -37,15 +76,7 @@ function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
           text-decoration: underline;
         }`}
       </style>
-      <div className="page">
-        {(error || !siteItem?.getSiteItemByUrl) ? '404'
-          : (
-            <div>
-              <Typography variant="h4">{siteItem.getSiteItemByUrl.title}</Typography>
-              <ParsePage html={siteItem.getSiteItemByUrl.html} />
-            </div>
-          )}
-      </div>
+      <DynamicParse html={html} replace={args} />
     </>
   );
 }

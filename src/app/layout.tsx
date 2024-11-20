@@ -56,15 +56,6 @@ const GET_ME = gql`
   }
 `;
 
-const GET_ALL_SITE_ITEMS = gql`
-  query GetMe {
-    getAllSiteItems {
-      title
-      url
-    }
-  }
-`;
-
 const getInitials = (name: string) => name
   .split(' ')
   .slice(0, 2)
@@ -107,8 +98,6 @@ function Header() {
     data, refetch, error, loading,
   } = useQuery(GET_ME);
 
-  const getAllSiteItems = useQuery(GET_ALL_SITE_ITEMS);
-
   if (loading) {
     return null;
   }
@@ -121,13 +110,6 @@ function Header() {
             <Link href="/" className="text-cms-gray-dark font-bold text-xl">
               MMCMS
             </Link>
-            <div>
-              {getAllSiteItems.data?.getAllSiteItems.map((item) => (
-                <Link key={item.url} href={item.url}>
-                  <span className="mx-3">{item.title}</span>
-                </Link>
-              ))}
-            </div>
             <div className="flex items-center gap-3">
               {data?.me ? (
                 <>
