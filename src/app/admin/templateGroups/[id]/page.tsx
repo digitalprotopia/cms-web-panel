@@ -209,6 +209,22 @@ function TemplatesPage() {
       </div>
     );
   }
+  const templates: ITemplate[] = data?.getTemplates?.filter(
+    (t: ITemplate) => (templateGroupId
+      ? t.templateGroupId === templateGroupId
+      : true),
+  );
+  if (!templates || !templates[0]) {
+    throw new Error('У группы отсутсвуют шаблоны.');
+  }
+  if (!selectedTemplate) {
+    setSelectedTemplate(templates[0]);
+    return (
+      <div className="flex items-center justify-center">
+        <CircularProgress />
+      </div>
+    );
+  }
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
@@ -218,8 +234,8 @@ function TemplatesPage() {
       <Grid2 container spacing={2}>
         <Grid2 size={9}>
           <TemplateEdit
-            key={selectedTemplate?.id}
-            initialData={selectedTemplate || {}}
+            key={selectedTemplate.id}
+            initialData={selectedTemplate}
             onSubmit={handleUpdate}
           />
         </Grid2>
@@ -228,11 +244,8 @@ function TemplatesPage() {
           <TemplateNavigation
             key={templateGroupId}
             items={[
-              ...(data?.getTemplates?.filter(
-                (t: ITemplate) => (templateGroupId
-                  ? t.templateGroupId === templateGroupId
-                  : true),
-              ).map((t: ITemplate) => ({
+              // todo: use getByValues
+              ...(templates.map((t: ITemplate) => ({
                 label: t.name,
                 href: `${currentPath}?${t.id}`,
                 id: t.id,
