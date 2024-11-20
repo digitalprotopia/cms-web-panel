@@ -143,7 +143,7 @@ export function parseRow(html: string, row: any, fields: TableField[]) {
       resultRow[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
     }
     if (field.type === FieldType.TEXT) {
-      resultRow[field.dbName] = <div style={{ whiteSpace: 'pre' }}>{row[field.dbName]}</div>;
+      resultRow[field.dbName] = <div style={{ whiteSpace: 'pre-wrap' }}>{row[field.dbName]}</div>;
     }
     if (field.type === FieldType.GEO) {
       // resultRow[field.dbName] = resultRow[field.dbName] ? (
