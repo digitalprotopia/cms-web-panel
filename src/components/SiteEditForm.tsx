@@ -19,10 +19,10 @@ export default function SiteEditForm({
   onCancel: () => void;
 }) {
   const {
-    id = '', name = '', title = '', templateGroupId = null, favicon = '', url = '', platformId = undefined,
+    id = '', title = '', templateGroupId = null, favicon = '', domain = '', platformId = undefined,
   } = initialData;
   const [formData, setFormData] = useState<SiteFormData>({
-    id, name, title, favicon, url, templateGroupId, platformId,
+    id, title, favicon, domain, templateGroupId, platformId,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,9 +34,8 @@ export default function SiteEditForm({
   return (
     <form onSubmit={handleSubmit} className="p-4">
       <div className="grid grid-cols-2 gap-4">
-        {textField('Название', formData.name, (e) => setFormData({ ...formData, name: e.target.value }))}
         {textField('Заголовок', formData.title, (e) => setFormData({ ...formData, title: e.target.value }))}
-        {textField('URL', formData.url, (e) => setFormData({ ...formData, url: e.target.value }))}
+        {textField('Домен', formData.domain, (e) => setFormData({ ...formData, domain: e.target.value }))}
         <div className="grid grid-cols-2 gap-4">
           <S3Autocomplete
             value={formData.templateGroupId}

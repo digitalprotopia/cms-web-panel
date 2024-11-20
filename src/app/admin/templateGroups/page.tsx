@@ -142,9 +142,6 @@ function TemplateGroupCard({
         )}
       />
       <CardContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {/* {templateGroup.url} */}
-        </Typography>
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">

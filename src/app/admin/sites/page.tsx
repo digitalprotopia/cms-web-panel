@@ -22,10 +22,9 @@ const GET_SITES = gql`
   query getAllSites {
     getAllSites {
       id
-      name
       title
       favicon
-      url
+      domain
       templateGroupId
       platformId
       createdAt
@@ -39,7 +38,7 @@ const CREATE_SITE = gql`
     createSite(input: $input) {
       id
       favicon
-      url
+      domain
       templateGroupId
       platformId
       createdAt
@@ -52,10 +51,9 @@ const UPDATE_SITE = gql`
   mutation UpdateSite($id: ID!, $input: SiteInput!) {
     editSite(id: $id, input: $input) {
       id
-      name
       title
       favicon
-      url
+      domain
       templateGroupId
       platformId
       createdAt
@@ -100,7 +98,7 @@ function SiteCard({
       />
       <CardContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {/* {site.url} */}
+          {site.domain}
         </Typography>
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />

@@ -2,10 +2,9 @@ import { IEntity } from './IEntity';
 
 export interface SiteFormData {
   id: string;
-  name?: string;
   title: string;
   favicon: string;
-  url: string;
+  domain: string;
   templateGroupId: string | null;
   platformId?: string;
 }
