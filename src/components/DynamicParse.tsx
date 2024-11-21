@@ -9,6 +9,7 @@ import parse, {
 } from 'html-react-parser';
 import Script from 'next/script';
 import reactStringReplace from 'react-string-replace';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const ReplaceContext = createContext({});
 
@@ -48,7 +49,7 @@ function DynamicParse(props: {
             console.log(Tag);
             return (
               <Tag {..._props}>
-                {domToReact(domNode.children, options)}
+                {Tag === 'img' ? null : domToReact(domNode.children, options)}
               </Tag>
             );
           }
@@ -78,7 +79,9 @@ function DynamicParse(props: {
 
     return (
       <ReplaceContext.Provider value={props.replace}>
-        {result}
+        <ErrorBoundary fallback="Ошибка разбора" resetKeys={[props.html]}>
+          {result}
+        </ErrorBoundary>
       </ReplaceContext.Provider>
     );
   } catch (e) {
