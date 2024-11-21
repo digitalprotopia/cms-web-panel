@@ -37,13 +37,13 @@ export function FormField(props: {
       <>
         <TextField
           label={`${props.title} lat`}
-          value={props.value.lat || 0}
+          value={props.value?.lat || 0}
           type="number"
           onChange={(e) => props.onChange({ ...props.value, lat: parseFloat(e.target.value) })}
         />
         <TextField
           label={`${props.title} lng`}
-          value={props.value.lng || 0}
+          value={props.value?.lng || 0}
           type="number"
           onChange={(e) => props.onChange({ ...props.value, lng: parseFloat(e.target.value) })}
         />

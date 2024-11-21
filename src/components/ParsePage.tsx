@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
 import { createPortal, render } from 'react-dom';
 import { Close } from '@mui/icons-material';
+import { useSnackbar } from 'notistack';
 import useTable, { TableField, useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
@@ -257,6 +258,12 @@ function FormWidget(props: {
         if (field.field.type === 'string') {
           _form[field.field.dbName] = '';
         }
+        if (field.field.type === 'geo') {
+          _form[field.field.dbName] = {
+            lat: 0,
+            lng: 0,
+          };
+        }
         if (field.field.type === 'boolean') {
           _form[field.field.dbName] = false;
         }
@@ -265,6 +272,7 @@ function FormWidget(props: {
     },
   });
   const addRow = useAddRow(data?.getFormByName.table.dbName);
+  const { enqueueSnackbar } = useSnackbar();
   if (!data?.getFormByName) {
     return null;
   }
@@ -290,7 +298,30 @@ function FormWidget(props: {
         })}
       </div>
       <div>
-        <Button onClick={() => addRow(form)}>Добавить</Button>
+        <Button onClick={async () => {
+          const _form:any = {};
+          await addRow(form);
+          data.getFormByName.fields.forEach((field) => {
+            if (field.field.type === 'string') {
+              _form[field.field.dbName] = '';
+            }
+            if (field.field.type === 'geo') {
+              _form[field.field.dbName] = {
+                lat: 0,
+                lng: 0,
+              };
+            }
+            if (field.field.type === 'boolean') {
+              _form[field.field.dbName] = false;
+            }
+          });
+          setForm(_form);
+          enqueueSnackbar('Форма отправлена', { variant: 'success' });
+        }}
+        >
+          Отправить
+
+        </Button>
       </div>
     </div>
   );
