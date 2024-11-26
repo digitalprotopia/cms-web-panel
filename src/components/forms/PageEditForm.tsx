@@ -5,10 +5,26 @@ import {
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
 import DefaultEditor from 'react-simple-wysiwyg';
-import { GET_PAGES } from '@/pages/admin/pages';
 import { PageFormData } from '../entities/IPage';
 import { IForm } from '../entities/IForm';
 import { IWidget } from '../entities/IWidget';
+
+export const GET_PAGES = gql`
+  query GetAllSiteItems {
+    getAllSiteItems {
+      id
+      name
+      title
+      url
+      parentId
+      isRoot
+      seotag
+      html
+      createdAt
+      updatedAt
+    }
+  }
+`;
 
 export default function PageForm({
   initialData = {},

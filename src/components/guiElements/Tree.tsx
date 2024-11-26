@@ -1,4 +1,3 @@
-import { ListItem } from '@mui/material';
 import { useState } from 'react';
 
 interface ItemWithParentId {
@@ -15,8 +14,11 @@ interface IIndexedNestedItem extends ItemWithParentId {
 
 export class NestedItem<T extends ItemWithParentId = ItemWithParentId> {
   id = '';
+
   parentId?: string;
+
   title = '';
+
   children: NestedItem[] = [];
 
   constructor(item: T) {
@@ -31,12 +33,12 @@ export function makeTree<T extends ItemWithParentId>(items: T[]): NestedItem<T>[
   const itemsMap = new Map<string, NestedItem<T>>();
 
   // First pass: create all nodes
-  items.forEach(item => {
+  items.forEach((item) => {
     itemsMap.set(item.id, new NestedItem(item));
   });
 
   // Second pass: establish parent-child relationships
-  items.forEach(item => {
+  items.forEach((item) => {
     const node = itemsMap.get(item.id)!;
     if (!item.parentId) {
       result.push(node);
@@ -84,6 +86,7 @@ export function TreeList({ list }: { list: NestedItem[] }) {
     <ul>
       {list && list.length
         ? list.map((listItem) => (
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           <TreeItem key={listItem.id} item={listItem} />
         ))
         : null}
@@ -106,14 +109,17 @@ export function TreeItem({ item }: { item: NestedItem }) {
   return (
     <li className="rounded p-2 shadow-lg bg-white">
       <div className="menu-item">
-        <p>{item && item.children && item.children.length ? (
-          <span onClick={() => handleToggleChildren(item.title)}>
-            {
+        <p>
+          {item && item.children && item.children.length ? (
+            <span onClick={() => handleToggleChildren(item.title)}>
+              {
               displayCurrentChildren[item.title] ? '➖ ' : '➕ '
             }
-          </span>
-        ) : null}
-          {item.title}</p>
+            </span>
+          ) : null}
+          {item.title}
+
+        </p>
       </div>
 
       {item && item.children && item.children.length > 0 && displayCurrentChildren[item.title] ? (

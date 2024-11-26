@@ -19,26 +19,9 @@ import {
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ISiteItem } from '@/components/entities/ISiteItem';
-import PageEditForm from '@/components/forms/PageEditForm';
+import PageEditForm, { GET_PAGES } from '@/components/forms/PageEditForm';
 import { PageFormData } from '@/components/entities/IPage';
 import { makeTree, TreeItem } from '@/components/guiElements/Tree';
-
-export const GET_PAGES = gql`
-  query GetAllSiteItems {
-    getAllSiteItems {
-      id
-      name
-      title
-      url
-      parentId
-      isRoot
-      seotag
-      html
-      createdAt
-      updatedAt
-    }
-  }
-`;
 
 const CREATE_PAGE = gql`
   mutation CreateSiteItem($input: SiteItemInput!) {
