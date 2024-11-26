@@ -94,6 +94,7 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = fu
             zoom: 5,
           }}
           height={400}
+          width="100%"
           modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
           instanceRef={(ref) => {
             if (ref) {
@@ -111,9 +112,9 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = fu
               });
             }
           }}
-          onLoad={(ymaps) => {
-            console.log('load');
-          }}
+          // onLoad={(ymaps) => {
+          //   console.log('load');
+          // }}
         >
           {props.data.map((row: any) => {
             const field = props.fields.find((f) => f.type === FieldType.GEO);
