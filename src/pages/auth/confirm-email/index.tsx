@@ -16,6 +16,8 @@ function ConfirmEmail() {
 
   const [confirmEmail] = useMutation(CONFIRM_EMAIL);
 
+  const code = new URLSearchParams(window.location.search).get('code');
+
   useEffect(() => {
     if (!code) {
       enqueueSnackbar('Неверный код подтверждения email', { variant: 'error' });
@@ -39,8 +41,6 @@ function ConfirmEmail() {
   if (!global.window) {
     return null;
   }
-
-  const code = new URLSearchParams(window.location.search).get('code');
 
   return <div />;
 }

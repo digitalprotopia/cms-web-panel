@@ -1,5 +1,5 @@
 import {
-  useMemo, use, useState, useCallback, useRef,
+  useMemo, useState, useCallback, useRef,
 } from 'react';
 import {
   MaterialReactTable,
@@ -11,7 +11,6 @@ import {
   IconButton,
   TextField,
   FormControl,
-  FormControlLabel,
   Checkbox,
   Popover,
   MenuItem,
@@ -25,14 +24,11 @@ import { gql, useApolloClient } from '@apollo/client';
 
 import TableEditor from '@/components/table-editor';
 
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import Link from 'next/link';
 import { FieldType, IField } from '@/components/entities/IField';
-import { FormField } from '@/components/form';
+import { useRouter } from 'next/router';
+import FormField from '@/components/form';
 import useTable, {
   TableMeta,
   useAddField,
@@ -41,136 +37,128 @@ import useTable, {
   useEditField,
   useEditRow,
 } from '../../../../components/use-table';
-import { useRouter } from 'next/router';
-
-interface Field {
-  id: string;
-  name: string;
-  type: 'string' | 'number' | 'boolean' | 'date' | 'text'
-  dbName: string;
-}
 
 interface AddRowFormProps {
   meta: TableMeta;
   refetch: () => Promise<void>;
 }
 
-interface FormData {
-  [key: string]: string | number | boolean | Date | null;
-}
+// interface FormData {
+//   [key: string]: string | number | boolean | Date | null;
+// }
 
 dayjs.extend(utc);
 function AddRowForm({ meta, refetch }: AddRowFormProps) {
-  const [form, setForm] = useState<FormData>({});
+  // const [form, setForm] = useState<FormData>({});
   const addRow = useAddRow(meta.dbName);
 
   const handleSubmit = async () => {
     try {
-      const formattedInput = Object.fromEntries(
-        Object.entries(form).map(([key, value]) => {
-          const field = meta.fields.find((f) => f.dbName === key);
+      // const formattedInput = Object.fromEntries(
+      //   Object.entries(form).map(([key, value]) => {
+      //     const field = meta.fields.find((f) => f.dbName === key);
 
-          switch (field?.type) {
-            case 'number':
-              return [key, value === '' ? null : Number(value)];
-            case 'boolean':
-              return [key, Boolean(value)];
-            case 'date':
-              return [key, value instanceof Date ? value.getTime() : null];
-            default:
-              return [key, value];
-          }
-        }),
-      );
+      //     switch (field?.type) {
+      //       case 'number':
+      //         return [key, value === '' ? null : Number(value)];
+      //       case 'boolean':
+      //         return [key, Boolean(value)];
+      //       case 'date':
+      //         return [key, value instanceof Date ? value.getTime() : null];
+      //       default:
+      //         return [key, value];
+      //     }
+      //   }),
+      // );
 
       await addRow({});
 
       await refetch();
-      setForm({});
+      // setForm({});
     } catch (error) {
       console.error('Error adding row:', error);
     }
   };
 
-  const renderField = (field: Field) => {
-    switch (field.type) {
-      case 'boolean':
-        return (
-          <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-            <FormControl fullWidth className="mt-2">
-              <FormControlLabel
-                control={(
-                  <Checkbox
-                    checked={Boolean(form[field.dbName])}
-                    onChange={(e) => setForm((prev) => ({
-                      ...prev,
-                      [field.dbName]: e.target.checked,
-                    }))}
-                  />
-                )}
-                label={field.name}
-                className="m-0"
-              />
-            </FormControl>
-          </div>
-        );
+  // const renderField = (field: Field) => {
+  //   switch (field.type) {
+  //     case 'boolean':
+  //       return (
+  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
+  //           <FormControl fullWidth className="mt-2">
+  //             <FormControlLabel
+  //               control={(
+  //                 <Checkbox
+  //                   checked={Boolean(form[field.dbName])}
+  //                   onChange={(e) => setForm((prev) => ({
+  //                     ...prev,
+  //                     [field.dbName]: e.target.checked,
+  //                   }))}
+  //                 />
+  //               )}
+  //               label={field.name}
+  //               className="m-0"
+  //             />
+  //           </FormControl>
+  //         </div>
+  //       );
 
-      case 'date':
-        return (
-          <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-            <DateTimePicker
-              label={field.name}
-              value={form[field.dbName] ? dayjs(form[field.dbName]) : null}
-              onChange={(newValue) => setForm((prev) => ({
-                ...prev,
-                [field.dbName]: newValue ? newValue.toDate() : null,
-              }))}
-              slotProps={{
-                textField: {
-                  size: 'small',
-                  fullWidth: true,
-                  className: 'mt-2',
-                },
-              }}
-            />
-          </div>
-        );
+  //     case 'date':
+  //       return (
+  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
+  //           <DateTimePicker
+  //             label={field.name}
+  //             value={form[field.dbName] ? dayjs(form[field.dbName] as any) : null}
+  //             onChange={(newValue) => setForm((prev) => ({
+  //               ...prev,
+  //               [field.dbName]: newValue ? newValue.toDate() : null,
+  //             }))}
+  //             slotProps={{
+  //               textField: {
+  //                 size: 'small',
+  //                 fullWidth: true,
+  //                 className: 'mt-2',
+  //               },
+  //             }}
+  //           />
+  //         </div>
+  //       );
 
-      case 'number':
-        return (
-          <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-            <TextField
-              fullWidth
-              label={field.name}
-              type="number"
-              variant="outlined"
-              size="small"
-              className="mt-2"
-              value={form[field.dbName] || ''}
-              onChange={(e) => {
-                const value = e.target.value === '' ? '' : Number(e.target.value);
-                setForm((prev) => ({ ...prev, [field.dbName]: value }));
-              }}
-            />
-          </div>
-        );
+  //     case 'number':
+  //       return (
+  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
+  //           <TextField
+  //             fullWidth
+  //             label={field.name}
+  //             type="number"
+  //             variant="outlined"
+  //             size="small"
+  //             className="mt-2"
+  //             value={form[field.dbName] || ''}
+  //             onChange={(e) => {
+  //               const value = e.target.value === '' ? '' : Number(e.target.value);
+  //               setForm((prev) => ({ ...prev, [field.dbName]: value }));
+  //             }}
+  //           />
+  //         </div>
+  //       );
 
-      default: // string
-        return (
-          <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-            <TextField
-              fullWidth
-              label={field.name}
-              variant="outlined"
-              size="small"
-              className="mt-2"
-              value={form[field.dbName] || ''}
-              onChange={(e) => setForm((prev) => ({ ...prev, [field.dbName]: e.target.value }))}
-            />
-          </div>
-        );
-    }
-  };
+  //     default: // string
+  //       return (
+  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
+  //           <TextField
+  //             fullWidth
+  //             label={field.name}
+  //             variant="outlined"
+  //             size="small"
+  //             className="mt-2"
+  //             value={form[field.dbName] || ''}
+  //             onChange={(e) => setForm((prev) => ({ ...prev, [field.dbName]: e.target.value }))}
+  //           />
+  //         </div>
+  //       );
+  //   }
+  // };
 
   return (
     <div className="border-t border-gray-200 pt-4">
@@ -190,11 +178,7 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
   );
 }
 
-interface TablePageProps {
-  params: Promise<{ id: string }>;
-}
-
-function TablePage({ params }: TablePageProps) {
+function TablePage() {
   const router = useRouter();
   const { id } = router.query;
   const client = useApolloClient();
@@ -203,20 +187,20 @@ function TablePage({ params }: TablePageProps) {
 
   const {
     data, meta, loading, error, refetch,
-  } = useTable(id, {
-    onMetaLoaded: (meta) => {
-      setTableMetadata(meta);
+  } = useTable(id as string, {
+    onMetaLoaded: (_meta) => {
+      setTableMetadata(_meta);
     },
-    onDataLoaded: (data) => {
-      // console.log('Table data loaded:', data);
-    },
+    // onDataLoaded: (_data) => {
+    //   // console.log('Table data loaded:', data);
+    // },
   });
 
   const handleRefetch = useCallback(async () => {
     try {
       await refetch();
-    } catch (error) {
-      console.error('Error refetching data:', error);
+    } catch (e) {
+      console.error('Error refetching data:', e);
     }
   }, [refetch]);
 
@@ -227,7 +211,7 @@ function TablePage({ params }: TablePageProps) {
       (field): MRT_ColumnDef<MRT_RowData> => ({
         accessorKey: field.dbName,
         header: field.name,
-        Header: ({ header }) => {
+        Header: () => {
           const dropDownRef = useRef();
           const [dropDownOpen, setDropDownOpen] = useState(false);
           const deleteField = useDeleteField();
@@ -244,7 +228,7 @@ function TablePage({ params }: TablePageProps) {
             >
               {field.name}
               <IconButton
-                ref={dropDownRef}
+                ref={dropDownRef as any}
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -319,11 +303,11 @@ function TablePage({ params }: TablePageProps) {
             return (
               <div>
                 <FormField
-                  field={field}
+                  // field={field}
                   value={value}
                   title=""
-                  type={field.type}
-                  onChange={(value) => setValue(value)}
+                  type={field.type as FieldType}
+                  onChange={(_value) => setValue(_value)}
                 />
                 <IconButton
                   onClick={async () => {
@@ -348,7 +332,7 @@ function TablePage({ params }: TablePageProps) {
               </div>
             );
           }
-          let cellValue = cell.getValue();
+          let cellValue: any = cell.getValue();
           if (field.type === FieldType.DATE) {
             cellValue = dayjs(value).format('YYYY-MM-DD HH:mm');
           }
@@ -381,7 +365,7 @@ function TablePage({ params }: TablePageProps) {
         return (
           <div>
             <IconButton
-              ref={dropDownRef}
+              ref={dropDownRef as any}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -428,7 +412,7 @@ function TablePage({ params }: TablePageProps) {
                   <Select
                     value={form.type}
                     label="Тип поля"
-                    onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value }))}
+                    onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value } as any))}
                   >
                     <MenuItem value="" disabled>
                       <em>Выберите тип поля</em>
@@ -473,13 +457,13 @@ function TablePage({ params }: TablePageProps) {
       await client.mutate({
         mutation: gql`
             mutation {
-                delete${meta.dbName}(id: "${row.original.id}")
+                delete${meta!.dbName}(id: "${row.original.id}")
             }
         `,
       });
       await handleRefetch();
-    } catch (error) {
-      console.error('Error deleting row:', error);
+    } catch (e) {
+      console.error('Error deleting row:', e);
     }
   };
 
@@ -534,7 +518,7 @@ function TablePage({ params }: TablePageProps) {
         onSuccess={handleModalSuccess}
         mode="edit"
         initialData={tableMetadata}
-        tableId={id}
+        tableId={id as string}
       />
 
       <MaterialReactTable

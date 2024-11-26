@@ -14,6 +14,7 @@ import {
 import { Edit, Delete } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import FormEdit from '@/components/FormEdit';
+import { IForm } from '@/components/entities/IForm';
 
 const GET_FORMS_AND_TABLES = gql`
   query {
@@ -30,7 +31,11 @@ const GET_FORMS_AND_TABLES = gql`
   }
 `;
 
-function FormCard({ form, onEdit, onDelete }) {
+function FormCard({ form, onEdit, onDelete }: {
+  form: Partial<IForm>;
+  onEdit: (form: Partial<IForm>) => void;
+  onDelete: (id: string) => void;
+}) {
   return (
     <Card>
       <CardHeader
@@ -44,7 +49,7 @@ function FormCard({ form, onEdit, onDelete }) {
             <span className="text-sm text-gray-500">
               Создано:
               {' '}
-              {dayjs(parseInt(form.createdAt, 10)).format('DD.MM.YYYY')}
+              {dayjs(form.createdAt).format('DD.MM.YYYY')}
             </span>
           </div>
         )}
@@ -54,7 +59,7 @@ function FormCard({ form, onEdit, onDelete }) {
               <Edit />
             </IconButton>
             <IconButton
-              onClick={() => onDelete(form.id)}
+              onClick={() => onDelete(form.id!)}
               size="small"
               color="error"
             >
@@ -69,7 +74,7 @@ function FormCard({ form, onEdit, onDelete }) {
 
 function FormsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedForm, setSelectedForm] = useState(null);
+  const [selectedForm, setSelectedForm] = useState<any>(null);
 
   const { data, loading, refetch } = useQuery(GET_FORMS_AND_TABLES);
 
@@ -79,7 +84,7 @@ function FormsPage() {
     refetch();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = () => {
     if (window.confirm('Вы уверены, что хотите удалить эту форму?')) {
       //
     }
