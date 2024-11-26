@@ -12,16 +12,12 @@ import {
   IconButton,
   Typography,
   CircularProgress,
-  MenuItem,
-  FormControl,
-  FormControlLabel,
 } from '@mui/material';
 import {
-  Edit, AccessTime, Delete, Visibility,
+  Edit, AccessTime, Delete,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import Link from 'next/link';
-import DefaultEditor, { Editor, EditorProvider } from 'react-simple-wysiwyg';
+import DefaultEditor from 'react-simple-wysiwyg';
 import { IPost } from '@/components/entities/IPost';
 
 const GET_POSTS = gql`
@@ -88,21 +84,21 @@ function PostForm({
     onSubmit(formData);
   };
 
-  const snippets = useQuery(gql`
-    query {
-      getAllWidgets {
-        id
-        name
-        title
-        createdAt
-      }
-      getAllForms {
-        id
-        name
-        title
-        createdAt
-      }
-  }`);
+  // const snippets = useQuery(gql`
+  //   query {
+  //     getAllWidgets {
+  //       id
+  //       name
+  //       title
+  //       createdAt
+  //     }
+  //     getAllForms {
+  //       id
+  //       name
+  //       title
+  //       createdAt
+  //     }
+  // }`);
 
   return (
     <form onSubmit={handleSubmit} className="p-4">
@@ -150,13 +146,13 @@ function PostCard({
   onEdit: (post: IPost) => void;
   onDelete: (id: string) => void;
 }) {
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  // const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
+  //   day: 'numeric',
+  //   month: 'long',
+  //   year: 'numeric',
+  //   hour: '2-digit',
+  //   minute: '2-digit',
+  // });
 
   return (
     <Card>
@@ -184,7 +180,7 @@ function PostCard({
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
-            {dayjs(parseInt(post.createdAt)).toString()}
+            {dayjs(post.createdAt).toString()}
           </Typography>
         </div>
       </CardContent>
@@ -276,8 +272,8 @@ function PostsPost() {
           <PostCard
             key={post.id}
             post={post}
-            onEdit={(post) => {
-              setSelectedPost(post);
+            onEdit={(_post) => {
+              setSelectedPost(_post);
               setIsFormOpen(true);
             }}
             onDelete={handleDelete}

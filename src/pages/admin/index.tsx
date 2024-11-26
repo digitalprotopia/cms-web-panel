@@ -1,6 +1,6 @@
 import { Typography } from '@mui/material';
 
-function WidgetsPage(props) {
+function WidgetsPage() {
   return (
     <div className="rounded p-4 shadow-lg bg-white">
 

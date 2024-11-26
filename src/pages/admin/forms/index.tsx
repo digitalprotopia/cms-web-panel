@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { gql, useQuery, useMutation } from '@apollo/client';
+import { gql, useQuery } from '@apollo/client';
 import {
   Card,
   CardHeader,
@@ -44,7 +44,7 @@ function FormCard({ form, onEdit, onDelete }) {
             <span className="text-sm text-gray-500">
               Создано:
               {' '}
-              {dayjs(parseInt(form.createdAt)).format('DD.MM.YYYY')}
+              {dayjs(parseInt(form.createdAt, 10)).format('DD.MM.YYYY')}
             </span>
           </div>
         )}
@@ -79,8 +79,9 @@ function FormsPage() {
     refetch();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: string) => {
     if (window.confirm('Вы уверены, что хотите удалить эту форму?')) {
+      //
     }
   };
 
@@ -102,12 +103,12 @@ function FormsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data?.getAllForms?.map((form) => (
+        {data?.getAllForms?.map((form: any) => (
           <FormCard
             key={form.id}
             form={form}
-            onEdit={(form) => {
-              setSelectedForm(form);
+            onEdit={(_form: any) => {
+              setSelectedForm(_form);
               setIsFormOpen(true);
             }}
             onDelete={handleDelete}

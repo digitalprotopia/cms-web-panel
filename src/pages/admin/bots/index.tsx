@@ -1,45 +1,12 @@
 import {
-  gql, useApolloClient, useMutation, useQuery,
+  gql, useQuery,
 } from '@apollo/client';
-import { AddOutlined, Delete, DeleteOutlined } from '@mui/icons-material';
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from '@mui/material';
 import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
 import { MaterialReactTable } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
 
-const CREATE_TABLE = gql`
-  mutation CreateTable($input: TableInput!) {
-    createTable(input: $input) {
-      id
-      name
-      dbName
-      fields {
-        id
-        name
-        dbName
-        type
-      }
-      createdAt
-    }
-  }
-`;
-
-function TablesPage(props) {
+function BotsPage() {
   const router = useRouter();
   const { loading, data, refetch } = useQuery(gql`
     query {
@@ -108,4 +75,4 @@ function TablesPage(props) {
   );
 }
 
-export default TablesPage;
+export default BotsPage;

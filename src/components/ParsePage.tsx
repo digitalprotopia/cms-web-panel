@@ -2,116 +2,18 @@ import { gql, useQuery } from '@apollo/client';
 import parse from 'html-react-parser';
 import reactStringReplace from 'react-string-replace';
 import {
-  Button, Checkbox, IconButton, TextField, Typography,
+  Button, IconButton, Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
-import { createPortal, render } from 'react-dom';
+import { createPortal } from 'react-dom';
 import { Close } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import useTable, { TableField, useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
-import { FormField } from './form';
-
-const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = function (props) {
-  const [portal, setPortal] = useState<{
-    open: boolean,
-    portalId: string,
-    rowId: string,
-    balloon?: ymaps.geoObject.Balloon,
-  }>({
-    open: false,
-    portalId: '',
-    rowId: '',
-  });
-
-  return (
-    <div style={{ minHeight: 400 }}>
-      <style>
-        {`
-          .ymaps-2-1-79-balloon__layout {
-            width: 0px;
-          }
-        `}
-      </style>
-      <YMaps query={{
-        apikey: window.config.yandexKey,
-      }}
-      >
-        <Map
-          defaultState={{
-            center: [55.751574, 37.573856],
-            zoom: 5,
-          }}
-          height={400}
-          modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
-          instanceRef={(ref) => {
-            if (ref) {
-              console.log(ref);
-              ref.geoObjects.events.add('balloonopen', (e) => {
-                setPortal({
-                  open: true,
-                  portalId: e.get('target').properties.get('elementId'),
-                  rowId: e.get('target').properties.get('rowId'),
-                  balloon: e.get('target').balloon,
-                });
-              });
-              ref.geoObjects.events.add('balloonclose', () => {
-                setPortal({ ...portal, open: false });
-              });
-            }
-          }}
-          onLoad={(ymaps) => {
-            console.log('load');
-          }}
-        >
-          {props.data.map((row: any) => {
-            const field = props.fields.find((f) => f.type === FieldType.GEO);
-            if (!field || !row[field.dbName]) {
-              return null;
-            }
-            return (
-              <Placemark
-                geometry={[row[field.dbName].lat, row[field.dbName].lng]}
-                properties={{
-                  balloonContent: `<div id="${row.id}${field.dbName}" style="position: fixed;"></div>`,
-                  elementId: `${row.id}${field.dbName}`,
-                  rowId: row.id,
-                }}
-              />
-            );
-          })}
-        </Map>
-      </YMaps>
-      {portal.open && (
-      <Portal elementId={portal.portalId}>
-        <div style={{
-          position: 'relative',
-          left: -20,
-          top: -20,
-          backgroundColor: 'white',
-          width: 200,
-          minHeight: 200,
-        }}
-        >
-          <div style={{ float: 'right' }}>
-            <IconButton onClick={() => portal.balloon?.close()}>
-              <Close />
-            </IconButton>
-          </div>
-          {parseRow(
-            props.html,
-            props.data.find((row: any) => row.id === portal.rowId),
-            props.fields,
-          )}
-        </div>
-      </Portal>
-      )}
-    </div>
-  );
-};
+import FormField from './form';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
@@ -161,6 +63,104 @@ export function parseRow(html: string, row: any, fields: TableField[]) {
   );
 }
 
+const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = function (props) {
+  const [portal, setPortal] = useState<{
+    open: boolean,
+    portalId: string,
+    rowId: string,
+    balloon?: ymaps.geoObject.Balloon,
+  }>({
+    open: false,
+    portalId: '',
+    rowId: '',
+  });
+
+  return (
+    <div style={{ minHeight: 400 }}>
+      <style>
+        {`
+          .ymaps-2-1-79-balloon__layout {
+            width: 0px;
+          }
+        `}
+      </style>
+      <YMaps query={{
+        apikey: window.config.yandexKey,
+      }}
+      >
+        <Map
+          defaultState={{
+            center: [55.751574, 37.573856],
+            zoom: 5,
+          }}
+          height={400}
+          modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
+          instanceRef={(ref) => {
+            if (ref) {
+              console.log(ref);
+              ref.geoObjects.events.add('balloonopen', (e) => {
+                setPortal({
+                  open: true,
+                  portalId: e.get('target').properties.get('elementId'),
+                  rowId: e.get('target').properties.get('rowId'),
+                  balloon: e.get('target').balloon,
+                });
+              });
+              ref.geoObjects.events.add('balloonclose', () => {
+                setPortal({ ...portal, open: false });
+              });
+            }
+          }}
+          // onLoad={(ymaps) => {
+          //   console.log('load');
+          // }}
+        >
+          {props.data.map((row: any) => {
+            const field = props.fields.find((f) => f.type === FieldType.GEO);
+            if (!field || !row[field.dbName]) {
+              return null;
+            }
+            return (
+              <Placemark
+                geometry={[row[field.dbName].lat, row[field.dbName].lng]}
+                properties={{
+                  balloonContent: `<div id="${row.id}${field.dbName}" style="position: fixed;"></div>`,
+                  elementId: `${row.id}${field.dbName}`,
+                  rowId: row.id,
+                }}
+              />
+            );
+          })}
+        </Map>
+      </YMaps>
+      {portal.open && (
+      <Portal elementId={portal.portalId}>
+        <div style={{
+          position: 'relative',
+          left: -20,
+          top: -20,
+          backgroundColor: 'white',
+          width: 200,
+          minHeight: 200,
+        }}
+        >
+          <div style={{ float: 'right' }}>
+            <IconButton onClick={() => portal.balloon?.close()}>
+              <Close />
+            </IconButton>
+          </div>
+          {parseRow(
+            props.html,
+            props.data.find((row: any) => row.id === portal.rowId),
+            props.fields,
+          )}
+        </div>
+      </Portal>
+      )}
+    </div>
+  );
+};
+
 export function renderWidget(
   widgetViewType: string,
   html: string,
@@ -176,7 +176,7 @@ export function renderWidget(
       />
     );
   }
-  return data.map((row) => (
+  return data.map((row: any) => (
     <div key={row.id}>
       {parseRow(html, row, fields)}
     </div>
@@ -254,7 +254,7 @@ function FormWidget(props: {
     variables: { name: props.formName },
     onCompleted: (_data) => {
       const _form: any = {};
-      _data.getFormByName.fields.forEach((field) => {
+      _data.getFormByName.fields.forEach((field: any) => {
         if (field.field.type === 'string') {
           _form[field.field.dbName] = '';
         }
@@ -280,7 +280,7 @@ function FormWidget(props: {
     <div>
       <Typography variant="h4">{data.getFormByName.title}</Typography>
       <div>
-        {data.getFormByName.fields.map((field) => {
+        {data.getFormByName.fields.map((field: any) => {
           const fieldComponent = (
             <FormField
               title={field.title}
@@ -301,7 +301,7 @@ function FormWidget(props: {
         <Button onClick={async () => {
           const _form:any = {};
           await addRow(form);
-          data.getFormByName.fields.forEach((field) => {
+          data.getFormByName.fields.forEach((field: any) => {
             if (field.field.type === 'string') {
               _form[field.field.dbName] = '';
             }
@@ -334,12 +334,12 @@ function ParsePage(props: {
   return parse(
     props.html,
     {
-      transform(reactNode, domNode, index) {
+      transform(reactNode, domNode) {
         if (domNode.type === 'text') {
-          let result = domNode.data;
+          let result: string | React.ReactNode[] = domNode.data;
           if (props.args) {
             Object.keys(props.args).forEach((key) => {
-              result = reactStringReplace(result, `{${key}}`, (match, i) => props.args[key]);
+              result = reactStringReplace(result, `{${key}}`, () => (props.args!)[key]);
             });
           }
           return reactStringReplace(result, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
@@ -351,9 +351,9 @@ function ParsePage(props: {
               return <FormWidget formName={parts[1]} key={i} />;
             }
             return match;
-          });
+          }) as unknown as React.JSX.Element;
         }
-        return reactNode;
+        return reactNode as React.JSX.Element;
       },
     },
   );

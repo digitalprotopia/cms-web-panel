@@ -11,9 +11,8 @@ import {
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
 import useTable, { TableField } from './use-table';
-import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
-import { parseRow, renderWidget } from './ParsePage';
+import { renderWidget } from './ParsePage';
 
 interface WidgetEditProps {
   id?: string;

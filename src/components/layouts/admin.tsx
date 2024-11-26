@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { MouseEventHandler, ReactNode, useState } from 'react';
 import {
   Button,
   Menu,
@@ -39,12 +39,6 @@ interface MeQueryResponse {
   me: User;
 }
 
-interface MenuItem {
-  icon: SvgIconComponent;
-  label: string;
-  href: string;
-}
-
 const GET_ME = gql`
   query GetMe {
     me {
@@ -62,17 +56,17 @@ const getInitials = (name: string) => name
   .join('')
   .toUpperCase();
 
-interface SidebarItem {
+interface ISidebarItem {
   icon: SvgIconComponent;
   label: string;
   href: string;
 }
 
-interface MenuItemProps extends SidebarItem {
+interface MenuItemProps extends ISidebarItem {
   isActive: boolean;
 }
 
-const menuItems: SidebarItem[] = [
+const menuItems: ISidebarItem[] = [
   {
     icon: HouseOutlined,
     label: 'Главная',
@@ -150,7 +144,7 @@ function SidebarItem({
 }
 
 interface MenuNavigationProps {
-  items: SidebarItem[];
+  items: ISidebarItem[];
 }
 
 function MenuNavigation({ items }: MenuNavigationProps) {
@@ -180,7 +174,7 @@ export default function AdminLayout({
   const [userPopoverEl, setUserPopoverEl] = useState<null | HTMLElement>(null);
   const userPopoverOpen = Boolean(userPopoverEl);
 
-  const handleUserPopoverClick = (event: MouseEvent<HTMLElement>) => {
+  const handleUserPopoverClick: MouseEventHandler<HTMLElement> = (event) => {
     setUserPopoverEl(event.currentTarget);
   };
   const handleUserPopoverClose = () => {

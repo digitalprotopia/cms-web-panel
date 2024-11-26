@@ -30,5 +30,11 @@ module.exports = {
     "@typescript-eslint/no-explicit-any": "off",
     "consistent-return": "off",
     "no-param-reassign": "off",
+    "no-underscore-dangle": "off",
+    "@typescript-eslint/naming-convention": "off",
+    "no-inner-declarations": "off",
+    "react/require-default-props": "off",
+    "react/prop-types": "off",
+    "react/no-unstable-nested-components": "off",
   },
 };

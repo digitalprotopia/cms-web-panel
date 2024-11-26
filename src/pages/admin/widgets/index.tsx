@@ -5,20 +5,17 @@ import {
   CardContent,
   CardHeader,
   Button,
-  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   IconButton,
   Typography,
   CircularProgress,
-  MenuItem,
 } from '@mui/material';
 import {
-  Edit, AccessTime, Delete, Visibility,
+  Edit, AccessTime, Delete,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import Link from 'next/link';
 import { IWidget } from '@/components/entities/IWidget';
 import WidgetEdit from '@/components/WidgetEdit';
 
@@ -78,7 +75,7 @@ function WidgetCard({
         <div className="flex items-center mt-2">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
-            {dayjs(parseInt(widget.createdAt)).toString()}
+            {dayjs(widget.createdAt).toString()}
           </Typography>
         </div>
       </CardContent>
@@ -134,7 +131,7 @@ function WidgetsPage() {
           {selectedWidgetId ? 'Редактировать виджет' : 'Создать новый виджет'}
         </DialogTitle>
         <DialogContent>
-          <WidgetEdit id={selectedWidgetId} onClose={handleCloseModal} />
+          <WidgetEdit id={selectedWidgetId as string} onClose={handleCloseModal} />
         </DialogContent>
       </Dialog>
       <div className="flex items-center justify-between gap-4">
@@ -155,9 +152,9 @@ function WidgetsPage() {
           <WidgetCard
             key={widget.id}
             widget={widget}
-            onEdit={(widget) => {
-              console.log(widget);
-              setSelectedWidget(widget);
+            onEdit={(_widget) => {
+              console.log(_widget);
+              setSelectedWidget(_widget);
               setIsFormOpen(true);
             }}
             onDelete={handleDelete}
@@ -180,7 +177,7 @@ function WidgetsPage() {
         <DialogContent>
           <WidgetEdit
             id={selectedWidget?.id}
-            tableId={selectedWidget?.tableView?.tableId}
+            tableId={(selectedWidget as any)?.tableView?.tableId}
             onClose={() => {
               setIsFormOpen(false);
               refetch();

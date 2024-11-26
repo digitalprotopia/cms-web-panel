@@ -1,11 +1,10 @@
 import { gql, useMutation } from '@apollo/client';
 import Head from 'next/head';
 import { useState } from 'react';
-import { Button, Divider, TextField } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import moment from 'moment';
 import { AccountCircle } from '@mui/icons-material';
-import config from '../../config/config';
+import { IUser } from '@/components/entities/IUser';
 
 const EDIT_ME = gql`
     mutation($user: UserInput!) {
@@ -31,7 +30,10 @@ const SEND_EMAIL_CONFIRMATION_LINK = gql`
   }
 `;
 
-export default function Account(props) {
+export default function Account(props: {
+  user: Partial<IUser>;
+  refetchUser: () => void;
+}) {
   const { enqueueSnackbar } = useSnackbar();
 
   const [form, setForm] = useState({
@@ -196,7 +198,7 @@ export default function Account(props) {
                       newPassword: passwordForm.newPassword,
                     },
                   });
-                } catch (e) {
+                } catch (e: any) {
                   enqueueSnackbar(e.message, { variant: 'error' });
                   return;
                 }

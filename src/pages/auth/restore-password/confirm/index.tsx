@@ -61,7 +61,7 @@ export default function Page() {
                 await changePasswordAfterRecover({
                   variables: { code, password: form.password },
                 });
-              } catch (e) {
+              } catch (e: any) {
                 enqueueSnackbar(e.message, { variant: 'error' });
                 return;
               }

@@ -7,16 +7,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { MouseEventHandler, ReactNode, useState } from 'react';
 
-interface User {
-  id: string;
-  name: string;
-  role: string;
-}
-
-interface MeQueryResponse {
-  me: User;
-}
-
 const GET_ME = gql`
     query GetMe {
       me {
@@ -37,7 +27,6 @@ const getInitials = (name: string) => name
 function Header() {
   const router = useRouter();
 
-  const path = router.pathname;
   const [userPopoverEl, setUserPopoverEl] = useState<null | HTMLElement>(null);
   const userPopoverOpen = Boolean(userPopoverEl);
 
@@ -49,7 +38,7 @@ function Header() {
   };
 
   const {
-    data, refetch, error, loading,
+    data, loading,
   } = useQuery(GET_ME);
 
   if (loading) {

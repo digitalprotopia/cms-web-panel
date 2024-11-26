@@ -47,15 +47,13 @@ export const generateGetTableDataQuery = (
           getAll${tableName} {
           id
           createdAt
-          ${fields.map((field) => {
-    // if (field.type === 'geo') {
-    //   return `${field.dbName} { lat lon }`;
-    // }
-    return field.dbName;
-  }).join('\n        ')}
+          ${fields.map((field) => field.dbName).join('\n        ')}
       }
       }
   `;
+// if (field.type === 'geo') {
+//   return `${field.dbName} { lat lon }`;
+// }
 
 interface UseTableOptions {
   onMetaLoaded?: (meta: TableMeta) => void;

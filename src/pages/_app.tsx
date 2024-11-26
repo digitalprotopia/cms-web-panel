@@ -1,34 +1,32 @@
 import './globals.css';
 import client from '@/components/apollo-client';
 import {
-  Avatar,
-  Badge,
-  Button,
   createTheme,
-  Divider,
-  IconButton,
-  Menu,
-  MenuItem,
   StyledEngineProvider,
   ThemeProvider,
 } from '@mui/material';
 
 import {
-  ApolloClient, ApolloProvider, NormalizedCacheObject, gql, useQuery,
+  ApolloClient, ApolloProvider, NormalizedCacheObject,
 } from '@apollo/client';
 import { SnackbarProvider } from 'notistack';
 import tailwind from '@/../tailwind.config';
 import { Roboto } from 'next/font/google';
 import React, {
-  ReactNode, useEffect, useState, MouseEvent,
+  useEffect, useState,
 } from 'react';
-import Link from 'next/link';
 import config from '@/config/config';
 
 import { useRouter } from 'next/router';
-import { KeyboardArrowDownRounded, NotificationsNoneOutlined } from '@mui/icons-material';
 import AdminLayout from '@/components/layouts/admin';
 import IndexLayout from '@/components/layouts';
+import { Config } from '@/config/config.sample';
+
+declare global {
+  interface Window {
+    config: Config;
+  }
+}
 
 const inter = Roboto({
   weight: ['100', '300', '400', '500', '700', '900'],
@@ -39,19 +37,19 @@ const inter = Roboto({
 const theme = createTheme({
   palette: {
     primary: {
-      main: tailwind?.theme?.extend?.colors?.cms?.primary,
+      main: (tailwind as any)?.theme?.extend?.colors?.cms?.primary,
       contrastText: '#ffffff',
     },
     secondary: {
-      main: tailwind?.theme?.extend?.colors?.cms?.secondary,
+      main: (tailwind as any)?.theme?.extend?.colors?.cms?.secondary,
       contrastText: '#4B5A73',
     },
     tertiary: {
-      main: tailwind?.theme?.extend?.colors?.cms?.tertiary,
+      main: (tailwind as any)?.theme?.extend?.colors?.cms?.tertiary,
       contrastText: '#4B5A73',
     },
   },
-});
+} as any);
 
 export default function CMSLayout({
   Component,

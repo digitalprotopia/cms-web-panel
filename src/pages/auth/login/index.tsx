@@ -43,8 +43,8 @@ export default function LoginPage() {
         localStorage.setItem('token', data.signIn);
         router.push('/admin');
       }
-    } catch (e) {
-      enqueueSnackbar((e as Error).message, { variant: 'error' });
+    } catch (error) {
+      enqueueSnackbar((error as Error).message, { variant: 'error' });
     }
   };
 

@@ -1,13 +1,10 @@
-import { ReactNode, use } from 'react';
 import {
   Typography,
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
 
 import ParsePage from '@/components/ParsePage';
-import DynamicParse from '@/components/DynamicParse';
 import Link from 'next/link';
-import reactStringReplace from 'react-string-replace';
 import { useRouter } from 'next/router';
 
 const GET_SITEITEM_BY_URL = gql`
@@ -45,7 +42,7 @@ function DynamicPage() {
   if (siteItemLoading) return <span>Loading...</span>;
 
   const site = siteItem?.getAllSites?.[0];
-  const template = site?.templateGroup?.templates?.find((template) => template.name === 'layout');
+  const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
   let html = template ? template.html : `<div>
   <div>{menu}</div>
   <div>{content}</div>
@@ -67,7 +64,7 @@ function DynamicPage() {
   </div>`);
 
   const args = {
-    menu: siteItem?.getAllSiteItems.map((item) => (
+    menu: siteItem?.getAllSiteItems.map((item: any) => (
       <Link key={item.url} href={item.url}>
         <span className="mx-3">{item.title}</span>
       </Link>

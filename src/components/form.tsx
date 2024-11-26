@@ -7,7 +7,7 @@ import {
 import dayjs from 'dayjs';
 import { FieldType } from './entities/IField';
 
-export function FormField(props: {
+export default function FormField(props: {
   title: string;
   type: FieldType;
   value: any;
@@ -56,7 +56,7 @@ export function FormField(props: {
         label={props.title}
         value={props.value || 0}
         type="number"
-        onChange={(e) => props.onChange(parseInt(e.target.value))}
+        onChange={(e) => props.onChange(parseInt(e.target.value, 10))}
       />
     );
   }
@@ -64,7 +64,7 @@ export function FormField(props: {
     return (
       <TextField
         label={props.title}
-        value={dayjs(props.value || new Date()).format('YYYY-MM-DD\THH:mm')}
+        value={dayjs(props.value || new Date()).format('YYYY-MM-DDTHH:mm')}
         type="datetime-local"
         onChange={(e) => props.onChange(new Date(e.target.value))}
       />

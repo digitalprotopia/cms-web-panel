@@ -1,6 +1,3 @@
-import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
-import { GET_TEMPLATE_GROUPS } from '@/app/admin/templateGroups/page';
-import DefaultEditor from 'react-simple-wysiwyg';
 import { useState } from 'react';
 import { gql, useQuery } from '@apollo/client';
 import { Button, MenuItem, TextField } from '@mui/material';
@@ -90,7 +87,7 @@ export default function TemplateEdit({
 
         <h4>Добавить виджеты</h4>
         <div>
-          {snippets.data?.getAllWidgets?.map((widget) => (
+          {snippets.data?.getAllWidgets?.map((widget: any) => (
             <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
               {widget.title}
             </MenuItem>
@@ -98,7 +95,7 @@ export default function TemplateEdit({
         </div>
         <h4>Добавить формы</h4>
         <div>
-          {snippets.data?.getAllForms?.map((form) => (
+          {snippets.data?.getAllForms?.map((form: any) => (
             <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
               {form.title}
             </MenuItem>

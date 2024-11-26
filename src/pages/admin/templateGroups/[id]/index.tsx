@@ -243,7 +243,7 @@ function TemplatesPage() {
 
         <Grid2 className="p-4" size={3}>
           <TemplateNavigation
-            key={templateGroupId}
+            key={templateGroupId as string}
             items={[
               // todo: use getByValues
               ...(templates.map((t: ITemplate) => ({

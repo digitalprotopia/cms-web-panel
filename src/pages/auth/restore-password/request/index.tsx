@@ -36,7 +36,7 @@ export default function Page() {
             onClick={async () => {
               try {
                 await sendPasswordRecoverLink({ variables: { email } });
-              } catch (e) {
+              } catch (e: any) {
                 enqueueSnackbar(e.message, { variant: 'error' });
                 return;
               }

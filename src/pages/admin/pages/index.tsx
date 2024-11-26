@@ -13,15 +13,13 @@ import {
   Typography,
   CircularProgress,
   MenuItem,
-  FormControl,
-  FormControlLabel,
 } from '@mui/material';
 import {
   Edit, AccessTime, Delete, Visibility,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import Link from 'next/link';
-import DefaultEditor, { Editor, EditorProvider } from 'react-simple-wysiwyg';
+import DefaultEditor from 'react-simple-wysiwyg';
 import { ISiteItem } from '@/components/entities/ISiteItem';
 
 const GET_PAGES = gql`
@@ -175,7 +173,7 @@ function PageForm({
 
       <h4>Добавить виджеты</h4>
       <div>
-        {snippets.data?.getAllWidgets?.map((widget) => (
+        {snippets.data?.getAllWidgets?.map((widget: any) => (
           <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
             {widget.title}
           </MenuItem>
@@ -183,7 +181,7 @@ function PageForm({
       </div>
       <h4>Добавить формы</h4>
       <div>
-        {snippets.data?.getAllForms?.map((form) => (
+        {snippets.data?.getAllForms?.map((form: any) => (
           <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
             {form.title}
           </MenuItem>
@@ -211,13 +209,13 @@ function PageCard({
   onEdit: (page: ISiteItem) => void;
   onDelete: (id: string) => void;
 }) {
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  // const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
+  //   day: 'numeric',
+  //   month: 'long',
+  //   year: 'numeric',
+  //   hour: '2-digit',
+  //   minute: '2-digit',
+  // });
 
   return (
     <Card>
@@ -251,7 +249,7 @@ function PageCard({
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
-            {dayjs(parseInt(page.createdAt)).toString()}
+            {dayjs(page.createdAt).toString()}
           </Typography>
         </div>
       </CardContent>
@@ -343,8 +341,8 @@ function PagesPage() {
           <PageCard
             key={page.id}
             page={page}
-            onEdit={(page) => {
-              setSelectedPage(page);
+            onEdit={(_page) => {
+              setSelectedPage(_page);
               setIsFormOpen(true);
             }}
             onDelete={handleDelete}
