@@ -1,9 +1,6 @@
-import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
-import { GET_TEMPLATE_GROUPS } from '@/app/admin/templateGroups/page';
-import DefaultEditor from 'react-simple-wysiwyg';
 import { useState } from 'react';
-import { useQuery } from '@apollo/client';
-import { Button, TextField } from '@mui/material';
+import { gql, useQuery } from '@apollo/client';
+import { Button, MenuItem, TextField } from '@mui/material';
 import { ITemplate, ITemplateFormData } from './entities/ITemplate';
 
 export default function TemplateEdit({
@@ -16,6 +13,22 @@ export default function TemplateEdit({
   const {
     name = '', title = '', templateGroupId, html = '', css = '',
   } = initialData;
+
+  const snippets = useQuery(gql`
+    query {
+      getAllWidgets {
+        id
+        name
+        title
+        createdAt
+      }
+      getAllForms {
+        id
+        name
+        title
+        createdAt
+      }
+  }`);
 
   const [formData, setFormData] = useState<ITemplateFormData>({
     name, title, templateGroupId, html, css,
@@ -70,6 +83,23 @@ export default function TemplateEdit({
                 {`${field.templateName}`}
               </Button>
             ))}
+        </div>
+
+        <h4>Добавить виджеты</h4>
+        <div>
+          {snippets.data?.getAllWidgets?.map((widget: any) => (
+            <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
+              {widget.title}
+            </MenuItem>
+          ))}
+        </div>
+        <h4>Добавить формы</h4>
+        <div>
+          {snippets.data?.getAllForms?.map((form: any) => (
+            <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
+              {form.title}
+            </MenuItem>
+          ))}
         </div>
 
         <div className="flex justify-end gap-2 mt-5">

@@ -1,10 +1,12 @@
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 import { useState } from 'react';
-import { PageFormData } from '../entities/IPage';
-import { Button, CircularProgress, MenuItem, TextField } from '@mui/material';
-import { GET_PAGES } from '@/app/admin/pages/page';
+import {
+  Button, CircularProgress, MenuItem, TextField,
+} from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
-import DefaultEditor, { Editor, EditorProvider } from 'react-simple-wysiwyg';
+import DefaultEditor from 'react-simple-wysiwyg';
+import { GET_PAGES } from '@/pages/admin/pages';
+import { PageFormData } from '../entities/IPage';
 import { IForm } from '../entities/IForm';
 import { IWidget } from '../entities/IWidget';
 

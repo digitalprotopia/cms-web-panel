@@ -1,6 +1,7 @@
 export interface Config {
   server: string;
   noConfirmation?: boolean;
+  yandexKey?: string;
 }
 
 async function config(): Promise<Config> {

@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {
+  useState, useEffect, useCallback, FormEventHandler,
+} from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -55,10 +57,17 @@ function TableEditor({
   onSuccess,
   mode = 'create',
   initialData = {},
-  tableId = {},
+  tableId = '',
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  mode?: 'create' | 'edit';
+  initialData?: any;
+  tableId?: string;
 }) {
   const [formData, setFormData] = useState(initialFormState);
-  const [newFields, setNewFields] = useState([]);
+  const [newFields, setNewFields] = useState<any[]>([]);
   const [createTable] = useMutation(CREATE_TABLE);
   const [addFields] = useMutation(ADD_FIELDS);
 
@@ -68,7 +77,7 @@ function TableEditor({
         setFormData({
           name: initialData.name,
           dbName: initialData.dbName,
-          fields: initialData.fields.map((field) => ({
+          fields: initialData.fields.map((field: any) => ({
             name: field.name,
             dbName: field.dbName,
             type: field.type,
@@ -82,7 +91,7 @@ function TableEditor({
     }
   }, [open]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit:FormEventHandler = async (e) => {
     e.preventDefault();
     try {
       if (mode === 'create') {
@@ -126,7 +135,7 @@ function TableEditor({
   }, []);
 
   const removeField = useCallback(
-    (index) => {
+    (index: number) => {
       const removedField = formData.fields[index];
       setFormData((prev) => ({
         ...prev,
@@ -138,7 +147,7 @@ function TableEditor({
   );
 
   const updateField = useCallback(
-    (index, field) => {
+    (index: number, field: any) => {
       setFormData((prev) => ({
         ...prev,
         fields: prev.fields.map((f, i) => (i === index ? field : f)),

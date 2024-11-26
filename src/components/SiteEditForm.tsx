@@ -1,12 +1,12 @@
 import textField from '@/components/guiElements/TextField';
 import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
-import { GET_TEMPLATE_GROUPS } from '@/app/admin/templateGroups/page';
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import {
   Button,
 } from '@mui/material';
+import { GET_TEMPLATE_GROUPS } from '@/pages/admin/templateGroups';
 import { SiteFormData } from './entities/ISite';
 
 export default function SiteEditForm({
