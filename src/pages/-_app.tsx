@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import {

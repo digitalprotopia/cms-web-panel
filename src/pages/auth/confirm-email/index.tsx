@@ -1,5 +1,5 @@
 import { gql, useMutation } from '@apollo/client';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { useEffect } from 'react';
 

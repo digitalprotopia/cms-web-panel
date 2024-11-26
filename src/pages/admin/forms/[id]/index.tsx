@@ -1,6 +1,6 @@
 import FormEdit from '@/components/FormEdit';
 import WidgetEdit from '@/components/WidgetEdit';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/router';
 
 function FormEditPage(props) {
   const params = useParams();

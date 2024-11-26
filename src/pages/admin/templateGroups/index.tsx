@@ -18,7 +18,7 @@ import {
 import dayjs from 'dayjs';
 import { ITemplateGroup } from '@/components/entities/ITemplateGroup';
 import textField from '@/components/guiElements/TextField';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 
 export const GET_TEMPLATE_GROUPS = gql`
   query GetTemplateGroups {

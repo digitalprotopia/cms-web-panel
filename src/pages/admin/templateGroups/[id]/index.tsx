@@ -9,11 +9,12 @@ import {
 
 import { ITemplate, ITemplateFormData } from '@/components/entities/ITemplate';
 import {
-  usePathname, useSearchParams,
-} from 'next/navigation';
+  useRouter,
+} from 'next/router';
 import TemplateEdit from '@/components/TemplateEdit';
 import clsx from 'clsx';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const GET_TEMPLATES = gql`
   query GetTemplates {
@@ -111,7 +112,8 @@ interface TemplateNavigationProps {
 }
 
 function TemplateNavigation({ items }: TemplateNavigationProps) {
-  const currentId = useSearchParams().get('id');
+  const router = useRouter();
+  const currentId = router.query.id;
 
   return (
     <ul className="flex flex-col gap-2">
@@ -127,7 +129,8 @@ function TemplateNavigation({ items }: TemplateNavigationProps) {
 }
 
 function TemplatesPage() {
-  const currentPath = usePathname();
+  const router = useRouter();
+  const currentPath = router.asPath;
   const templateId = useSearchParams().get('templateId');
   // TODO: investigate, why this is called many times:
   // alert('many times');
@@ -153,7 +156,7 @@ function TemplatesPage() {
   const tLoading = resultGetTemplate.loading;
   // const refetch_template = resultGetTemplate.refetch;
 
-  const templateGroupId = usePathname().split('/').pop();
+  const templateGroupId = router.query.id;
 
   const { data, loading, refetch } = useQuery(GET_TEMPLATES);
 
@@ -245,7 +248,7 @@ function TemplatesPage() {
               // todo: use getByValues
               ...(templates.map((t: ITemplate) => ({
                 label: t.name,
-                href: `${currentPath}?${t.id}`,
+                href: `${currentPath}?templateId=${t.id}`,
                 id: t.id,
                 onClick: () => { setSelectedTemplate(t); },
               })) || []),

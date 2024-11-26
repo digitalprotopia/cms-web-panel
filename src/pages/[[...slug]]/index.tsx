@@ -8,6 +8,7 @@ import ParsePage from '@/components/ParsePage';
 import DynamicParse from '@/components/DynamicParse';
 import Link from 'next/link';
 import reactStringReplace from 'react-string-replace';
+import { useRouter } from 'next/router';
 
 const GET_SITEITEM_BY_URL = gql`
   query GetSiteItemByUrl($url: String!) {
@@ -31,8 +32,8 @@ const GET_SITEITEM_BY_URL = gql`
     }
   }
 `;
-function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+function DynamicPage() {
+  const slug = useRouter().query.slug as string[];
 
   const { data: siteItem, loading: siteItemLoading, error } = useQuery(
     GET_SITEITEM_BY_URL,

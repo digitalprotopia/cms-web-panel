@@ -1,6 +1,6 @@
 import FormEdit from '@/components/FormEdit';
 import WidgetEdit from '@/components/WidgetEdit';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/router';
 
 function WidgetAdd(props) {
   const params = useSearchParams();

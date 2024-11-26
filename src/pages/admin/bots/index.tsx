@@ -17,7 +17,7 @@ import {
   Select,
   TextField,
 } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
 import { MaterialReactTable } from 'material-react-table';
 import TableEditor from '@/components/table-editor';

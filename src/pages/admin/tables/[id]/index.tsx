@@ -41,6 +41,7 @@ import useTable, {
   useEditField,
   useEditRow,
 } from '../../../../components/use-table';
+import { useRouter } from 'next/router';
 
 interface Field {
   id: string;
@@ -194,7 +195,8 @@ interface TablePageProps {
 }
 
 function TablePage({ params }: TablePageProps) {
-  const { id } = use(params);
+  const router = useRouter();
+  const { id } = router.query;
   const client = useApolloClient();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [tableMetadata, setTableMetadata] = useState<TableMeta | null>(null);
