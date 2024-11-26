@@ -6,11 +6,11 @@ interface TemplateEditDialogProps {
   isOpen: boolean,
   selectedTemplate: ITemplate | null, onSubmit: (data: ITemplateFormData) => void,
   onClose: () => void,
-  onCancel: () => void,
+  // onCancel: () => void,
 }
 
 export default function TemplateEditDialog({
-  isOpen, selectedTemplate, onSubmit, onClose, onCancel,
+  isOpen, selectedTemplate, onSubmit, onClose,
 }: TemplateEditDialogProps) {
   return (
     <Dialog
@@ -26,7 +26,7 @@ export default function TemplateEditDialog({
         <TemplateEdit
           initialData={selectedTemplate || {}}
           onSubmit={onSubmit}
-          onCancel={onCancel}
+          // onCancel={onCancel}
         />
       </DialogContent>
     </Dialog>

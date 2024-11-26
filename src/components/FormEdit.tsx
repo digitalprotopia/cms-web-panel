@@ -15,11 +15,23 @@ import {
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import useTable from './use-table';
-import { FormField } from './form';
+import FormField from './form';
 import { FieldType } from './entities/IField';
+import { ITable } from './entities/ITable';
 
-function FormEdit({ id, onClose, tables }) {
-  const [form, setForm] = useState({
+function FormEdit({ id, onClose, tables }: {
+  id?: string;
+  onClose: () => void;
+  tables: Partial<ITable>[];
+}) {
+  const [form, setForm] = useState<
+  {
+    name: string;
+    title: string;
+    tableId: string;
+    fields: any[];
+  }
+  >({
     name: '',
     title: '',
     tableId: '',
@@ -89,7 +101,7 @@ function FormEdit({ id, onClose, tables }) {
           name: formData.name,
           title: formData.title,
           tableId: formData.table.id,
-          fields: formData.fields.map((field) => ({
+          fields: formData.fields.map((field: any) => ({
             name: field.name,
             title: field.title,
             formFieldType: field.formFieldType,
@@ -148,9 +160,9 @@ function FormEdit({ id, onClose, tables }) {
             onChange={(e) => setForm((prev) => ({ ...prev, tableId: e.target.value }))}
             label="Таблица"
           >
-            {tables.map((table) => (
-              <MenuItem key={table.id} value={table.id}>
-                {table.name}
+            {tables.map((_table) => (
+              <MenuItem key={_table.id} value={_table.id}>
+                {_table.name}
               </MenuItem>
             ))}
           </Select>

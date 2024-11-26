@@ -4,14 +4,15 @@ import React, {
   useContext,
 } from 'react';
 import parse, {
-  Element, Text, HTMLReactParserOptions, domToReact,
+  Text, HTMLReactParserOptions, domToReact,
   attributesToProps,
+  DOMNode,
 } from 'html-react-parser';
 import Script from 'next/script';
 import reactStringReplace from 'react-string-replace';
 import { ErrorBoundary } from 'react-error-boundary';
 
-const ReplaceContext = createContext({});
+const ReplaceContext = createContext<Record<string, string | React.JSX.Element>>({});
 
 function DynamicParse(props: {
   html: string;
@@ -20,15 +21,15 @@ function DynamicParse(props: {
   try {
     const result = useMemo(() => {
       const options: HTMLReactParserOptions = {
-        transform(reactNode, domNode, index): React.ReactNode | null {
+        transform(reactNode, domNode, index) {
           if (domNode.type === 'text') {
             function Replace() {
               const replace = useContext(ReplaceContext);
-              let result = domNode.data;
+              let _result: React.ReactNode[] | string = (domNode as Text).data;
               Object.keys(replace).forEach((key) => {
-                result = reactStringReplace(result, `{${key}}`, (match, i) => replace[key]);
+                _result = reactStringReplace(_result, `{${key}}`, () => replace[key]);
               });
-              return result;
+              return _result;
             }
             return <Replace key={index} />;
           }
@@ -42,14 +43,14 @@ function DynamicParse(props: {
             const Tag = domNode.name;
             Object.keys(domNode.attribs).forEach((attr) => {
               Object.keys(props.replace).forEach((key) => {
-                domNode.attribs[attr] = domNode.attribs[attr].replaceAll(`{${key}}`, props.replace[key]);
+                domNode.attribs[attr] = domNode.attribs[attr].replaceAll(`{${key}}`, props.replace[key] as string);
               });
             });
             const _props = attributesToProps(domNode.attribs);
             console.log(Tag);
             return (
               <Tag {..._props}>
-                {Tag === 'img' ? null : domToReact(domNode.children, options)}
+                {Tag === 'img' ? null : domToReact(domNode.children as DOMNode[], options)}
               </Tag>
             );
           }
@@ -57,6 +58,7 @@ function DynamicParse(props: {
             const Tag:React.ElementType = domNode.name as any;
             return (
               <Tag
+                // eslint-disable-next-line no-eval
                 onClick={() => eval(domNode.attribs.onclick)}
                 {...domNode.attribs}
               >
@@ -66,12 +68,12 @@ function DynamicParse(props: {
           }
           if (domNode.type === 'tag' && domNode?.name === 'script') {
             return (
-              <Script>
-                {domNode.children[0].data}
+              <Script id="">
+                {(domNode.children[0] as any).data}
               </Script>
             );
           }
-          return reactNode;
+          return reactNode as React.JSX.Element;
         },
       };
       return parse(props.html, options);
