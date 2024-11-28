@@ -18,7 +18,12 @@ export type IFieldOneToManyOptions = {
   manyFieldTitle: string;
 };
 
-export type IFieldOptions = IFieldOneToManyOptions;
+export type IFieldManyToManyOptions = {
+  secondTableId: string;
+  secondFieldTitle: string;
+};
+
+export type IFieldOptions = IFieldOneToManyOptions | IFieldManyToManyOptions;
 
 export interface IField extends IEntity {
   dbName: string;

@@ -1,5 +1,7 @@
 import { useQuery, gql, useMutation } from '@apollo/client';
-import { FieldType, IField, IFieldOneToManyOptions } from './entities/IField';
+import {
+  FieldType, IField, IFieldOneToManyOptions, IFieldOptions,
+} from './entities/IField';
 
 interface TableField {
   id: string;
@@ -11,6 +13,14 @@ interface TableField {
     dbName: string;
   };
   oneToManyLinkManyTable?: {
+    id: string;
+    dbName: string;
+  };
+  manyToManyLinkFirstTable?: {
+    id: string;
+    dbName: string;
+  };
+  manyToManyLinkSecondTable?: {
     id: string;
     dbName: string;
   };
@@ -50,6 +60,14 @@ export const GET_TABLE_BY_ID = gql`
           id
           dbName
         }
+        manyToManyLinkFirstTable {
+          id
+          dbName
+        }
+        manyToManyLinkSecondTable {
+          id
+          dbName
+        }
       }
     }
   }
@@ -65,7 +83,9 @@ export const generateGetTableDataQuery = (
           createdAt
           _cms_title
           ${fields.map((field) => {
-    if (field.type === FieldType.ONE_TO_MANY_ONE || field.type === FieldType.ONE_TO_MANY_MANY) {
+    if (field.type === FieldType.ONE_TO_MANY_ONE || field.type === FieldType.ONE_TO_MANY_MANY
+      || field.type === FieldType.MANY_TO_MANY_FIRST
+      || field.type === FieldType.MANY_TO_MANY_SECOND) {
       return `${field.dbName} { id _cms_title }`;
     }
     return field.dbName;
@@ -204,9 +224,22 @@ export const useAddField = (
 }
 `;
   }
+
+  if (fieldType === FieldType.MANY_TO_MANY_FIRST) {
+    query = gql`
+  mutation($tableId: ID! $input: FieldInput! $options: FieldManyToManyOptions!) {
+    addManyToManyField(tableId: $tableId input: $input options: $options) {
+      id
+      name
+      type
+      tableId
+    }
+  }
+  `;
+  }
   const [addField] = useMutation(query);
 
-  return (data: Partial<IField>, options?: IFieldOneToManyOptions) => addField({
+  return (data: Partial<IField>, options?: IFieldOptions) => addField({
     variables: {
       input: {
         ...data,

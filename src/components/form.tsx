@@ -8,6 +8,7 @@ import {
 import dayjs from 'dayjs';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
+import S3Autocomplete from './guiElements/S3Autocomplete';
 
 interface FormFieldProps {
   title: string;
@@ -37,6 +38,26 @@ function FormFieldOneToManyOne(props: FormFieldProps) {
   );
 }
 
+function FormFieldManyToManyFirst(props: FormFieldProps) {
+  console.log(props.field);
+  const table = useTable(props.field.manyToManyLinkSecondTable?.id || '');
+  if (!table.data) {
+    return null;
+  }
+  return (
+    <S3Autocomplete
+      multiple
+      label={props.title}
+      value={props.value || []}
+      options={table.data?.map((row: any) => ({
+        id: row.id,
+        name: row._cms_title,
+      }))}
+      onChange={(value) => props.onChange(value)}
+    />
+  );
+}
+
 export default function FormField(props: FormFieldProps) {
   if (!props.field) {
     return null;
@@ -44,6 +65,16 @@ export default function FormField(props: FormFieldProps) {
   if (props.field.type === FieldType.ONE_TO_MANY_ONE) {
     return (
       <FormFieldOneToManyOne
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.MANY_TO_MANY_FIRST) {
+    return (
+      <FormFieldManyToManyFirst
         title={props.title}
         field={props.field}
         value={props.value}

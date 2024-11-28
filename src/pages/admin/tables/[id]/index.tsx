@@ -28,7 +28,10 @@ import TableEditor from '@/components/table-editor';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { FieldType, IField, IFieldOneToManyOptions } from '@/components/entities/IField';
+import {
+  FieldType, IField, IFieldManyToManyOptions, IFieldOneToManyOptions,
+  IFieldOptions,
+} from '@/components/entities/IField';
 import { useRouter } from 'next/router';
 import FormField from '@/components/form';
 import useTable, {
@@ -253,10 +256,21 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
     dbName: '',
     type: FieldType.STRING,
   });
-  const [options, setOptions] = useState<Partial<IFieldOneToManyOptions>>({
+  const [oneToManyOptions, setOneToManyOptions] = useState<IFieldOneToManyOptions>({
     manyFieldTitle: '',
     manyTableId: '',
   });
+  const [manyToManyOptions, setManyToManyOptions] = useState<IFieldManyToManyOptions>({
+    secondFieldTitle: '',
+    secondTableId: '',
+  });
+  let options:(IFieldOptions | undefined);
+  if (form.type === FieldType.ONE_TO_MANY_ONE) {
+    options = oneToManyOptions!;
+  }
+  if (form.type === FieldType.MANY_TO_MANY_FIRST) {
+    options = manyToManyOptions!;
+  }
   const addField = useAddField(meta.id, form.type!);
   const tables = useQuery(gql`
     query {
@@ -282,7 +296,11 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
         size="small"
         label="Название"
         value={form.name}
-        onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+        onChange={(e) => {
+          setForm((prev) => ({ ...prev, name: e.target.value }));
+          setOneToManyOptions((prev) => ({ ...prev, manyFieldTitle: e.target.value }));
+          setManyToManyOptions((prev) => ({ ...prev, secondFieldTitle: e.target.value }));
+        }}
       />
 
       <TextField
@@ -300,8 +318,28 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
         size="small"
         label="Таблица"
         select
-        value={options.manyTableId}
-        onChange={(e) => setOptions((prev) => ({ ...prev, manyTableId: e.target.value }))}
+        value={oneToManyOptions.manyTableId}
+        onChange={(e) => setOneToManyOptions((prev) => ({ ...prev, manyTableId: e.target.value }))}
+      >
+        {tables.data.getTables.map((table: any) => (
+          <MenuItem key={table.id} value={table.id}>
+            {table.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
+
+      {form.type === FieldType.MANY_TO_MANY_FIRST
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Таблица"
+        select
+        value={manyToManyOptions.secondTableId}
+        onChange={(e) => setManyToManyOptions(
+          (prev) => ({ ...prev, secondTableId: e.target.value }),
+        )}
       >
         {tables.data.getTables.map((table: any) => (
           <MenuItem key={table.id} value={table.id}>
@@ -321,11 +359,14 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
           <MenuItem value="" disabled>
             <em>Выберите тип поля</em>
           </MenuItem>
-          {Object.values(FieldType).map((key) => (
-            <MenuItem key={key} value={key}>
-              {key}
-            </MenuItem>
-          ))}
+          {Object.values(FieldType)
+            .filter((key) => ![FieldType.ONE_TO_MANY_MANY,
+              FieldType.MANY_TO_MANY_SECOND].includes(key))
+            .map((key) => (
+              <MenuItem key={key} value={key}>
+                {key}
+              </MenuItem>
+            ))}
         </Select>
       </FormControl>
 
@@ -339,10 +380,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
               dbName: form.dbName,
               type: form.type,
             },
-            form.type === FieldType.ONE_TO_MANY_ONE ? {
-              manyFieldTitle: form.name!,
-              manyTableId: options.manyTableId!,
-            } : undefined,
+            options,
           );
           onClose();
           setTimeout(() => refetch(), 2000);

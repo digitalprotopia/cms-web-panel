@@ -257,6 +257,14 @@ function FormWidget(props: {
                               id
                               dbName
                             }
+                            manyToManyLinkFirstTable {
+                              id
+                              dbName
+                            }
+                            manyToManyLinkSecondTable {
+                              id
+                              dbName
+                            }
                         }
                     }
                     table {
