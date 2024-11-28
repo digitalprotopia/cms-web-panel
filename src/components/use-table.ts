@@ -76,17 +76,41 @@ export const GET_TABLE_BY_ID = gql`
 export const generateGetTableDataQuery = (
   tableName: string,
   fields: TableField[],
-) => gql`
+) => {
+  const tables: string[] = [];
+  fields.forEach((field) => {
+    if (field.type === FieldType.ONE_TO_MANY_ONE
+      && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
+      tables.push(field.oneToManyLinkManyTable!.dbName);
+    }
+    if (field.type === FieldType.ONE_TO_MANY_MANY
+      && !tables.includes(field.oneToManyLinkOneTable!.dbName)) {
+      tables.push(field.oneToManyLinkOneTable!.dbName);
+    }
+    if (field.type === FieldType.MANY_TO_MANY_FIRST
+      && !tables.includes(field.manyToManyLinkSecondTable!.dbName)) {
+      tables.push(field.manyToManyLinkSecondTable!.dbName);
+    }
+    if (field.type === FieldType.MANY_TO_MANY_SECOND
+      && !tables.includes(field.manyToManyLinkFirstTable!.dbName)) {
+      tables.push(field.manyToManyLinkFirstTable!.dbName);
+    }
+  });
+  return gql`
       query GetTableData {
+        ${tables.map((table) => `getAll${table} { id _cms_title }`).join('\n')}
           getAll${tableName} {
           id
           createdAt
           _cms_title
           ${fields.map((field) => {
-    if (field.type === FieldType.ONE_TO_MANY_ONE || field.type === FieldType.ONE_TO_MANY_MANY
+    if (field.type === FieldType.ONE_TO_MANY_ONE) {
+      return `${field.dbName}Id`;
+    }
+    if (field.type === FieldType.ONE_TO_MANY_MANY
       || field.type === FieldType.MANY_TO_MANY_FIRST
       || field.type === FieldType.MANY_TO_MANY_SECOND) {
-      return `${field.dbName} { id _cms_title }`;
+      return `${field.dbName}Ids`;
     }
     return field.dbName;
   }).join('\n        ')}
@@ -96,6 +120,7 @@ export const generateGetTableDataQuery = (
 // if (field.type === 'geo') {
 //   return `${field.dbName} { lat lon }`;
 // }
+};
 
 interface UseTableOptions {
   onMetaLoaded?: (meta: TableMeta) => void;
@@ -133,6 +158,50 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
     },
   );
 
+  const processData = (data: any) => {
+    const tables: string[] = [];
+    tableMeta?.fields.forEach((field) => {
+      if (field.type === FieldType.ONE_TO_MANY_ONE
+        && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
+        tables.push(field.oneToManyLinkManyTable!.dbName);
+      }
+      if (field.type === FieldType.ONE_TO_MANY_MANY
+        && !tables.includes(field.oneToManyLinkOneTable!.dbName)) {
+        tables.push(field.oneToManyLinkOneTable!.dbName);
+      }
+      if (field.type === FieldType.MANY_TO_MANY_FIRST
+        && !tables.includes(field.manyToManyLinkSecondTable!.dbName)) {
+        tables.push(field.manyToManyLinkSecondTable!.dbName);
+      }
+      if (field.type === FieldType.MANY_TO_MANY_SECOND
+        && !tables.includes(field.manyToManyLinkFirstTable!.dbName)) {
+        tables.push(field.manyToManyLinkFirstTable!.dbName);
+      }
+    });
+    const objects: any = {};
+    tables.forEach((table) => {
+      data[`getAll${table}`].forEach((row: any) => {
+        objects[row.id] = row;
+      });
+    });
+
+    tableMeta?.fields.forEach((field) => {
+      if (field.type === FieldType.ONE_TO_MANY_ONE) {
+        data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+          row[field.dbName] = objects[row[`${field.dbName}Id`]];
+        });
+      }
+      if (field.type === FieldType.ONE_TO_MANY_MANY || field.type === FieldType.MANY_TO_MANY_FIRST
+        || field.type === FieldType.MANY_TO_MANY_SECOND) {
+        data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+          row[field.dbName] = row[`${field.dbName}Ids`].map((id: string) => objects[id]);
+        });
+      }
+    });
+
+    return data[`getAll${tableMeta!.dbName}`];
+  };
+
   const loading = metaLoading || dataLoading;
   const error = metaError || dataError;
 
@@ -145,7 +214,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
         const dataResult = await refetchData();
         return {
           meta: newMeta,
-          data: dataResult.data[`getAll${newMeta.dbName}`],
+          data: processData(dataResult.data),
         };
       }
     } catch (_error) {
@@ -156,7 +225,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
 
   return {
     meta: tableMeta,
-    data: tableData ? tableData[`getAll${tableMeta!.dbName}`] : null,
+    data: tableData ? processData(tableData) : null,
     loading,
     error,
     refetch,
