@@ -16,7 +16,6 @@ import {
 import { Delete } from '@mui/icons-material';
 import useTable from './use-table';
 import FormField from './form';
-import { FieldType } from './entities/IField';
 import { ITable } from './entities/ITable';
 
 function FormEdit({ id, onClose, tables }: {
@@ -195,7 +194,7 @@ function FormEdit({ id, onClose, tables }: {
                     />
                     <FormField
                       title={field.title}
-                      type={(tableField?.type as FieldType) || 'string'}
+                      field={tableField as TableField}
                       value=""
                       onChange={() => {}}
                     />

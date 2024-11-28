@@ -55,6 +55,13 @@ export function parseRow(html: string, row: any, fields: TableField[]) {
 
       resultRow[field.dbName] = row[field.dbName] ? (`${row[field.dbName].lat}, ${row[field.dbName].lng}`) : null;
     }
+
+    if (field.type === FieldType.ONE_TO_MANY_ONE) {
+      resultRow[field.dbName] = row[field.dbName] ? row[field.dbName]._cms_title : null;
+    }
+    if (field.type === FieldType.ONE_TO_MANY_MANY) {
+      resultRow[field.dbName] = row[field.dbName] ? row[field.dbName].map((r: any) => r._cms_title).join(', ') : null;
+    }
   });
   return (
     <div key={resultRow.id}>
@@ -242,6 +249,14 @@ function FormWidget(props: {
                             type
                             name
                             dbName
+                            oneToManyLinkOneTable {
+                              id
+                              dbName
+                            }
+                            oneToManyLinkManyTable {
+                              id
+                              dbName
+                            }
                         }
                     }
                     table {
@@ -285,7 +300,7 @@ function FormWidget(props: {
           const fieldComponent = (
             <FormField
               title={field.title}
-              type={field.field.type}
+              field={field.field}
               value={form[field.field.dbName]}
               onChange={(value) => setForm({ ...form, [field.field.dbName]: value })}
             />

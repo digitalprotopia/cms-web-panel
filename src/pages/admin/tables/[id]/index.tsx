@@ -214,7 +214,7 @@ function CellEdit({
                   // field={field}
         value={value}
         title=""
-        type={field.type as FieldType}
+        field={field}
         onChange={(_value) => setValue(_value)}
       />
       <IconButton
@@ -483,6 +483,15 @@ function TablePage() {
           }
           if (field.type === FieldType.GEO) {
             cellValue = `${cellValue?.lat}, ${cellValue?.lng}`;
+          }
+          if (field.type === FieldType.ONE_TO_MANY_ONE) {
+            cellValue = cellValue?._cms_title;
+          }
+          if ([FieldType.ONE_TO_MANY_MANY,
+            FieldType.MANY_TO_MANY_FIRST,
+            FieldType.MANY_TO_MANY_SECOND]
+            .includes(field.type as FieldType)) {
+            cellValue = cellValue?.map((item: any) => item._cms_title).join(', ');
           }
           return (
             <div onClick={() => setEditMode(true)}>

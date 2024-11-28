@@ -2,18 +2,56 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
+  MenuItem,
   TextField,
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { FieldType } from './entities/IField';
+import useTable, { TableField } from './use-table';
 
-export default function FormField(props: {
+interface FormFieldProps {
   title: string;
-  type: FieldType;
+  field: TableField;
   value: any;
   onChange: (value: any) => void;
-}) {
-  if (props.type === FieldType.STRING) {
+}
+
+function FormFieldOneToManyOne(props: FormFieldProps) {
+  const table = useTable(props.field.oneToManyLinkManyTable?.id || '');
+  if (!table.data) {
+    return null;
+  }
+  return (
+    <TextField
+      select
+      label={props.title}
+      value={props.value || ''}
+      onChange={(e) => props.onChange(e.target.value)}
+    >
+      {table.data?.map((row: any) => (
+        <MenuItem key={row.id} value={row.id}>
+          {row._cms_title}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+}
+
+export default function FormField(props: FormFieldProps) {
+  if (!props.field) {
+    return null;
+  }
+  if (props.field.type === FieldType.ONE_TO_MANY_ONE) {
+    return (
+      <FormFieldOneToManyOne
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.STRING) {
     return (
       <TextField
         label={props.title}
@@ -22,7 +60,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.TEXT) {
+  if (props.field.type === FieldType.TEXT) {
     return (
       <TextField
         label={props.title}
@@ -32,7 +70,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.GEO) {
+  if (props.field.type === FieldType.GEO) {
     return (
       <>
         <TextField
@@ -50,7 +88,7 @@ export default function FormField(props: {
       </>
     );
   }
-  if (props.type === FieldType.NUMBER) {
+  if (props.field.type === FieldType.NUMBER) {
     return (
       <TextField
         label={props.title}
@@ -60,7 +98,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.DATE) {
+  if (props.field.type === FieldType.DATE) {
     return (
       <TextField
         label={props.title}
@@ -70,7 +108,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.BOOLEAN) {
+  if (props.field.type === FieldType.BOOLEAN) {
     return (
       <FormControl>
         <FormControlLabel
@@ -83,16 +121,6 @@ export default function FormField(props: {
           )}
         />
       </FormControl>
-    );
-  }
-  if (props.type === FieldType.ONE_TO_MANY_ONE) {
-    return (
-      <TextField
-        select
-        label={props.title}
-        value={props.value || ''}
-        onChange={(e) => props.onChange(e.target.value)}
-      />
     );
   }
   return null;

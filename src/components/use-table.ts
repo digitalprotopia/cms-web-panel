@@ -6,6 +6,14 @@ interface TableField {
   name: string;
   type: string;
   dbName: string;
+  oneToManyLinkOneTable?: {
+    id: string;
+    dbName: string;
+  };
+  oneToManyLinkManyTable?: {
+    id: string;
+    dbName: string;
+  };
 }
 
 interface TableMeta {
@@ -34,6 +42,14 @@ export const GET_TABLE_BY_ID = gql`
         name
         type
         dbName
+        oneToManyLinkOneTable {
+          id
+          dbName
+        }
+        oneToManyLinkManyTable {
+          id
+          dbName
+        }
       }
     }
   }
@@ -47,9 +63,10 @@ export const generateGetTableDataQuery = (
           getAll${tableName} {
           id
           createdAt
+          _cms_title
           ${fields.map((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE || field.type === FieldType.ONE_TO_MANY_MANY) {
-      return `${field.dbName} { id }`;
+      return `${field.dbName} { id _cms_title }`;
     }
     return field.dbName;
   }).join('\n        ')}
