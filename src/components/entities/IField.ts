@@ -7,11 +7,23 @@ export enum FieldType {
   BOOLEAN = 'boolean',
   DATE = 'date',
   GEO = 'geo',
+  ONE_TO_MANY_ONE = 'oneToManyOne',
+  ONE_TO_MANY_MANY = 'oneToManyMany',
+  MANY_TO_MANY_FIRST = 'manyToManyFirst',
+  MANY_TO_MANY_SECOND = 'manyToManySecond',
 }
+
+export type IFieldOneToManyOptions = {
+  manyTableId: string;
+  manyFieldTitle: string;
+};
+
+export type IFieldOptions = IFieldOneToManyOptions;
 
 export interface IField extends IEntity {
   dbName: string;
   name: string;
   tableId: string;
   type: FieldType;
+  options?: IFieldOptions;
 }

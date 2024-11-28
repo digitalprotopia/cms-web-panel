@@ -85,5 +85,15 @@ export default function FormField(props: {
       </FormControl>
     );
   }
+  if (props.type === FieldType.ONE_TO_MANY_ONE) {
+    return (
+      <TextField
+        select
+        label={props.title}
+        value={props.value || ''}
+        onChange={(e) => props.onChange(e.target.value)}
+      />
+    );
+  }
   return null;
 }

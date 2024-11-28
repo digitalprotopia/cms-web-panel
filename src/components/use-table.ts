@@ -1,5 +1,5 @@
 import { useQuery, gql, useMutation } from '@apollo/client';
-import { IField } from './entities/IField';
+import { FieldType, IField, IFieldOneToManyOptions } from './entities/IField';
 
 interface TableField {
   id: string;
@@ -47,7 +47,12 @@ export const generateGetTableDataQuery = (
           getAll${tableName} {
           id
           createdAt
-          ${fields.map((field) => field.dbName).join('\n        ')}
+          ${fields.map((field) => {
+    if (field.type === FieldType.ONE_TO_MANY_ONE || field.type === FieldType.ONE_TO_MANY_MANY) {
+      return `${field.dbName} { id }`;
+    }
+    return field.dbName;
+  }).join('\n        ')}
       }
       }
   `;
@@ -156,24 +161,41 @@ export const useEditRow = (dbName: string) => {
   });
 };
 
-export const useAddField = (tableId: string) => {
-  const [addField] = useMutation(gql`
-    mutation($tableId: ID! $input: FieldInput!) {
-      addField(tableId: $tableId input: $input) {
-        id
-        name
-        type
-        tableId
-    }
+export const useAddField = (
+  tableId: string,
+  fieldType: FieldType,
+) => {
+  let query = gql`
+  mutation($tableId: ID! $input: FieldInput!) {
+    addField(tableId: $tableId input: $input) {
+      id
+      name
+      type
+      tableId
   }
-`);
+}
+`;
+  if (fieldType === FieldType.ONE_TO_MANY_ONE) {
+    query = gql`
+  mutation($tableId: ID! $input: FieldInput! $options: FieldOneToManyOptions!) {
+    addOneToManyField(tableId: $tableId input: $input options: $options) {
+      id
+      name
+      type
+      tableId
+  }
+}
+`;
+  }
+  const [addField] = useMutation(query);
 
-  return (data: Partial<IField>) => addField({
+  return (data: Partial<IField>, options?: IFieldOneToManyOptions) => addField({
     variables: {
       input: {
         ...data,
       },
       tableId,
+      options,
     },
   });
 };
