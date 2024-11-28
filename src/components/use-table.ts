@@ -1,6 +1,6 @@
 import { useQuery, gql, useMutation } from '@apollo/client';
 import {
-  FieldType, IField, IFieldOneToManyOptions, IFieldOptions,
+  FieldType, IField, IFieldOptions,
 } from './entities/IField';
 
 interface TableField {

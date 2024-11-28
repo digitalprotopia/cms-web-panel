@@ -196,7 +196,17 @@ interface CellEditProps {
 function CellEdit({
   cell, row, field, meta, refetch, setEditMode,
 }: CellEditProps) {
-  const [value, setValue] = useState<any>(cell.getValue());
+  const [value, setValue] = useState<any>(() => {
+    if (field.type === FieldType.MANY_TO_MANY_FIRST
+        || field.type === FieldType.MANY_TO_MANY_SECOND
+        || field.type === FieldType.ONE_TO_MANY_MANY) {
+      return (cell.getValue() as any)?.map((item: any) => item.id);
+    }
+    if (field.type === FieldType.ONE_TO_MANY_ONE) {
+      return (cell.getValue() as any)?.id;
+    }
+    return cell.getValue();
+  });
   const editRow = useEditRow(meta.dbName);
   if (field.type === 'boolean') {
     return (

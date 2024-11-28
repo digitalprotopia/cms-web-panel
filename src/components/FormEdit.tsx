@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
-import useTable from './use-table';
+import useTable, { TableField } from './use-table';
 import FormField from './form';
 import { ITable } from './entities/ITable';
 

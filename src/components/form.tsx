@@ -38,9 +38,18 @@ function FormFieldOneToManyOne(props: FormFieldProps) {
   );
 }
 
-function FormFieldManyToManyFirst(props: FormFieldProps) {
-  console.log(props.field);
-  const table = useTable(props.field.manyToManyLinkSecondTable?.id || '');
+function FormFieldMultipleId(props: FormFieldProps) {
+  let tableId = '';
+  if (props.field.type === FieldType.MANY_TO_MANY_FIRST) {
+    tableId = props.field.manyToManyLinkSecondTable?.id || '';
+  }
+  if (props.field.type === FieldType.MANY_TO_MANY_SECOND) {
+    tableId = props.field.manyToManyLinkFirstTable?.id || '';
+  }
+  if (props.field.type === FieldType.ONE_TO_MANY_MANY) {
+    tableId = props.field.oneToManyLinkOneTable?.id || '';
+  }
+  const table = useTable(tableId);
   if (!table.data) {
     return null;
   }
@@ -72,9 +81,11 @@ export default function FormField(props: FormFieldProps) {
       />
     );
   }
-  if (props.field.type === FieldType.MANY_TO_MANY_FIRST) {
+  if (props.field.type === FieldType.MANY_TO_MANY_FIRST
+      || props.field.type === FieldType.MANY_TO_MANY_SECOND
+      || props.field.type === FieldType.ONE_TO_MANY_MANY) {
     return (
-      <FormFieldManyToManyFirst
+      <FormFieldMultipleId
         title={props.title}
         field={props.field}
         value={props.value}
