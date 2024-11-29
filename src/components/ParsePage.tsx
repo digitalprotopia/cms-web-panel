@@ -59,7 +59,9 @@ export function parseRow(html: string, row: any, fields: TableField[]) {
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
       resultRow[field.dbName] = row[field.dbName] ? row[field.dbName]._cms_title : null;
     }
-    if (field.type === FieldType.ONE_TO_MANY_MANY) {
+    if (field.type === FieldType.ONE_TO_MANY_MANY
+      || field.type === FieldType.MANY_TO_MANY_FIRST
+      || field.type === FieldType.MANY_TO_MANY_SECOND) {
       resultRow[field.dbName] = row[field.dbName] ? row[field.dbName].map((r: any) => r._cms_title).join(', ') : null;
     }
   });
