@@ -1,3 +1,4 @@
+/* eslint-disable react/no-danger */
 import { gql, useQuery } from '@apollo/client';
 import parse from 'html-react-parser';
 import reactStringReplace from 'react-string-replace';
@@ -353,6 +354,33 @@ function FormWidget(props: {
   );
 }
 
+function Posts() {
+  const posts = useQuery(gql`
+    query {
+      getPosts {
+        id
+        title
+        content
+      }
+    }
+  `);
+
+  if (!posts.data) {
+    return null;
+  }
+
+  return (
+    <div>
+      {posts.data.getPosts.map((post: any) => (
+        <div key={post.id}>
+          <h2>{post.title}</h2>
+          <div dangerouslySetInnerHTML={{ __html: post.content }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ParsePage(props: {
   html: string;
   args?: Record<string, string | React.JSX.Element>
@@ -368,6 +396,7 @@ function ParsePage(props: {
               result = reactStringReplace(result, `{${key}}`, () => (props.args!)[key]);
             });
           }
+          result = reactStringReplace(result, '[posts]', () => <Posts />);
           return reactStringReplace(result, /\[([a-zA-Z0-9]+:[a-zA-Z0-9]+)\]/g, (match, i) => {
             const parts = match.split(':');
             if (parts[0] === 'widget') {
