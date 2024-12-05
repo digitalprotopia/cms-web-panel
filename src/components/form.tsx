@@ -2,18 +2,98 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
+  MenuItem,
   TextField,
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { FieldType } from './entities/IField';
+import useTable, { TableField } from './use-table';
+import S3Autocomplete from './guiElements/S3Autocomplete';
 
-export default function FormField(props: {
+interface FormFieldProps {
   title: string;
-  type: FieldType;
+  field: TableField;
   value: any;
   onChange: (value: any) => void;
-}) {
-  if (props.type === FieldType.STRING) {
+}
+
+function FormFieldOneToManyOne(props: FormFieldProps) {
+  const table = useTable(props.field.oneToManyLinkManyTable?.id || '');
+  if (!table.data) {
+    return null;
+  }
+  return (
+    <TextField
+      select
+      label={props.title}
+      value={props.value || ''}
+      onChange={(e) => props.onChange(e.target.value)}
+    >
+      {table.data?.map((row: any) => (
+        <MenuItem key={row.id} value={row.id}>
+          {row._cms_title}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+}
+
+function FormFieldMultipleId(props: FormFieldProps) {
+  let tableId = '';
+  if (props.field.type === FieldType.MANY_TO_MANY_FIRST) {
+    tableId = props.field.manyToManyLinkSecondTable?.id || '';
+  }
+  if (props.field.type === FieldType.MANY_TO_MANY_SECOND) {
+    tableId = props.field.manyToManyLinkFirstTable?.id || '';
+  }
+  if (props.field.type === FieldType.ONE_TO_MANY_MANY) {
+    tableId = props.field.oneToManyLinkOneTable?.id || '';
+  }
+  const table = useTable(tableId);
+  if (!table.data) {
+    return null;
+  }
+  return (
+    <S3Autocomplete
+      multiple
+      label={props.title}
+      value={props.value || []}
+      options={table.data?.map((row: any) => ({
+        id: row.id,
+        name: row._cms_title,
+      }))}
+      onChange={(value) => props.onChange(value)}
+    />
+  );
+}
+
+export default function FormField(props: FormFieldProps) {
+  if (!props.field) {
+    return null;
+  }
+  if (props.field.type === FieldType.ONE_TO_MANY_ONE) {
+    return (
+      <FormFieldOneToManyOne
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.MANY_TO_MANY_FIRST
+      || props.field.type === FieldType.MANY_TO_MANY_SECOND
+      || props.field.type === FieldType.ONE_TO_MANY_MANY) {
+    return (
+      <FormFieldMultipleId
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.STRING) {
     return (
       <TextField
         label={props.title}
@@ -22,7 +102,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.TEXT) {
+  if (props.field.type === FieldType.TEXT) {
     return (
       <TextField
         label={props.title}
@@ -32,7 +112,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.GEO) {
+  if (props.field.type === FieldType.GEO) {
     return (
       <>
         <TextField
@@ -50,7 +130,7 @@ export default function FormField(props: {
       </>
     );
   }
-  if (props.type === FieldType.NUMBER) {
+  if (props.field.type === FieldType.NUMBER) {
     return (
       <TextField
         label={props.title}
@@ -60,7 +140,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.DATE) {
+  if (props.field.type === FieldType.DATE) {
     return (
       <TextField
         label={props.title}
@@ -70,7 +150,7 @@ export default function FormField(props: {
       />
     );
   }
-  if (props.type === FieldType.BOOLEAN) {
+  if (props.field.type === FieldType.BOOLEAN) {
     return (
       <FormControl>
         <FormControlLabel

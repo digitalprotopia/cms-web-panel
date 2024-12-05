@@ -3,6 +3,8 @@ import {
 } from 'react';
 import {
   MaterialReactTable,
+  MRT_Cell,
+  MRT_Row,
   MRT_RowData,
   type MRT_ColumnDef,
 } from 'material-react-table';
@@ -20,16 +22,20 @@ import {
 import {
   Add, ArrowDropDown, Close, Delete, Save,
 } from '@mui/icons-material';
-import { gql, useApolloClient } from '@apollo/client';
+import { gql, useApolloClient, useQuery } from '@apollo/client';
 
 import TableEditor from '@/components/table-editor';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { FieldType, IField } from '@/components/entities/IField';
+import {
+  FieldType, IField, IFieldManyToManyOptions, IFieldOneToManyOptions,
+  IFieldOptions,
+} from '@/components/entities/IField';
 import { useRouter } from 'next/router';
 import FormField from '@/components/form';
 import useTable, {
+  TableField,
   TableMeta,
   useAddField,
   useAddRow,
@@ -178,6 +184,226 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
   );
 }
 
+interface CellEditProps {
+  cell: MRT_Cell<MRT_RowData>,
+  row: MRT_Row<MRT_RowData>,
+  field: TableField,
+  meta: TableMeta,
+  refetch: () => Promise<void>,
+  setEditMode: (value: boolean) => void,
+}
+
+function CellEdit({
+  cell, row, field, meta, refetch, setEditMode,
+}: CellEditProps) {
+  const [value, setValue] = useState<any>(() => {
+    if (field.type === FieldType.MANY_TO_MANY_FIRST
+        || field.type === FieldType.MANY_TO_MANY_SECOND
+        || field.type === FieldType.ONE_TO_MANY_MANY) {
+      return (cell.getValue() as any)?.map((item: any) => item.id);
+    }
+    if (field.type === FieldType.ONE_TO_MANY_ONE) {
+      return (cell.getValue() as any)?.id;
+    }
+    return cell.getValue();
+  });
+  const editRow = useEditRow(meta.dbName);
+  if (field.type === 'boolean') {
+    return (
+      <Checkbox
+        checked={!!cell.getValue()}
+        onChange={(e) => {
+          editRow(row.original.id, {
+            [field.dbName]: e.target.checked,
+          });
+          refetch();
+        }}
+      />
+    );
+  }
+  return (
+    <div>
+      <FormField
+                  // field={field}
+        value={value}
+        title=""
+        field={field}
+        onChange={(_value) => setValue(_value)}
+      />
+      <IconButton
+        onClick={async () => {
+          console.log(value);
+          await editRow(row.original.id, {
+            [field.dbName]: value,
+          });
+          setEditMode(false);
+          refetch();
+        }}
+      >
+        <Save />
+      </IconButton>
+      <IconButton
+        onClick={() => {
+          setValue(cell.getValue());
+          setEditMode(false);
+        }}
+      >
+        <Close />
+      </IconButton>
+    </div>
+  );
+}
+
+interface AddFieldProps {
+  onClose: () => void;
+  refetch: () => void;
+  meta: TableMeta;
+}
+
+function AddField({ onClose, refetch, meta }: AddFieldProps) {
+  const [form, setForm] = useState<Partial<IField>>({
+    name: '',
+    dbName: '',
+    type: FieldType.STRING,
+  });
+  const [oneToManyOptions, setOneToManyOptions] = useState<IFieldOneToManyOptions>({
+    manyFieldTitle: '',
+    manyTableId: '',
+  });
+  const [manyToManyOptions, setManyToManyOptions] = useState<IFieldManyToManyOptions>({
+    secondFieldTitle: '',
+    secondTableId: '',
+  });
+  let options:(IFieldOptions | undefined);
+  if (form.type === FieldType.ONE_TO_MANY_ONE) {
+    options = oneToManyOptions!;
+  }
+  if (form.type === FieldType.MANY_TO_MANY_FIRST) {
+    options = manyToManyOptions!;
+  }
+  const addField = useAddField(meta.id, form.type!);
+  const tables = useQuery(gql`
+    query {
+      getTables {
+        id
+        name
+      }
+    }
+  `);
+
+  if (!tables.data) {
+    return null;
+  }
+
+  return (
+    <div className="p-6 flex flex-col space-y-4">
+      <h4 className="text-lg font-medium text-gray-900">
+        Добавить поле
+      </h4>
+
+      <TextField
+        fullWidth
+        size="small"
+        label="Название"
+        value={form.name}
+        onChange={(e) => {
+          setForm((prev) => ({ ...prev, name: e.target.value }));
+          setOneToManyOptions((prev) => ({ ...prev, manyFieldTitle: e.target.value }));
+          setManyToManyOptions((prev) => ({ ...prev, secondFieldTitle: e.target.value }));
+        }}
+      />
+
+      <TextField
+        fullWidth
+        size="small"
+        label="Имя в базе данных"
+        value={form.dbName}
+        onChange={(e) => setForm((prev) => ({ ...prev, dbName: e.target.value }))}
+      />
+
+      {form.type === FieldType.ONE_TO_MANY_ONE
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Таблица"
+        select
+        value={oneToManyOptions.manyTableId}
+        onChange={(e) => setOneToManyOptions((prev) => ({ ...prev, manyTableId: e.target.value }))}
+      >
+        {tables.data.getTables.map((table: any) => (
+          <MenuItem key={table.id} value={table.id}>
+            {table.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
+
+      {form.type === FieldType.MANY_TO_MANY_FIRST
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Таблица"
+        select
+        value={manyToManyOptions.secondTableId}
+        onChange={(e) => setManyToManyOptions(
+          (prev) => ({ ...prev, secondTableId: e.target.value }),
+        )}
+      >
+        {tables.data.getTables.map((table: any) => (
+          <MenuItem key={table.id} value={table.id}>
+            {table.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
+
+      <FormControl fullWidth size="small">
+        <InputLabel>Тип поля</InputLabel>
+        <Select
+          value={form.type}
+          label="Тип поля"
+          onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value } as any))}
+        >
+          <MenuItem value="" disabled>
+            <em>Выберите тип поля</em>
+          </MenuItem>
+          {Object.values(FieldType)
+            .filter((key) => ![FieldType.ONE_TO_MANY_MANY,
+              FieldType.MANY_TO_MANY_SECOND].includes(key))
+            .map((key) => (
+              <MenuItem key={key} value={key}>
+                {key}
+              </MenuItem>
+            ))}
+        </Select>
+      </FormControl>
+
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={async () => {
+          await addField(
+            {
+              name: form.name,
+              dbName: form.dbName,
+              type: form.type,
+            },
+            options,
+          );
+          onClose();
+          setTimeout(() => refetch(), 2000);
+        }}
+        disabled={!form.name || !form.dbName || !form.type}
+        className="mt-2"
+      >
+        Добавить
+      </Button>
+    </div>
+  );
+}
+
 function TablePage() {
   const router = useRouter();
   const { id } = router.query;
@@ -284,63 +510,36 @@ function TablePage() {
         },
         Cell: ({ cell, row }) => {
           const [editMode, setEditMode] = useState(false);
-          const [value, setValue] = useState<any>(cell.getValue());
-          const editRow = useEditRow(meta.dbName);
-          if (field.type === 'boolean') {
-            return (
-              <Checkbox
-                checked={!!cell.getValue()}
-                onChange={(e) => {
-                  editRow(row.original.id, {
-                    [field.dbName]: e.target.checked,
-                  });
-                  refetch();
-                }}
-              />
-            );
-          }
           if (editMode) {
             return (
-              <div>
-                <FormField
-                  // field={field}
-                  value={value}
-                  title=""
-                  type={field.type as FieldType}
-                  onChange={(_value) => setValue(_value)}
-                />
-                <IconButton
-                  onClick={async () => {
-                    console.log(value);
-                    await editRow(row.original.id, {
-                      [field.dbName]: value,
-                    });
-                    setEditMode(false);
-                    refetch();
-                  }}
-                >
-                  <Save />
-                </IconButton>
-                <IconButton
-                  onClick={() => {
-                    setValue(cell.getValue());
-                    setEditMode(false);
-                  }}
-                >
-                  <Close />
-                </IconButton>
-              </div>
+              <CellEdit
+                cell={cell}
+                row={row}
+                field={field}
+                meta={meta}
+                refetch={handleRefetch}
+                setEditMode={setEditMode}
+              />
             );
           }
           let cellValue: any = cell.getValue();
           if (field.type === FieldType.DATE) {
-            cellValue = dayjs(value).format('YYYY-MM-DD HH:mm');
+            cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
           }
           if (field.type === FieldType.TEXT) {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
           }
           if (field.type === FieldType.GEO) {
             cellValue = `${cellValue?.lat}, ${cellValue?.lng}`;
+          }
+          if (field.type === FieldType.ONE_TO_MANY_ONE) {
+            cellValue = cellValue?._cms_title;
+          }
+          if ([FieldType.ONE_TO_MANY_MANY,
+            FieldType.MANY_TO_MANY_FIRST,
+            FieldType.MANY_TO_MANY_SECOND]
+            .includes(field.type as FieldType)) {
+            cellValue = cellValue?.map((item: any) => item._cms_title).join(', ');
           }
           return (
             <div onClick={() => setEditMode(true)}>
@@ -355,12 +554,6 @@ function TablePage() {
       Header: () => {
         const dropDownRef = useRef();
         const [dropDownOpen, setDropDownOpen] = useState(false);
-        const [form, setForm] = useState<Partial<IField>>({
-          name: '',
-          dbName: '',
-          type: FieldType.STRING,
-        });
-        const addField = useAddField(meta.id);
 
         return (
           <div>
@@ -386,63 +579,11 @@ function TablePage() {
                 className: 'w-80',
               }}
             >
-              <div className="p-6 flex flex-col space-y-4">
-                <h4 className="text-lg font-medium text-gray-900">
-                  Добавить поле
-                </h4>
-
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Название"
-                  value={form.name}
-                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                />
-
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Имя в базе данных"
-                  value={form.dbName}
-                  onChange={(e) => setForm((prev) => ({ ...prev, dbName: e.target.value }))}
-                />
-
-                <FormControl fullWidth size="small">
-                  <InputLabel>Тип поля</InputLabel>
-                  <Select
-                    value={form.type}
-                    label="Тип поля"
-                    onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value } as any))}
-                  >
-                    <MenuItem value="" disabled>
-                      <em>Выберите тип поля</em>
-                    </MenuItem>
-                    {Object.values(FieldType).map((key) => (
-                      <MenuItem key={key} value={key}>
-                        {key}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={async () => {
-                    await addField({
-                      name: form.name,
-                      dbName: form.dbName,
-                      type: form.type,
-                    });
-                    setDropDownOpen(false);
-                    setTimeout(() => handleRefetch(), 2000);
-                  }}
-                  disabled={!form.name || !form.dbName || !form.type}
-                  className="mt-2"
-                >
-                  Добавить
-                </Button>
-              </div>
+              <AddField
+                onClose={() => setDropDownOpen(false)}
+                refetch={handleRefetch}
+                meta={meta}
+              />
             </Popover>
           </div>
         );
