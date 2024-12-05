@@ -13,6 +13,10 @@ function AccountsPage() {
       getUsers {
         id
         name
+        role {
+          id
+          name
+        }
       }
     }
   `);
@@ -27,6 +31,11 @@ function AccountsPage() {
       {
         accessorKey: 'name',
         header: 'Имя',
+        size: 150,
+      },
+      {
+        accessorKey: 'role.name',
+        header: 'Роль',
         size: 150,
       },
     ],

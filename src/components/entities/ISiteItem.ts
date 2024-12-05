@@ -1,4 +1,5 @@
 import { IEntity } from './IEntity';
+import { IRole } from './IRole';
 
 export interface ISiteItem extends IEntity {
   name: string;
@@ -8,4 +9,6 @@ export interface ISiteItem extends IEntity {
   isRoot: boolean;
   seotag: string;
   html: string;
+  roleIds?: string[];
+  roles?: IRole[];
 }

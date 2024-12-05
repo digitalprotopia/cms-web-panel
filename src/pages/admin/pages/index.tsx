@@ -21,9 +21,15 @@ import dayjs from 'dayjs';
 import Link from 'next/link';
 import DefaultEditor from 'react-simple-wysiwyg';
 import { ISiteItem } from '@/components/entities/ISiteItem';
+import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
+import { IRole } from '@/components/entities/IRole';
 
 const GET_PAGES = gql`
   query GetAllSiteItems {
+    getRoles {
+      id
+      name
+    }
     getAllSiteItems {
       id
       name
@@ -33,6 +39,10 @@ const GET_PAGES = gql`
       isRoot
       seotag
       html
+      roles {
+        id
+        name
+      }
       createdAt
       updatedAt
     }
@@ -88,16 +98,19 @@ interface PageFormData {
   isRoot?: boolean;
   seotag?: string;
   html?: string;
+  roleIds?: string[];
 }
 
 function PageForm({
   initialData = {},
   onSubmit,
   onCancel,
+  roles,
 }: {
   initialData: Partial<PageFormData>;
   onSubmit: (data: PageFormData) => void;
   onCancel: () => void;
+  roles: Partial<IRole>[];
 }) {
   const [formData, setFormData] = useState<PageFormData>({
     name: initialData.name || '',
@@ -107,6 +120,7 @@ function PageForm({
     isRoot: initialData.isRoot || false,
     seotag: initialData.seotag || '',
     html: initialData.html || '',
+    roleIds: initialData.roleIds || [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -164,6 +178,16 @@ function PageForm({
         value={formData.seotag}
         onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
         sx={{ mt: 2 }}
+      />
+      <S3Autocomplete
+        value={formData.roleIds!}
+        onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
+        options={roles.map((role) => ({
+          id: role.id!,
+          name: role.name!,
+        })) || []}
+        multiple
+        label="Роли"
       />
       <h4>Контент</h4>
       <DefaultEditor
@@ -342,7 +366,10 @@ function PagesPage() {
             key={page.id}
             page={page}
             onEdit={(_page) => {
-              setSelectedPage(_page);
+              setSelectedPage({
+                ..._page,
+                roleIds: _page.roles!.map((role) => role.id),
+              });
               setIsFormOpen(true);
             }}
             onDelete={handleDelete}
@@ -357,7 +384,7 @@ function PagesPage() {
           setSelectedPage(null);
         }}
         maxWidth="md"
-        fullWidth
+        fullScreen
       >
         <DialogTitle>
           {selectedPage ? 'Редактировать страницу' : 'Создать новую страницу'}
@@ -370,6 +397,7 @@ function PagesPage() {
               setIsFormOpen(false);
               setSelectedPage(null);
             }}
+            roles={data.getRoles}
           />
         </DialogContent>
       </Dialog>

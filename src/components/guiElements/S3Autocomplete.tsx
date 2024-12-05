@@ -7,7 +7,7 @@ type Option = {
 
 interface S3AutocompleteProps {
   label?: string;
-  value: string | undefined | null;
+  value: string | string[] | undefined | null;
   multiple?: boolean ;
   options: Option[] | undefined;
   onChange: (value: string | string[] | null) => void;
@@ -23,7 +23,7 @@ function S3Autocomplete({
       multiple={multiple}
       options={options?.map((option) => option.id) || []}
       getOptionLabel={(_value) => options?.find((option) => option.id === _value)?.name || _value}
-      value={value ?? ''}
+      value={value ?? (multiple ? [] : '')}
       onChange={(e, _value) => {
         onChange(_value);
       }}

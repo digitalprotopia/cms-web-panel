@@ -125,7 +125,7 @@ function WidgetsPage() {
         open={isModalOpen}
         onClose={handleCloseModal}
         maxWidth="md"
-        fullWidth
+        fullScreen
       >
         <DialogTitle>
           {selectedWidgetId ? 'Редактировать виджет' : 'Создать новый виджет'}
@@ -169,7 +169,7 @@ function WidgetsPage() {
           setSelectedWidget(null);
         }}
         maxWidth="md"
-        fullWidth
+        fullScreen
       >
         <DialogTitle>
           {selectedWidget ? 'Редактировать виджет' : 'Создать новый виджет'}

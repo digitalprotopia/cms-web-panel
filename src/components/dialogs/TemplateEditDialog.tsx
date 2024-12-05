@@ -17,7 +17,7 @@ export default function TemplateEditDialog({
       open={isOpen}
       onClose={onClose}
       maxWidth="md"
-      fullWidth
+      fullScreen
     >
       <DialogTitle>
         {selectedTemplate ? 'Редактировать шаблон' : 'Создать новый шаблон'}

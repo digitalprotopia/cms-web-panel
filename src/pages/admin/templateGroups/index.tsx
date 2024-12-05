@@ -253,7 +253,7 @@ function TemplateGroupsPage() {
           setSelectedTemplateGroup(null);
         }}
         maxWidth="md"
-        fullWidth
+        fullScreen
       >
         <DialogTitle>
           {selectedTemplateGroup ? 'Редактировать группу шаблонов' : 'Создать новую группу шаблонов'}
