@@ -1,10 +1,13 @@
 import {
-  gql, useQuery,
+  gql, useMutation, useQuery,
 } from '@apollo/client';
 import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
-import { MaterialReactTable } from 'material-react-table';
+import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
+import { IconButton, MenuItem, TextField } from '@mui/material';
+import { IRole } from '@/components/entities/IRole';
+import { Save } from '@mui/icons-material';
 
 function AccountsPage() {
   const router = useRouter();
@@ -13,11 +16,25 @@ function AccountsPage() {
       getUsers {
         id
         name
+        role {
+          id
+          name
+        }
+      }
+      getRoles {
+        id
+        name
       }
     }
   `);
 
-  const columns = useMemo(
+  const [changeUserRole] = useMutation(gql`
+    mutation changeUserRole($id: ID!, $roleId: ID!) {
+      changeUserRole(id: $id, roleId: $roleId)
+    }
+  `);
+
+  const columns: MRT_ColumnDef<any, any>[] = useMemo(
     () => [
       {
         accessorKey: 'id',
@@ -29,8 +46,52 @@ function AccountsPage() {
         header: 'Имя',
         size: 150,
       },
+      {
+        accessorKey: 'role.name',
+        header: 'Роль',
+        size: 150,
+        Cell: ({ row }) => {
+          const [roleId, setRoleId] = useState(row.original.role.id);
+          if (!data.getRoles) {
+            return null;
+          }
+          return (
+            <>
+              <TextField
+                select
+                variant="standard"
+                value={roleId}
+                onChange={(e) => {
+                  setRoleId(e.target.value);
+                }}
+              >
+                {data.getRoles.map((role: IRole) => (
+                  <MenuItem key={role.id} value={role.id}>
+                    {role.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {row.original.role.id !== roleId && (
+              <IconButton
+                onClick={async () => {
+                  await changeUserRole({
+                    variables: {
+                      id: row.original.id,
+                      roleId,
+                    },
+                  });
+                  refetch();
+                }}
+              >
+                <Save />
+              </IconButton>
+              )}
+            </>
+          );
+        },
+      },
     ],
-    [router],
+    [router, data],
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);

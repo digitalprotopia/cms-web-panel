@@ -288,7 +288,7 @@ function PostsPost() {
           setSelectedPost(null);
         }}
         maxWidth="md"
-        fullWidth
+        fullScreen
       >
         <DialogTitle>
           {selectedPost ? 'Редактировать пост' : 'Создать новый пост'}

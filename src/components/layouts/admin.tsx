@@ -44,7 +44,10 @@ const GET_ME = gql`
     me {
       id
       name
-      role
+      role {
+        id
+        name
+      }
     }
   }
 `;
