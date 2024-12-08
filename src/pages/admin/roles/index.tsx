@@ -4,7 +4,6 @@ import {
 import { useRouter } from 'next/router';
 import { useState, useMemo, useEffect } from 'react';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
-import TableEditor from '@/components/table-editor';
 import {
   Button,
   Dialog, DialogActions, DialogContent, IconButton, TextField,

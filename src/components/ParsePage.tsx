@@ -11,11 +11,11 @@ import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
 import { createPortal } from 'react-dom';
 import { Close } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
+import Link from 'next/link';
 import useTable, { TableField, useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
-import Link from 'next/link';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
