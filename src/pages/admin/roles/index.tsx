@@ -1,12 +1,13 @@
 import {
-  gql, useQuery,
+  gql, useMutation, useQuery,
 } from '@apollo/client';
 import { useRouter } from 'next/router';
 import { useState, useMemo, useEffect } from 'react';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
 import {
-  Dialog, DialogContent, IconButton, TextField,
+  Button,
+  Dialog, DialogActions, DialogContent, IconButton, TextField,
 } from '@mui/material';
 import { IRole } from '@/components/entities/IRole';
 import { Edit } from '@mui/icons-material';
@@ -15,7 +16,24 @@ function EditRole(props: {
   role?: IRole;
   open: boolean;
   onClose: () => void;
+  refetch: () => void;
 }) {
+  const [save] = useMutation(props.role?.id
+    ? gql`
+      mutation($id: ID!, $input: RoleInput!) {
+        editRole(id: $id, input: $input) {
+          id
+        }
+      }
+    `
+    : gql`
+      mutation($input: RoleInput!) {
+        createRole(input: $input) {
+          id
+        }
+      }
+    `);
+
   const [form, setForm] = useState<Partial<IRole>>({
     name: '',
     title: '',
@@ -57,6 +75,23 @@ function EditRole(props: {
           }}
         />
       </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose}>Отмена</Button>
+        <Button
+          onClick={async () => {
+            await save({
+              variables: {
+                id: props.role?.id,
+                input: form,
+              },
+            });
+            props.onClose();
+            await props.refetch();
+          }}
+        >
+          Сохранить
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }
@@ -111,24 +146,20 @@ function RolesPage() {
     [router],
   );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <TableEditor
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          refetch();
-          setIsModalOpen(false);
+      <Button
+        onClick={() => {
+          setEditDialogId(null);
+          setEditDialogOpen(true);
         }}
-        mode="create"
-      />
-
+      >
+        Добавить
+      </Button>
       <MaterialReactTable
         columns={columns}
         data={data.getRoles}
@@ -155,6 +186,7 @@ function RolesPage() {
         onClose={() => {
           setEditDialogOpen(false);
         }}
+        refetch={refetch}
       />
     </div>
   );

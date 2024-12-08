@@ -1,6 +1,6 @@
 /* eslint-disable react/no-danger */
 import { gql, useQuery } from '@apollo/client';
-import parse from 'html-react-parser';
+import parse, { attributesToProps, DOMNode, domToReact } from 'html-react-parser';
 import reactStringReplace from 'react-string-replace';
 import {
   Button, IconButton, Typography,
@@ -15,6 +15,7 @@ import useTable, { TableField, useAddRow } from './use-table';
 import DynamicParse from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
+import Link from 'next/link';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
@@ -389,6 +390,14 @@ function ParsePage(props: {
     props.html,
     {
       transform(reactNode, domNode) {
+        if (domNode.type === 'tag' && domNode.name === 'a' && domNode.attribs.href) {
+          const _props = attributesToProps(domNode.attribs);
+          return (
+            <Link {..._props as any}>
+              {domToReact(domNode.children as DOMNode[])}
+            </Link>
+          );
+        }
         if (domNode.type === 'text') {
           let result: string | React.ReactNode[] = domNode.data;
           if (props.args) {

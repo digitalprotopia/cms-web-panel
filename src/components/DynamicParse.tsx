@@ -11,6 +11,7 @@ import parse, {
 import Script from 'next/script';
 import reactStringReplace from 'react-string-replace';
 import { ErrorBoundary } from 'react-error-boundary';
+import Link from 'next/link';
 
 const ReplaceContext = createContext<Record<string, string | React.JSX.Element>>({});
 
@@ -40,13 +41,16 @@ function DynamicParse(props: {
             return null;
           }
           if (domNode.type === 'tag' && domNode.attribs && Object.keys(domNode.attribs).length) {
-            const Tag = domNode.name;
+            let Tag: any = domNode.name;
             Object.keys(domNode.attribs).forEach((attr) => {
               Object.keys(props.replace).forEach((key) => {
                 domNode.attribs[attr] = domNode.attribs[attr].replaceAll(`{${key}}`, props.replace[key] as string);
               });
             });
             const _props = attributesToProps(domNode.attribs);
+            if (domNode.name === 'a' && domNode.attribs.href) {
+              Tag = Link;
+            }
             console.log(Tag);
             return (
               <Tag {..._props}>
