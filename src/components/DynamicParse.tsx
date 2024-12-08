@@ -2,6 +2,7 @@ import React, {
   useMemo,
   createContext,
   useContext,
+  Component,
 } from 'react';
 import parse, {
   Text, HTMLReactParserOptions, domToReact,
@@ -12,6 +13,26 @@ import Script from 'next/script';
 import reactStringReplace from 'react-string-replace';
 import { ErrorBoundary } from 'react-error-boundary';
 import Link from 'next/link';
+
+import * as Mui from '@mui/material';
+
+import * as babel from '@babel/standalone';
+
+export function parseReact(code: string, data: any) {
+  try {
+    const babelCode = babel.transform(code, {
+      presets: ['react', 'es2017'],
+    }).code;
+
+    const resultCode = babelCode!.replace('"use strict";', '').trim();
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const func = new Function('React, props, Mui', `return ${resultCode}`);
+    const MyComponent = func(React, data, Mui);
+    return <MyComponent {...data} />;
+  } catch {
+    return 'error';
+  }
+}
 
 const ReplaceContext = createContext<Record<string, string | React.JSX.Element>>({});
 

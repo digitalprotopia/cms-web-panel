@@ -1,4 +1,5 @@
 import {
+  TextField,
   Typography,
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
@@ -6,6 +7,9 @@ import { gql, useQuery } from '@apollo/client';
 import ParsePage from '@/components/ParsePage';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { parseReact } from '@/components/DynamicParse';
+import { useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const GET_SITEITEM_BY_URL = gql`
   query GetSiteItemByUrl($url: String!) {
@@ -29,6 +33,44 @@ const GET_SITEITEM_BY_URL = gql`
     }
   }
 `;
+
+function DynamicReact() {
+  const [data, setData] = useState('{ a: 1, b: 2 }');
+  const [code, setCode] = useState(`
+    function Component(props) {
+      return <b>{props.b * 100}{JSON.stringify(props)}</b>;
+    }
+  `);
+  let dataObject: any;
+  try {
+    dataObject = JSON.parse(data);
+  } catch {
+    dataObject = {};
+  }
+  return (
+    <div>
+      <TextField
+        multiline
+        value={data}
+        onChange={(e) => setData(e.target.value)}
+      />
+      <TextField
+        multiline
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+      />
+      <ErrorBoundary
+        fallback="error"
+        // fallbackRender={() => 'error'}
+        resetKeys={[code, dataObject]}
+        onError={(err) => {console.log(err)}}
+      >
+        {parseReact(code, dataObject)}
+      </ErrorBoundary>
+    </div>
+  );
+}
+
 function DynamicPage() {
   const slug = useRouter().query.slug as string[];
 
@@ -82,6 +124,7 @@ function DynamicPage() {
           text-decoration: underline;
         }`}
       </style>
+      <DynamicReact />
       <ParsePage html={html} args={args} />
     </>
   );
