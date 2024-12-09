@@ -26,7 +26,7 @@ export function parseReact(code: string):
 
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('React, props, Mui', `
+    const func = new Function('React, Mui, Link', `
       let filter = null;
       
       ${resultCode}
@@ -39,7 +39,7 @@ export function parseReact(code: string):
       }
       return result;
     `);
-    return func(React, Mui);
+    return func(React, Mui, Link);
   } catch {
     return { Component: () => <div>Ошибка разбора</div> };
   }
