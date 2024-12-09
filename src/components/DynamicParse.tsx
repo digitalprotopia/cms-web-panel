@@ -2,7 +2,6 @@ import React, {
   useMemo,
   createContext,
   useContext,
-  Component,
 } from 'react';
 import parse, {
   Text, HTMLReactParserOptions, domToReact,

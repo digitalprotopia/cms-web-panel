@@ -6,7 +6,7 @@ export interface ITemplateFormData {
   templateGroupId: string | null | undefined;
   html: string;
   css: string;
-  language: TemplateLanguage;
+  language?: TemplateLanguage;
 }
 
 export interface ITemplate extends IEntity, ITemplateFormData {

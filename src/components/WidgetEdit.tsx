@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
+import { Editor } from '@monaco-editor/react';
 import useTable, { TableField } from './use-table';
 import { FieldType } from './entities/IField';
 import { renderWidget } from './ParsePage';
@@ -237,15 +238,26 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         ))}
       </TextField>
 
-      <TextField
-        label="HTML"
-        variant="outlined"
-        fullWidth
-        multiline
-        rows={4}
-        value={form.templateHtml}
-        onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
-      />
+      {form.language === TemplateLanguage.REACT
+        ? (
+          <Editor
+            value={form.templateHtml}
+            height={200}
+            onChange={(value) => setForm({ ...form, templateHtml: value! })}
+            language="javascript"
+          />
+        )
+        : (
+          <TextField
+            label="HTML"
+            variant="outlined"
+            fullWidth
+            multiline
+            rows={4}
+            value={form.templateHtml}
+            onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
+          />
+        )}
 
       <div style={{
         borderWidth: '1px',
