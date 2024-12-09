@@ -193,6 +193,7 @@ function PageForm({
       <DefaultEditor
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
+        style={{ height: 400 }}
       />
 
       <h4>Добавить виджеты</h4>
