@@ -16,8 +16,9 @@ import Link from 'next/link';
 import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
+import { IUser } from './entities/IUser';
 
-export function parseReact(code: string):
+export function parseReact(code: string, user: IUser | null):
 { Component: React.ComponentType<any>, filter?: (data: any[]) => any[] } {
   try {
     const babelCode = babel.transform(code, {
@@ -26,7 +27,7 @@ export function parseReact(code: string):
 
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('React, Mui, Link', `
+    const func = new Function('React, Mui, Link, user', `
       let filter = null;
       
       ${resultCode}
@@ -39,7 +40,7 @@ export function parseReact(code: string):
       }
       return result;
     `);
-    return func(React, Mui, Link);
+    return func(React, Mui, Link, user);
   } catch {
     return { Component: () => <div>Ошибка разбора</div> };
   }

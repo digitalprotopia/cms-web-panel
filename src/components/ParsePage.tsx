@@ -5,7 +5,7 @@ import reactStringReplace from 'react-string-replace';
 import {
   Button, IconButton, Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
 import { createPortal } from 'react-dom';
@@ -13,11 +13,13 @@ import { Close } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import Link from 'next/link';
 import { ErrorBoundary } from 'react-error-boundary';
+import UserContext from '@/components/UserContext';
 import useTable, { TableField, useAddRow } from './use-table';
 import DynamicParse, { parseReact } from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
 import { TemplateLanguage } from './entities/ITemplate';
+import { IUser } from './entities/IUser';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
@@ -44,10 +46,11 @@ export function parseRow(
   html: string,
   row: any,
   fields: TableField[],
+  user: IUser | null,
   language:TemplateLanguage = TemplateLanguage.SIMPLE,
 ) {
   if (language === TemplateLanguage.REACT) {
-    const { Component } = parseReact(html);
+    const { Component } = parseReact(html, user);
     return (
       <ErrorBoundary
         fallback="Ошибка разбора"
@@ -97,9 +100,11 @@ export function parseRow(
 const WidgetList:React.FC<{ data: any, fields: TableField[], html: string,
   language?: TemplateLanguage
 }> = function (props) {
+  const user = useContext(UserContext);
+
   return props.data.map((row: any) => (
     <div key={row.id}>
-      {parseRow(props.html, row, props.fields, props.language)}
+      {parseRow(props.html, row, props.fields, user.user, props.language)}
     </div>
   ));
 };
@@ -117,6 +122,8 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     portalId: '',
     rowId: '',
   });
+
+  const user = useContext(UserContext);
 
   return (
     <div style={{ minHeight: 400 }}>
@@ -197,6 +204,7 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
             props.html,
             props.data.find((row: any) => row.id === portal.rowId),
             props.fields,
+            user.user,
             props.language,
           )}
         </div>
@@ -211,12 +219,13 @@ export function renderWidget(
   html: string,
   fields: TableField[],
   data: any,
-  language?: TemplateLanguage,
-  editMode?: boolean,
+  language: TemplateLanguage,
+  editMode: boolean,
+  user: IUser | null,
 ) {
   let resultData = [...data];
   if (language === TemplateLanguage.REACT) {
-    const { filter } = parseReact(html);
+    const { filter } = parseReact(html, user);
     try {
       if (!editMode && filter) {
         resultData = data.filter(filter);
@@ -267,6 +276,8 @@ function PageWidget(props: {
     variables: { name: props.widgetName },
   });
 
+  const user = useContext(UserContext);
+
   const table = useTable(data?.getWidgetByName.tableView.tableId);
 
   if (!data || !table.data) {
@@ -279,6 +290,8 @@ function PageWidget(props: {
     table.meta?.fields as TableField[],
     table.data,
     data.getWidgetByName.template.language,
+    false,
+    user.user,
   );
 }
 

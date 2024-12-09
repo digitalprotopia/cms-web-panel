@@ -1,24 +1,13 @@
-import { gql, useQuery } from '@apollo/client';
+import UserContext from '@/components/UserContext';
 import { KeyboardArrowDownRounded, NotificationsNoneOutlined } from '@mui/icons-material';
 import {
   Avatar, Badge, Button, Divider, IconButton, Menu, MenuItem,
 } from '@mui/material';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { MouseEventHandler, ReactNode, useState } from 'react';
-
-const GET_ME = gql`
-    query GetMe {
-      me {
-        id
-        name
-        role {
-          id
-          name
-        }
-      }
-    }
-  `;
+import {
+  MouseEventHandler, ReactNode, useContext, useState,
+} from 'react';
 
 const getInitials = (name: string) => name
   .split(' ')
@@ -40,13 +29,7 @@ function Header() {
     setUserPopoverEl(null);
   };
 
-  const {
-    data, loading,
-  } = useQuery(GET_ME);
-
-  if (loading) {
-    return null;
-  }
+  const user = useContext(UserContext);
 
   return (
     <>
@@ -56,7 +39,7 @@ function Header() {
             MMCMS
           </Link>
           <div className="flex items-center gap-3">
-            {data?.me ? (
+            {user.user ? (
               <>
                 <IconButton size="large" className="text-gray-600">
                   <Badge color="primary" variant="dot">
@@ -72,7 +55,7 @@ function Header() {
                 />
                 <div className="flex items-center gap-2">
                   <Avatar className="size-8 text-sm">
-                    {getInitials(data.me.name)}
+                    {getInitials(user.user.name)}
                   </Avatar>
                   <Button
                     variant="text"
@@ -80,7 +63,7 @@ function Header() {
                     onClick={handleUserPopoverClick}
                     endIcon={<KeyboardArrowDownRounded />}
                   >
-                    {data.me.name}
+                    {user.user.name}
                   </Button>
                   <Menu
                     id="user-menu"

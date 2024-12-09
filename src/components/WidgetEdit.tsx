@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
   Button,
   TextField,
@@ -11,6 +11,7 @@ import {
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
 import { Editor } from '@monaco-editor/react';
+import UserContext from '@/components/UserContext';
 import useTable, { TableField } from './use-table';
 import { FieldType } from './entities/IField';
 import { renderWidget } from './ParsePage';
@@ -125,6 +126,8 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
   const [updateWidget] = useMutation(UPDATE_WIDGET);
 
   const widgetTable = useTable(form.tableId);
+
+  const user = useContext(UserContext);
 
   if ((isEditMode && widgetLoading && tablesLoading) || tablesLoading) {
     return <div>Loading...</div>;
@@ -275,6 +278,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
             [row],
             form.language,
             true,
+            user.user,
           ) : null}
       </div>
 
