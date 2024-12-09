@@ -261,6 +261,8 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
             form.templateHtml,
             widgetTable.meta?.fields as TableField[],
             [row],
+            form.language,
+            true,
           ) : null}
       </div>
 

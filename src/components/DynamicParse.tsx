@@ -18,7 +18,8 @@ import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
 
-export function parseReact(code: string, data: any) {
+export function parseReact(code: string):
+{ Component: React.ComponentType<any>, filter?: (data: any[]) => any[] } {
   try {
     const babelCode = babel.transform(code, {
       presets: ['react', 'es2017'],
@@ -26,11 +27,22 @@ export function parseReact(code: string, data: any) {
 
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('React, props, Mui', `return ${resultCode}`);
-    const MyComponent = func(React, data, Mui);
-    return <MyComponent {...data} />;
+    const func = new Function('React, props, Mui', `
+      let filter = null;
+      
+      ${resultCode}
+
+      const result = { 
+        Component
+      };
+      if (filter) {
+        result.filter = filter;
+      }
+      return result;
+    `);
+    return func(React, Mui);
   } catch {
-    return 'error';
+    return { Component: () => <div>Ошибка разбора</div> };
   }
 }
 

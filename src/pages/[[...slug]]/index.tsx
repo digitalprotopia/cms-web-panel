@@ -48,6 +48,7 @@ function DynamicReact(props: any) {
   } catch {
     dataObject = {};
   }
+  const { Component } = parseReact(code);
   return (
     <div style={{ display: 'flex' }}>
       <div>
@@ -75,7 +76,7 @@ function DynamicReact(props: any) {
           resetKeys={[code, dataObject]}
           onError={(err) => { console.log(err); }}
         >
-          {parseReact(code, { ...dataObject, pages: props.pages })}
+          <Component {...dataObject} pages={props.pages} />
         </ErrorBoundary>
       </div>
     </div>
