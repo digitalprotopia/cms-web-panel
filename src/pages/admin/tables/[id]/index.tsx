@@ -513,7 +513,7 @@ function TablePage() {
         },
         Cell: ({ cell, row }) => {
           const [editMode, setEditMode] = useState(false);
-          if (editMode) {
+          if (editMode || field.type === FieldType.BOOLEAN) {
             return (
               <CellEdit
                 cell={cell}
