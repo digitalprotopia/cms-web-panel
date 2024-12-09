@@ -208,6 +208,9 @@ function CellEdit({
     return cell.getValue();
   });
   const editRow = useEditRow(meta.dbName);
+  if (field.type === FieldType.USER_CREATOR) {
+    return null;
+  }
   if (field.type === 'boolean') {
     return (
       <Checkbox
@@ -540,6 +543,9 @@ function TablePage() {
             FieldType.MANY_TO_MANY_SECOND]
             .includes(field.type as FieldType)) {
             cellValue = cellValue?.map((item: any) => item._cms_title).join(', ');
+          }
+          if (field.type === FieldType.USER_CREATOR) {
+            cellValue = cellValue?.name;
           }
           return (
             <div onClick={() => setEditMode(true)}>

@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import useTable, { TableField } from './use-table';
 import { FieldType } from './entities/IField';
 import { renderWidget } from './ParsePage';
+import { TemplateLanguage } from './entities/ITemplate';
 
 interface WidgetEditProps {
   id?: string;
@@ -50,6 +51,7 @@ const GET_WIDGET = gql`
       template {
         id
         html
+        language
       }
     }
   }
@@ -96,6 +98,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
     tableId: tableId || '',
     templateHtml: '',
     widgetViewType: 'list',
+    language: TemplateLanguage.SIMPLE,
   });
 
   const isEditMode = Boolean(id && tableId);
@@ -110,6 +113,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         tableId: data.getWidget.tableView.table.id,
         templateHtml: data.getWidget.template.html,
         widgetViewType: data.getWidget.widgetViewType,
+        language: data.getWidget.template.language,
       });
     },
   });
@@ -140,6 +144,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       template: {
         title: form.title,
         html: form.templateHtml,
+        language: form.language,
       },
     };
 
@@ -211,6 +216,21 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         onChange={(e) => setForm({ ...form, widgetViewType: e.target.value })}
       >
         {['list', 'map'].map((type) => (
+          <MenuItem key={type} value={type}>
+            {type}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      <TextField
+        select
+        label="Язык"
+        variant="outlined"
+        fullWidth
+        value={form.language}
+        onChange={(e) => setForm({ ...form, language: e.target.value as TemplateLanguage })}
+      >
+        {Object.values(TemplateLanguage).map((type) => (
           <MenuItem key={type} value={type}>
             {type}
           </MenuItem>

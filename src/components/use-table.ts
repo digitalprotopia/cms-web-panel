@@ -112,6 +112,9 @@ export const generateGetTableDataQuery = (
       || field.type === FieldType.MANY_TO_MANY_SECOND) {
       return `${field.dbName}Ids`;
     }
+    if (field.type === FieldType.USER_CREATOR) {
+      return `${field.dbName} { id name }`;
+    }
     return field.dbName;
   }).join('\n        ')}
       }
