@@ -29,12 +29,25 @@ export function parseReact(code: string, user: IUser | null):
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('React, Mui, Link, user', `
       let filter = null;
+      const result = { 
+      }
+      const MMCMS = {
+        setFilter: (f) => {
+          filter = f;
+        },
+        setComponent: (c) => {
+          result.Component = c;
+        },
+        user: user,
+        Link: Link,
+      };
       
       ${resultCode}
 
-      const result = { 
-        Component
-      };
+      if (typeof Component !== 'undefined') {
+        result.Component = Component;
+      }
+      
       if (filter) {
         result.filter = filter;
       }

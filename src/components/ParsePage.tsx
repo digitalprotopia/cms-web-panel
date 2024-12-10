@@ -449,7 +449,7 @@ function Posts() {
 
 function ParsePage(props: {
   html: string;
-  args?: Record<string, string | React.JSX.Element>
+  args?: Record<string, string | React.JSX.Element | React.JSX.Element[]>
 }) {
   return parse(
     props.html,

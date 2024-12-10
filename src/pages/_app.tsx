@@ -25,6 +25,7 @@ import IndexLayout from '@/components/layouts';
 import { Config } from '@/config/config.sample';
 import { IUser } from '@/components/entities/IUser';
 import UserContext from '@/components/UserContext';
+import { IPage } from '@/components/entities/IPage';
 
 declare global {
   interface Window {
@@ -90,6 +91,15 @@ function CMSLayout({
     data, refetch, error, loading,
   } = useQuery<MeQueryResponse>(GET_ME);
 
+  const pages = useQuery(gql`
+    query {
+        getAllSiteItems {
+          title
+          url
+        }
+    }
+    `);
+
   if (!loading && (error || !data?.me)) {
     localStorage.removeItem('token');
   }
@@ -111,7 +121,11 @@ function CMSLayout({
             <div className="size-full flex flex-col text-base">
               <UserContext.Provider value={{
                 user: error ? null : data?.me as IUser,
-                refetch: async () => { await refetch(); },
+                refetch: async () => {
+                  await refetch();
+                  await pages.refetch();
+                },
+                pages: pages.data?.getAllSiteItems as IPage[],
               }}
               >
                 {result}

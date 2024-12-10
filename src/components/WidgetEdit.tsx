@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   Button,
   TextField,
@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
-import { Editor } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@monaco-editor/react';
 import UserContext from '@/components/UserContext';
 import useTable, { TableField } from './use-table';
 import { FieldType } from './entities/IField';
@@ -128,6 +128,44 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
   const widgetTable = useTable(form.tableId);
 
   const user = useContext(UserContext);
+
+  const monaco = useMonaco();
+  useEffect(() => {
+    if (!monaco) {
+      return;
+    }
+    // extra libraries
+    const libSource = `
+      delcare const user: {
+        id: string;
+        name: string;
+      }
+      declare let filter: (row: any) => boolean;
+      declare const Link: (props: {href: string}) => React.ReactNode;
+      declare const result = {
+        Component?: (props: {row: any}) => React.ReactNode;
+        filter?: (row: any) => boolean;
+      };
+      declare const MMCMS: {
+        setFilter: (f: (row: any) => boolean) => void;
+        setComponent: (c: (props: {row: any}) => React.ReactNode) => void;
+        user: {
+          id: string;
+          name: string;
+        };
+        Link: (props: {href: string}) => React.ReactNode;
+      }
+    `;
+    const libUri = 'ts:filename/facts.d.ts';
+    monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
+    if (monaco.languages.typescript.javascriptDefaults.getExtraLibs()[libUri]) {
+      return;
+    }
+    // When resolving definitions and references, the editor will try to use created models.
+    // Creating a model for the library allows
+    // "peek definition/references" commands to work with the library.
+    monaco.editor.createModel(libSource, 'typescript', monaco.Uri.parse(libUri));
+  }, [monaco]);
 
   if ((isEditMode && widgetLoading && tablesLoading) || tablesLoading) {
     return <div>Loading...</div>;

@@ -6,6 +6,8 @@ import { gql, useQuery } from '@apollo/client';
 import ParsePage from '@/components/ParsePage';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useContext } from 'react';
+import UserContext from '@/components/UserContext';
 
 const GET_SITEITEM_BY_URL = gql`
   query GetSiteItemByUrl($url: String!) {
@@ -23,10 +25,6 @@ const GET_SITEITEM_BY_URL = gql`
         }
       }
     }
-    getAllSiteItems {
-      title
-      url
-    }
   }
 `;
 
@@ -39,6 +37,8 @@ function DynamicPage() {
       variables: { url: slug?.[0] || '' },
     },
   );
+
+  const user = useContext(UserContext);
 
   if (siteItemLoading) return <span>Loading...</span>;
 
@@ -65,11 +65,11 @@ function DynamicPage() {
   </div>`);
 
   const args = {
-    menu: siteItem?.getAllSiteItems.map((item: any) => (
+    menu: user.pages?.map((item: any) => (
       <Link key={item.url} href={item.url}>
         <span className="mx-3">{item.title}</span>
       </Link>
-    )),
+    )) || [],
     title:
   <Typography variant="h4">
     {siteItem.getSiteItemByUrl.title}
