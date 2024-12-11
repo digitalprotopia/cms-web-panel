@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   TextField,
@@ -11,10 +11,9 @@ import {
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
 import { Editor, useMonaco } from '@monaco-editor/react';
-import UserContext from '@/components/UserContext';
 import useTable, { TableField } from './use-table';
 import { FieldType } from './entities/IField';
-import { renderWidget } from './ParsePage';
+import { RenderWidget } from './ParsePage';
 import { TemplateLanguage } from './entities/ITemplate';
 
 interface WidgetEditProps {
@@ -127,8 +126,6 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
 
   const widgetTable = useTable(form.tableId);
 
-  const user = useContext(UserContext);
-
   const monaco = useMonaco();
   useEffect(() => {
     if (!monaco) {
@@ -154,6 +151,11 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
           name: string;
         };
         Link: (props: {href: string}) => React.ReactNode;
+        pages: {
+          id: string
+          title: string
+          url: string
+        }[]
       }
     `;
     const libUri = 'ts:filename/facts.d.ts';
@@ -309,15 +311,17 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       }}
       >
         {widgetTable.meta
-          ? renderWidget(
-            form.widgetViewType,
-            form.templateHtml,
-            widgetTable.meta?.fields as TableField[],
-            [row],
-            form.language,
-            true,
-            user.user,
-          ) : null}
+          ? (
+            <RenderWidget
+              widgetViewType={form.widgetViewType}
+              html={form.templateHtml}
+              fields={widgetTable.meta?.fields as TableField[]}
+              data={[row]}
+              language={form.language}
+              editMode
+            />
+          )
+          : null}
       </div>
 
       <div className="flex flex-wrap gap-2">

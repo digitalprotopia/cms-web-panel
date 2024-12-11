@@ -17,8 +17,9 @@ import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
 import { IUser } from './entities/IUser';
+import { IPage } from './entities/IPage';
 
-export function parseReact(code: string, user: IUser | null):
+export function parseReact(code: string, user: IUser | null, pages: IPage[]):
 { Component: React.ComponentType<any>, filter?: (data: any[]) => any[] } {
   try {
     const babelCode = babel.transform(code, {
@@ -27,7 +28,7 @@ export function parseReact(code: string, user: IUser | null):
 
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('React, Mui, Link, user', `
+    const func = new Function('React, Mui, Link, user, pages', `
       let filter = null;
       const result = { 
       }
@@ -39,6 +40,7 @@ export function parseReact(code: string, user: IUser | null):
           result.Component = c;
         },
         user: user,
+        pages: pages,
         Link: Link,
       };
       
@@ -53,7 +55,7 @@ export function parseReact(code: string, user: IUser | null):
       }
       return result;
     `);
-    return func(React, Mui, Link, user);
+    return func(React, Mui, Link, user, pages);
   } catch {
     return { Component: () => <div>Ошибка разбора</div> };
   }

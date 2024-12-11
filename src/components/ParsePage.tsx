@@ -19,7 +19,6 @@ import DynamicParse, { parseReact } from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
 import { TemplateLanguage } from './entities/ITemplate';
-import { IUser } from './entities/IUser';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
@@ -42,15 +41,22 @@ const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = functi
   return createPortal(props.children, el);
 };
 
-export function parseRow(
-  html: string,
-  row: any,
-  fields: TableField[],
-  user: IUser | null,
-  language:TemplateLanguage = TemplateLanguage.SIMPLE,
+export function ParseRow(
+  props: {
+    html: string,
+    row: any,
+    fields: TableField[],
+    language:TemplateLanguage
+  },
 ) {
+  const {
+    html, row, fields, language,
+  } = props;
+
+  const user = useContext(UserContext);
+
   if (language === TemplateLanguage.REACT) {
-    const { Component } = parseReact(html, user);
+    const { Component } = parseReact(html, user.user, user.pages || []);
     return (
       <ErrorBoundary
         fallback="Ошибка разбора"
@@ -100,11 +106,14 @@ export function parseRow(
 const WidgetList:React.FC<{ data: any, fields: TableField[], html: string,
   language?: TemplateLanguage
 }> = function (props) {
-  const user = useContext(UserContext);
-
   return props.data.map((row: any) => (
     <div key={row.id}>
-      {parseRow(props.html, row, props.fields, user.user, props.language)}
+      <ParseRow
+        html={props.html}
+        row={row}
+        fields={props.fields}
+        language={props.language || TemplateLanguage.SIMPLE}
+      />
     </div>
   ));
 };
@@ -122,8 +131,6 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     portalId: '',
     rowId: '',
   });
-
-  const user = useContext(UserContext);
 
   return (
     <div style={{ minHeight: 400 }}>
@@ -200,13 +207,12 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
               <Close />
             </IconButton>
           </div>
-          {parseRow(
-            props.html,
-            props.data.find((row: any) => row.id === portal.rowId),
-            props.fields,
-            user.user,
-            props.language,
-          )}
+          <ParseRow
+            html={props.html}
+            row={props.data.find((row: any) => row.id === portal.rowId)}
+            fields={props.fields}
+            language={props.language || TemplateLanguage.SIMPLE}
+          />
         </div>
       </Portal>
       )}
@@ -214,18 +220,23 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
   );
 };
 
-export function renderWidget(
-  widgetViewType: string,
-  html: string,
-  fields: TableField[],
-  data: any,
-  language: TemplateLanguage,
-  editMode: boolean,
-  user: IUser | null,
+export function RenderWidget(
+  props: {
+    widgetViewType: string,
+    html: string,
+    fields: TableField[],
+    data: any,
+    language: TemplateLanguage,
+    editMode: boolean,
+  },
 ) {
+  const {
+    widgetViewType, html, fields, data, language, editMode,
+  } = props;
+  const user = useContext(UserContext);
   let resultData = [...data];
   if (language === TemplateLanguage.REACT) {
-    const { filter } = parseReact(html, user);
+    const { filter } = parseReact(html, user.user, user.pages || []);
     try {
       if (!editMode && filter) {
         resultData = data.filter(filter);
@@ -276,22 +287,21 @@ function PageWidget(props: {
     variables: { name: props.widgetName },
   });
 
-  const user = useContext(UserContext);
-
   const table = useTable(data?.getWidgetByName.tableView.tableId);
 
   if (!data || !table.data) {
     return null;
   }
 
-  return renderWidget(
-    data.getWidgetByName.widgetViewType,
-    data.getWidgetByName.template.html,
-    table.meta?.fields as TableField[],
-    table.data,
-    data.getWidgetByName.template.language,
-    false,
-    user.user,
+  return (
+    <RenderWidget
+      widgetViewType={data.getWidgetByName.widgetViewType}
+      html={data.getWidgetByName.template.html}
+      fields={table.meta?.fields as TableField[]}
+      data={table.data}
+      language={data.getWidgetByName.template.language}
+      editMode={false}
+    />
   );
 }
 
