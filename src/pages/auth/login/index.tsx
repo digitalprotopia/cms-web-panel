@@ -3,8 +3,9 @@ import { gql, useMutation } from '@apollo/client';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
 import { useRouter } from 'next/router';
+import UserContext from '@/components/UserContext';
 
 const SIGN_IN = gql`
   mutation SignIn($password: String!, $email: String!) {
@@ -28,6 +29,8 @@ export default function LoginPage() {
 
   const [signIn] = useMutation<{ signIn: string }>(SIGN_IN);
 
+  const user = useContext(UserContext);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -41,6 +44,7 @@ export default function LoginPage() {
       if (data?.signIn) {
         enqueueSnackbar('Вы вошли', { variant: 'success' });
         localStorage.setItem('token', data.signIn);
+        await user.refetch();
         router.push('/admin');
       }
     } catch (error) {

@@ -200,7 +200,7 @@ function CellEdit({
     if (field.type === FieldType.MANY_TO_MANY_FIRST
         || field.type === FieldType.MANY_TO_MANY_SECOND
         || field.type === FieldType.ONE_TO_MANY_MANY) {
-      return (cell.getValue() as any)?.map((item: any) => item.id);
+      return (cell.getValue() as any)?.map((item: any) => item?.id);
     }
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
       return (cell.getValue() as any)?.id;
@@ -208,6 +208,9 @@ function CellEdit({
     return cell.getValue();
   });
   const editRow = useEditRow(meta.dbName);
+  if (field.type === FieldType.USER_CREATOR) {
+    return null;
+  }
   if (field.type === 'boolean') {
     return (
       <Checkbox
@@ -510,7 +513,7 @@ function TablePage() {
         },
         Cell: ({ cell, row }) => {
           const [editMode, setEditMode] = useState(false);
-          if (editMode) {
+          if (editMode || field.type === FieldType.BOOLEAN) {
             return (
               <CellEdit
                 cell={cell}
@@ -539,7 +542,10 @@ function TablePage() {
             FieldType.MANY_TO_MANY_FIRST,
             FieldType.MANY_TO_MANY_SECOND]
             .includes(field.type as FieldType)) {
-            cellValue = cellValue?.map((item: any) => item._cms_title).join(', ');
+            cellValue = cellValue?.map((item: any) => item?._cms_title || 'Не существует').join(', ');
+          }
+          if (field.type === FieldType.USER_CREATOR) {
+            cellValue = cellValue?.name;
           }
           return (
             <div onClick={() => setEditMode(true)}>

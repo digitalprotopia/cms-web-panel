@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-constructed-context-values */
 import './globals.css';
 import client from '@/components/apollo-client';
 import {
@@ -7,7 +8,8 @@ import {
 } from '@mui/material';
 
 import {
-  ApolloClient, ApolloProvider, NormalizedCacheObject,
+  ApolloClient, ApolloProvider, gql, NormalizedCacheObject,
+  useQuery,
 } from '@apollo/client';
 import { SnackbarProvider } from 'notistack';
 import tailwind from '@/../tailwind.config';
@@ -21,6 +23,9 @@ import { useRouter } from 'next/router';
 import AdminLayout from '@/components/layouts/admin';
 import IndexLayout from '@/components/layouts';
 import { Config } from '@/config/config.sample';
+import { IUser } from '@/components/entities/IUser';
+import UserContext from '@/components/UserContext';
+import { IPage } from '@/components/entities/IPage';
 
 declare global {
   interface Window {
@@ -51,16 +56,97 @@ const theme = createTheme({
   },
 } as any);
 
-export default function CMSLayout({
+interface User {
+  id: string;
+  name: string;
+  role: string;
+}
+
+interface MeQueryResponse {
+  me: User;
+}
+
+const GET_ME = gql`
+  query GetMe {
+    me {
+      id
+      name
+      role {
+        id
+        name
+      }
+    }
+  }
+`;
+
+function CMSLayout({
   Component,
+}: Readonly<{
+  Component: React.FC;
+  params: any;
+}>) {
+  const router = useRouter();
+
+  const {
+    data, refetch, error, loading,
+  } = useQuery<MeQueryResponse>(GET_ME);
+
+  const pages = useQuery(gql`
+    query {
+        getAllSiteItems {
+          title
+          url
+        }
+    }
+    `);
+
+  if (!loading && (error || !data?.me)) {
+    localStorage.removeItem('token');
+  }
+
+  let result = <Component />;
+  if (router.pathname.startsWith('/admin')) {
+    result = <AdminLayout>{result}</AdminLayout>;
+  } else if (router.pathname.startsWith('/auth')) {
+    //
+  } else {
+    result = <IndexLayout>{result}</IndexLayout>;
+  }
+
+  return (
+    <div className={`${inter.variable} antialiased h-full`}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={theme}>
+          <SnackbarProvider maxSnack={3}>
+            <div className="size-full flex flex-col text-base">
+              <UserContext.Provider value={{
+                user: error ? null : data?.me as IUser,
+                refetch: async () => {
+                  await refetch();
+                  await pages.refetch();
+                },
+                pages: pages.data?.getAllSiteItems as IPage[],
+              }}
+              >
+                {result}
+              </UserContext.Provider>
+            </div>
+          </SnackbarProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
+    </div>
+  );
+}
+
+export default function CMSLayoutApollo({
+  Component,
+  params,
 }: Readonly<{
   Component: React.FC;
   params: any;
 }>) {
   const [clientCached, setClientCached] = useState<
   ApolloClient<NormalizedCacheObject> | null>(null);
-
-  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -75,28 +161,9 @@ export default function CMSLayout({
     return null;
   }
 
-  let result = <Component />;
-  if (router.pathname.startsWith('/admin')) {
-    result = <AdminLayout>{result}</AdminLayout>;
-  } else if (router.pathname.startsWith('/auth')) {
-    //
-  } else {
-    result = <IndexLayout>{result}</IndexLayout>;
-  }
-
   return (
-    <div className={`${inter.variable} antialiased h-full`}>
-      <ApolloProvider client={clientCached}>
-        <StyledEngineProvider injectFirst>
-          <ThemeProvider theme={theme}>
-            <SnackbarProvider maxSnack={3}>
-              <div className="size-full flex flex-col text-base">
-                {result}
-              </div>
-            </SnackbarProvider>
-          </ThemeProvider>
-        </StyledEngineProvider>
-      </ApolloProvider>
-    </div>
+    <ApolloProvider client={clientCached}>
+      <CMSLayout Component={Component} params={params} />
+    </ApolloProvider>
   );
 }

@@ -1,4 +1,6 @@
-import { MouseEventHandler, ReactNode, useState } from 'react';
+import {
+  MouseEventHandler, ReactNode, useContext, useState,
+} from 'react';
 import {
   Button,
   Menu,
@@ -9,7 +11,6 @@ import {
   Divider,
 } from '@mui/material';
 import Link from 'next/link';
-import { gql, useQuery } from '@apollo/client';
 import {
   NotificationsNoneOutlined,
   KeyboardArrowDownRounded,
@@ -28,29 +29,7 @@ import { useRouter } from 'next/router';
 import clsx from 'clsx';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-
-interface User {
-  id: string;
-  name: string;
-  role: string;
-}
-
-interface MeQueryResponse {
-  me: User;
-}
-
-const GET_ME = gql`
-  query GetMe {
-    me {
-      id
-      name
-      role {
-        id
-        name
-      }
-    }
-  }
-`;
+import UserContext from '@/components/UserContext';
 
 const getInitials = (name: string) => name
   .split(' ')
@@ -177,6 +156,8 @@ export default function AdminLayout({
   const [userPopoverEl, setUserPopoverEl] = useState<null | HTMLElement>(null);
   const userPopoverOpen = Boolean(userPopoverEl);
 
+  const user = useContext(UserContext);
+
   const handleUserPopoverClick: MouseEventHandler<HTMLElement> = (event) => {
     setUserPopoverEl(event.currentTarget);
   };
@@ -184,19 +165,11 @@ export default function AdminLayout({
     setUserPopoverEl(null);
   };
 
-  const {
-    data, refetch, error, loading,
-  } = useQuery<MeQueryResponse>(GET_ME);
-
-  if (!loading && (error || !data?.me)) {
-    localStorage.removeItem('token');
-  }
-
   const handleLogout = async () => {
     handleUserPopoverClose();
     localStorage.removeItem('token');
     try {
-      await refetch();
+      await user.refetch();
       router.push('/auth/login');
     } catch (e) {
       console.error(e);
@@ -214,7 +187,7 @@ export default function AdminLayout({
               </Link>
 
               <div className="flex items-center gap-3">
-                {data?.me ? (
+                {user.user ? (
                   <>
                     <IconButton size="large" className="text-gray-600">
                       <Badge color="primary" variant="dot">
@@ -230,7 +203,7 @@ export default function AdminLayout({
                     />
                     <div className="flex items-center gap-2">
                       <Avatar className="size-8 text-sm">
-                        {getInitials(data.me.name)}
+                        {getInitials(user.user.name)}
                       </Avatar>
                       <Button
                         variant="text"
@@ -238,7 +211,7 @@ export default function AdminLayout({
                         onClick={handleUserPopoverClick}
                         endIcon={<KeyboardArrowDownRounded />}
                       >
-                        {data.me.name}
+                        {user.user.name}
                       </Button>
                       <Menu
                         id="user-menu"

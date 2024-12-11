@@ -5,17 +5,20 @@ import reactStringReplace from 'react-string-replace';
 import {
   Button, IconButton, Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
 import { createPortal } from 'react-dom';
 import { Close } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import Link from 'next/link';
+import { ErrorBoundary } from 'react-error-boundary';
+import UserContext from '@/components/UserContext';
 import useTable, { TableField, useAddRow } from './use-table';
-import DynamicParse from './DynamicParse';
+import DynamicParse, { parseReact } from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
+import { TemplateLanguage } from './entities/ITemplate';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
@@ -38,7 +41,33 @@ const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = functi
   return createPortal(props.children, el);
 };
 
-export function parseRow(html: string, row: any, fields: TableField[]) {
+export function ParseRow(
+  props: {
+    html: string,
+    row: any,
+    fields: TableField[],
+    language:TemplateLanguage
+  },
+) {
+  const {
+    html, row, fields, language,
+  } = props;
+
+  const user = useContext(UserContext);
+
+  if (language === TemplateLanguage.REACT) {
+    const { Component } = parseReact(html, user.user, user.pages || []);
+    return (
+      <ErrorBoundary
+        fallback="Ошибка разбора"
+  // fallbackRender={() => 'error'}
+        resetKeys={[html]}
+        onError={(err) => { console.log(err); }}
+      >
+        <Component row={row} />
+      </ErrorBoundary>
+    );
+  }
   const resultRow = { ...row };
   fields.forEach((field) => {
     if (field.type === FieldType.DATE) {
@@ -74,7 +103,24 @@ export function parseRow(html: string, row: any, fields: TableField[]) {
   );
 }
 
-const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = function (props) {
+const WidgetList:React.FC<{ data: any, fields: TableField[], html: string,
+  language?: TemplateLanguage
+}> = function (props) {
+  return props.data.map((row: any) => (
+    <div key={row.id}>
+      <ParseRow
+        html={props.html}
+        row={row}
+        fields={props.fields}
+        language={props.language || TemplateLanguage.SIMPLE}
+      />
+    </div>
+  ));
+};
+
+const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
+  language?: TemplateLanguage
+}> = function (props) {
   const [portal, setPortal] = useState<{
     open: boolean,
     portalId: string,
@@ -161,11 +207,12 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = fu
               <Close />
             </IconButton>
           </div>
-          {parseRow(
-            props.html,
-            props.data.find((row: any) => row.id === portal.rowId),
-            props.fields,
-          )}
+          <ParseRow
+            html={props.html}
+            row={props.data.find((row: any) => row.id === portal.rowId)}
+            fields={props.fields}
+            language={props.language || TemplateLanguage.SIMPLE}
+          />
         </div>
       </Portal>
       )}
@@ -173,26 +220,49 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string }> = fu
   );
 };
 
-export function renderWidget(
-  widgetViewType: string,
-  html: string,
-  fields: TableField[],
-  data: any,
+export function RenderWidget(
+  props: {
+    widgetViewType: string,
+    html: string,
+    fields: TableField[],
+    data: any,
+    language: TemplateLanguage,
+    editMode: boolean,
+  },
 ) {
+  const {
+    widgetViewType, html, fields, data, language, editMode,
+  } = props;
+  const user = useContext(UserContext);
+  let resultData = [...data];
+  if (language === TemplateLanguage.REACT) {
+    const { filter } = parseReact(html, user.user, user.pages || []);
+    try {
+      if (!editMode && filter) {
+        resultData = data.filter(filter);
+      }
+    } catch {
+      //
+    }
+  }
   if (widgetViewType === 'map') {
     return (
       <WidgetMap
-        data={data}
+        data={resultData}
         fields={fields}
         html={html}
+        language={language}
       />
     );
   }
-  return data.map((row: any) => (
-    <div key={row.id}>
-      {parseRow(html, row, fields)}
-    </div>
-  ));
+  return (
+    <WidgetList
+      data={resultData}
+      fields={fields}
+      html={html}
+      language={language}
+    />
+  );
 }
 
 function PageWidget(props: {
@@ -206,6 +276,7 @@ function PageWidget(props: {
                 widgetViewType
                 template {
                     html
+                    language
                 }
                 tableView {
                     tableId
@@ -222,11 +293,15 @@ function PageWidget(props: {
     return null;
   }
 
-  return renderWidget(
-    data.getWidgetByName.widgetViewType,
-    data.getWidgetByName.template.html,
-    table.meta?.fields as TableField[],
-    table.data,
+  return (
+    <RenderWidget
+      widgetViewType={data.getWidgetByName.widgetViewType}
+      html={data.getWidgetByName.template.html}
+      fields={table.meta?.fields as TableField[]}
+      data={table.data}
+      language={data.getWidgetByName.template.language}
+      editMode={false}
+    />
   );
 }
 
@@ -384,7 +459,7 @@ function Posts() {
 
 function ParsePage(props: {
   html: string;
-  args?: Record<string, string | React.JSX.Element>
+  args?: Record<string, string | React.JSX.Element | React.JSX.Element[]>
 }) {
   return parse(
     props.html,

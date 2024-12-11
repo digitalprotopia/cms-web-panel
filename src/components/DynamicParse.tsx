@@ -13,6 +13,54 @@ import reactStringReplace from 'react-string-replace';
 import { ErrorBoundary } from 'react-error-boundary';
 import Link from 'next/link';
 
+import * as Mui from '@mui/material';
+
+import * as babel from '@babel/standalone';
+import { IUser } from './entities/IUser';
+import { IPage } from './entities/IPage';
+
+export function parseReact(code: string, user: IUser | null, pages: IPage[]):
+{ Component: React.ComponentType<any>, filter?: (data: any[]) => any[] } {
+  try {
+    const babelCode = babel.transform(code, {
+      presets: ['react', 'es2017'],
+    }).code;
+
+    const resultCode = babelCode!.replace('"use strict";', '').trim();
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const func = new Function('React, Mui, Link, user, pages', `
+      let filter = null;
+      const result = { 
+      }
+      const MMCMS = {
+        setFilter: (f) => {
+          filter = f;
+        },
+        setComponent: (c) => {
+          result.Component = c;
+        },
+        user: user,
+        pages: pages,
+        Link: Link,
+      };
+      
+      ${resultCode}
+
+      if (typeof Component !== 'undefined') {
+        result.Component = Component;
+      }
+      
+      if (filter) {
+        result.filter = filter;
+      }
+      return result;
+    `);
+    return func(React, Mui, Link, user, pages);
+  } catch {
+    return { Component: () => <div>Ошибка разбора</div> };
+  }
+}
+
 const ReplaceContext = createContext<Record<string, string | React.JSX.Element>>({});
 
 function DynamicParse(props: {

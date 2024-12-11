@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   TextField,
@@ -10,9 +10,11 @@ import {
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
+import { Editor, useMonaco } from '@monaco-editor/react';
 import useTable, { TableField } from './use-table';
 import { FieldType } from './entities/IField';
-import { renderWidget } from './ParsePage';
+import { RenderWidget } from './ParsePage';
+import { TemplateLanguage } from './entities/ITemplate';
 
 interface WidgetEditProps {
   id?: string;
@@ -50,6 +52,7 @@ const GET_WIDGET = gql`
       template {
         id
         html
+        language
       }
     }
   }
@@ -96,6 +99,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
     tableId: tableId || '',
     templateHtml: '',
     widgetViewType: 'list',
+    language: TemplateLanguage.SIMPLE,
   });
 
   const isEditMode = Boolean(id && tableId);
@@ -110,6 +114,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         tableId: data.getWidget.tableView.table.id,
         templateHtml: data.getWidget.template.html,
         widgetViewType: data.getWidget.widgetViewType,
+        language: data.getWidget.template.language,
       });
     },
   });
@@ -120,6 +125,49 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
   const [updateWidget] = useMutation(UPDATE_WIDGET);
 
   const widgetTable = useTable(form.tableId);
+
+  const monaco = useMonaco();
+  useEffect(() => {
+    if (!monaco) {
+      return;
+    }
+    // extra libraries
+    const libSource = `
+      delcare const user: {
+        id: string;
+        name: string;
+      }
+      declare let filter: (row: any) => boolean;
+      declare const Link: (props: {href: string}) => React.ReactNode;
+      declare const result = {
+        Component?: (props: {row: any}) => React.ReactNode;
+        filter?: (row: any) => boolean;
+      };
+      declare const MMCMS: {
+        setFilter: (f: (row: any) => boolean) => void;
+        setComponent: (c: (props: {row: any}) => React.ReactNode) => void;
+        user: {
+          id: string;
+          name: string;
+        };
+        Link: (props: {href: string}) => React.ReactNode;
+        pages: {
+          id: string
+          title: string
+          url: string
+        }[]
+      }
+    `;
+    const libUri = 'ts:filename/facts.d.ts';
+    monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
+    if (monaco.languages.typescript.javascriptDefaults.getExtraLibs()[libUri]) {
+      return;
+    }
+    // When resolving definitions and references, the editor will try to use created models.
+    // Creating a model for the library allows
+    // "peek definition/references" commands to work with the library.
+    monaco.editor.createModel(libSource, 'typescript', monaco.Uri.parse(libUri));
+  }, [monaco]);
 
   if ((isEditMode && widgetLoading && tablesLoading) || tablesLoading) {
     return <div>Loading...</div>;
@@ -140,6 +188,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       template: {
         title: form.title,
         html: form.templateHtml,
+        language: form.language,
       },
     };
 
@@ -218,14 +267,40 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       </TextField>
 
       <TextField
-        label="HTML"
+        select
+        label="Язык"
         variant="outlined"
         fullWidth
-        multiline
-        rows={4}
-        value={form.templateHtml}
-        onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
-      />
+        value={form.language}
+        onChange={(e) => setForm({ ...form, language: e.target.value as TemplateLanguage })}
+      >
+        {Object.values(TemplateLanguage).map((type) => (
+          <MenuItem key={type} value={type}>
+            {type}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      {form.language === TemplateLanguage.REACT
+        ? (
+          <Editor
+            value={form.templateHtml}
+            height={200}
+            onChange={(value) => setForm({ ...form, templateHtml: value! })}
+            language="javascript"
+          />
+        )
+        : (
+          <TextField
+            label="HTML"
+            variant="outlined"
+            fullWidth
+            multiline
+            rows={4}
+            value={form.templateHtml}
+            onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
+          />
+        )}
 
       <div style={{
         borderWidth: '1px',
@@ -236,12 +311,17 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       }}
       >
         {widgetTable.meta
-          ? renderWidget(
-            form.widgetViewType,
-            form.templateHtml,
-            widgetTable.meta?.fields as TableField[],
-            [row],
-          ) : null}
+          ? (
+            <RenderWidget
+              widgetViewType={form.widgetViewType}
+              html={form.templateHtml}
+              fields={widgetTable.meta?.fields as TableField[]}
+              data={[row]}
+              language={form.language}
+              editMode
+            />
+          )
+          : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
