@@ -18,9 +18,15 @@ import * as Mui from '@mui/material';
 import * as babel from '@babel/standalone';
 import { IUser } from './entities/IUser';
 import { IPage } from './entities/IPage';
+import { getReactTemplateDefinition } from './reactTemplates';
+import { useTableByDbName } from './use-table';
 
 export function parseReact(code: string, user: IUser | null, pages: IPage[]):
-{ Component: React.ComponentType<any>, filter?: (data: any[]) => any[] } {
+{
+  Component: React.ComponentType<any>,
+  filter?: (data: any[]) => any[],
+  ListComponent?: React.ComponentType<any>,
+} {
   try {
     const babelCode = babel.transform(code, {
       presets: ['react', 'es2017'],
@@ -28,34 +34,10 @@ export function parseReact(code: string, user: IUser | null, pages: IPage[]):
 
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('React, Mui, Link, user, pages', `
-      let filter = null;
-      const result = { 
-      }
-      const MMCMS = {
-        setFilter: (f) => {
-          filter = f;
-        },
-        setComponent: (c) => {
-          result.Component = c;
-        },
-        user: user,
-        pages: pages,
-        Link: Link,
-      };
-      
-      ${resultCode}
-
-      if (typeof Component !== 'undefined') {
-        result.Component = Component;
-      }
-      
-      if (filter) {
-        result.filter = filter;
-      }
-      return result;
-    `);
-    return func(React, Mui, Link, user, pages);
+    const func = new Function('data', getReactTemplateDefinition('list', resultCode));
+    return func({
+      React, Mui, Link, user, pages, useTableByDbName,
+    });
   } catch {
     return { Component: () => <div>Ошибка разбора</div> };
   }
