@@ -16,6 +16,7 @@ import { FieldType } from './entities/IField';
 import { RenderWidget } from './ParsePage';
 import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
+import { WidgetViewType } from './entities/IWidget';
 
 interface WidgetEditProps {
   id?: string;
@@ -97,13 +98,13 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
   const [form, setForm] = useState({
     name: '',
     title: '',
-    tableId: tableId || '',
+    tableId: tableId || null,
     templateHtml: '',
     widgetViewType: 'list',
     language: TemplateLanguage.SIMPLE,
   });
 
-  const isEditMode = Boolean(id && tableId);
+  const isEditMode = !!id;
 
   const { loading: widgetLoading } = useQuery(GET_WIDGET, {
     variables: { id },
@@ -112,7 +113,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       setForm({
         name: data.getWidget.name,
         title: data.getWidget.title,
-        tableId: data.getWidget.tableView.table.id,
+        tableId: data.getWidget.tableView.table?.id,
         templateHtml: data.getWidget.template.html,
         widgetViewType: data.getWidget.widgetViewType,
         language: data.getWidget.template.language,
@@ -125,7 +126,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
   const [createWidget] = useMutation(CREATE_WIDGET);
   const [updateWidget] = useMutation(UPDATE_WIDGET);
 
-  const widgetTable = useTable(form.tableId);
+  const widgetTable = useTable(form.tableId!);
 
   const monaco = useMonaco();
   useEffect(() => {
@@ -207,6 +208,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         onChange={(e) => setForm({ ...form, name: e.target.value })}
       />
 
+      {form.widgetViewType !== WidgetViewType.STATIC && (
       <FormControl fullWidth variant="outlined">
         <InputLabel id="table-select-label">Выберите таблицу</InputLabel>
         <Select
@@ -215,6 +217,9 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
           value={form.tableId}
           onChange={(e) => setForm({ ...form, tableId: e.target.value })}
         >
+          <MenuItem key={0} value={null as any}>
+            Без таблицы
+          </MenuItem>
           {tablesQuery?.getTables.map((table: ITable) => (
             <MenuItem key={table.id} value={table.id}>
               {table.name}
@@ -226,6 +231,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
           ))}
         </Select>
       </FormControl>
+      )}
 
       <TextField
         select
@@ -235,7 +241,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         value={form.widgetViewType}
         onChange={(e) => setForm({ ...form, widgetViewType: e.target.value })}
       >
-        {['list', 'map'].map((type) => (
+        {Object.values(WidgetViewType).map((type) => (
           <MenuItem key={type} value={type}>
             {type}
           </MenuItem>
@@ -286,18 +292,14 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         padding: 8,
       }}
       >
-        {widgetTable.meta
-          ? (
-            <RenderWidget
-              widgetViewType={form.widgetViewType}
-              html={form.templateHtml}
-              fields={widgetTable.meta?.fields as TableField[]}
-              data={[row]}
-              language={form.language}
-              editMode
-            />
-          )
-          : null}
+        <RenderWidget
+          widgetViewType={form.widgetViewType}
+          html={form.templateHtml}
+          fields={widgetTable.meta?.fields as TableField[]}
+          data={widgetTable.meta ? [row] : []}
+          language={form.language}
+          editMode
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -324,7 +326,8 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         className="w-full mt-4"
         onClick={handleSave}
         disabled={
-          !form.name || !form.title! || !form.tableId || !form.templateHtml
+          !form.name || !form.title! || !form.templateHtml
+          || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
         }
       >
         {isEditMode ? 'Сохранить' : 'Создать'}

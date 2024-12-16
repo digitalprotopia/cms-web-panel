@@ -19,6 +19,7 @@ import DynamicParse, { parseReact } from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
 import { TemplateLanguage } from './entities/ITemplate';
+import { WidgetViewType } from './entities/IWidget';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
