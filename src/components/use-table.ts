@@ -199,7 +199,7 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
 
   const processData = (data: any) => {
     const tables: string[] = [];
-    tableMeta?.fields.forEach((field) => {
+    tableMeta?.fields.forEach((field: any) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE
         && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
         tables.push(field.oneToManyLinkManyTable!.dbName);
@@ -224,7 +224,7 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
       });
     });
 
-    tableMeta?.fields.forEach((field) => {
+    tableMeta?.fields.forEach((field: IField) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE) {
         data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
           row[field.dbName] = objects[row[`${field.dbName}Id`]];

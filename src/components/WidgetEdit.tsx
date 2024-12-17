@@ -12,7 +12,7 @@ import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
 import { Editor, useMonaco } from '@monaco-editor/react';
 import useTable, { TableField } from './use-table';
-import { FieldType } from './entities/IField';
+import { FieldType, IField } from './entities/IField';
 import { RenderWidget } from './ParsePage';
 import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
@@ -181,7 +181,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
   };
 
   const row = widgetTable.data?.[0] || {};
-  widgetTable.meta?.fields.forEach((field) => {
+  widgetTable.meta?.fields.forEach((field: IField) => {
     if (field.type === FieldType.DATE) {
       row[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
     }
@@ -303,7 +303,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {widgetTable.meta?.fields.map((field) => (
+        {widgetTable.meta?.fields.map((field: IField) => (
           <Button
             key={field.id}
             variant="contained"

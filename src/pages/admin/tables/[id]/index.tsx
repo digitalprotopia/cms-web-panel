@@ -437,7 +437,7 @@ function TablePage() {
     if (!meta?.fields) return [];
 
     const result = meta.fields.map(
-      (field): MRT_ColumnDef<MRT_RowData> => ({
+      (field: IField): MRT_ColumnDef<MRT_RowData> => ({
         accessorKey: field.dbName,
         header: field.name,
         Header: () => {

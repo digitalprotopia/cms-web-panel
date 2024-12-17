@@ -17,6 +17,7 @@ import { Delete } from '@mui/icons-material';
 import useTable, { TableField } from './use-table';
 import FormField from './form';
 import { ITable } from './entities/ITable';
+import { IField } from './entities/IField';
 
 function FormEdit({ id, onClose, tables }: {
   id?: string;
@@ -177,7 +178,7 @@ function FormEdit({ id, onClose, tables }: {
           <div className="grid grid-cols-1 gap-4">
             {form.fields.map((field, index) => {
               const tableField = table.meta?.fields.find(
-                (f) => f.id === field.tableFieldId,
+                (f: IField) => f.id === field.tableFieldId,
               );
               return (
                 <Card key={index} className="p-4">
@@ -218,7 +219,7 @@ function FormEdit({ id, onClose, tables }: {
             <div className="mt-4">
               <Typography variant="h6">Доступные поля</Typography>
               <div className="grid grid-cols-1 gap-4 mt-2">
-                {table.meta.fields.map((field) => (
+                {table.meta.fields.map((field: IField) => (
                   <Button
                     key={field.id}
                     variant="outlined"
