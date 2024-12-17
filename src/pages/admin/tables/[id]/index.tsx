@@ -551,7 +551,19 @@ function TablePage() {
             cellValue = cellValue ? (
               <div>
                 {cellValue?.name}
-                <a href={`${window.config.server}/download/?id=${cellValue?.id}`}>
+                <a
+                  href={`${window.config.server}/download/?id=${cellValue?.id}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {['jpg', 'jpeg', 'png', 'gif'].includes(cellValue?.extension) ? (
+                    <img
+                      src={`${window.config.server}/download/?id=${cellValue?.id}`}
+                      alt={cellValue?.name}
+                      className="w-20 h-20"
+                    />
+                  ) : null}
                   <IconButton>
                     <Download />
                   </IconButton>

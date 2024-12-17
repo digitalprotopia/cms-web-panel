@@ -149,7 +149,7 @@ export const generateGetTableDataQuery = (
       return `${field.dbName} { id name }`;
     }
     if (field.type === FieldType.FILE) {
-      return `${field.dbName} { id name }`;
+      return `${field.dbName} { id name extension }`;
     }
     return field.dbName;
   }).join('\n        ')}
