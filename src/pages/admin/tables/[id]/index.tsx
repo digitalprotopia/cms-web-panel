@@ -20,7 +20,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Save,
+  Add, ArrowDropDown, Close, Delete, Download, Save,
 } from '@mui/icons-material';
 import { gql, useApolloClient, useQuery } from '@apollo/client';
 
@@ -546,6 +546,18 @@ function TablePage() {
           }
           if (field.type === FieldType.USER_CREATOR) {
             cellValue = cellValue?.name;
+          }
+          if (field.type === FieldType.FILE) {
+            cellValue = cellValue ? (
+              <div>
+                {cellValue?.name}
+                <a href={`${window.config.server}/download/?id=${cellValue?.id}`}>
+                  <IconButton>
+                    <Download />
+                  </IconButton>
+                </a>
+              </div>
+            ) : null;
           }
           return (
             <div onClick={() => setEditMode(true)}>

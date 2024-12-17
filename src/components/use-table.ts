@@ -148,6 +148,9 @@ export const generateGetTableDataQuery = (
     if (field.type === FieldType.USER_CREATOR) {
       return `${field.dbName} { id name }`;
     }
+    if (field.type === FieldType.FILE) {
+      return `${field.dbName} { id name }`;
+    }
     return field.dbName;
   }).join('\n        ')}
       }

@@ -38,6 +38,13 @@ function FormFieldOneToManyOne(props: FormFieldProps) {
   );
 }
 
+const toBase64 = (file: File) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result?.toString().replace(/^data:(.*,)?/, ''));
+  reader.onerror = reject;
+});
+
 function FormFieldMultipleId(props: FormFieldProps) {
   let tableId = '';
   if (props.field.type === FieldType.MANY_TO_MANY_FIRST) {
@@ -163,6 +170,21 @@ export default function FormField(props: FormFieldProps) {
           )}
         />
       </FormControl>
+    );
+  }
+  if (props.field.type === FieldType.FILE) {
+    return (
+      <input
+        type="file"
+        onChange={async (e) => {
+          if (e.target.files?.[0]) {
+            props.onChange({
+              file: await toBase64(e.target.files[0]),
+              name: e.target.files[0].name,
+            });
+          }
+        }}
+      />
     );
   }
   return null;
