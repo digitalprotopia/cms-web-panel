@@ -251,7 +251,7 @@ export default function AdminLayout({
             <nav className="max-w-72 h-fit mx-auto flex-1 bg-white rounded p-4 shadow-lg">
               <MenuNavigation items={menuItems} />
             </nav>
-            <main className="flex-1 ">{children}</main>
+            <main className="flex-1 overflow-hidden">{children}</main>
           </div>
         </div>
       </main>
