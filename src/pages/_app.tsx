@@ -153,7 +153,7 @@ export default function CMSLayoutApollo({
       const _config = await config();
       console.log(_config);
       window.config = _config;
-      setClientCached(client(_config.server));
+      setClientCached(client(`${_config.server}/graphql`));
     })();
   }, []);
 

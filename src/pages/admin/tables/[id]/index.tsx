@@ -20,7 +20,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Save,
+  Add, ArrowDropDown, Close, Delete, Download, Save,
 } from '@mui/icons-material';
 import { gql, useApolloClient, useQuery } from '@apollo/client';
 
@@ -437,7 +437,7 @@ function TablePage() {
     if (!meta?.fields) return [];
 
     const result = meta.fields.map(
-      (field): MRT_ColumnDef<MRT_RowData> => ({
+      (field: IField): MRT_ColumnDef<MRT_RowData> => ({
         accessorKey: field.dbName,
         header: field.name,
         Header: () => {
@@ -546,6 +546,30 @@ function TablePage() {
           }
           if (field.type === FieldType.USER_CREATOR) {
             cellValue = cellValue?.name;
+          }
+          if (field.type === FieldType.FILE) {
+            cellValue = cellValue ? (
+              <div>
+                {cellValue?.name}
+                <a
+                  href={`${window.config.server}/download/?id=${cellValue?.id}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {['jpg', 'jpeg', 'png', 'gif'].includes(cellValue?.extension) ? (
+                    <img
+                      src={`${window.config.server}/download/?id=${cellValue?.id}`}
+                      alt={cellValue?.name}
+                      className="w-20 h-20"
+                    />
+                  ) : null}
+                  <IconButton>
+                    <Download />
+                  </IconButton>
+                </a>
+              </div>
+            ) : null;
           }
           return (
             <div onClick={() => setEditMode(true)}>

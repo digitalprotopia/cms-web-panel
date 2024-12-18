@@ -73,6 +73,39 @@ export const GET_TABLE_BY_ID = gql`
   }
 `;
 
+export const GET_TABLE_BY_DB_NAME = gql`
+  query GetTableByDbName($dbName: String!) {
+    getTableByDbName(dbName: $dbName) {
+      id
+      name
+      dbName
+      createdAt
+      fields {
+        id
+        name
+        type
+        dbName
+        oneToManyLinkOneTable {
+          id
+          dbName
+        }
+        oneToManyLinkManyTable {
+          id
+          dbName
+        }
+        manyToManyLinkFirstTable {
+          id
+          dbName
+        }
+        manyToManyLinkSecondTable {
+          id
+          dbName
+        }
+      }
+    }
+  }
+`;
+
 export const generateGetTableDataQuery = (
   tableName: string,
   fields: TableField[],
@@ -115,6 +148,9 @@ export const generateGetTableDataQuery = (
     if (field.type === FieldType.USER_CREATOR) {
       return `${field.dbName} { id name }`;
     }
+    if (field.type === FieldType.FILE) {
+      return `${field.dbName} { id name extension }`;
+    }
     return field.dbName;
   }).join('\n        ')}
       }
@@ -130,21 +166,21 @@ interface UseTableOptions {
   onDataLoaded?: (data: TableData[]) => void;
 }
 
-const useTable = (tableId: string, options?: UseTableOptions) => {
+const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: string) => {
   const {
     data: tableMetaData,
     loading: metaLoading,
     error: metaError,
     refetch: refetchMeta,
-  } = useQuery<{ getTable: TableMeta }>(GET_TABLE_BY_ID, {
-    variables: { id: tableId },
+  } = useQuery(tableDbName ? GET_TABLE_BY_DB_NAME : GET_TABLE_BY_ID, {
+    variables: tableDbName ? { dbName: tableDbName } : { id: tableId },
     onCompleted: (data) => {
-      options?.onMetaLoaded?.(data.getTable);
+      options?.onMetaLoaded?.(data.getTable || data.getTableByDbName);
     },
-    skip: !tableId,
+    skip: !tableId && !tableDbName,
   });
 
-  const tableMeta = tableMetaData?.getTable;
+  const tableMeta = tableMetaData?.getTable || tableMetaData?.getTableByDbName;
 
   const {
     data: tableData,
@@ -163,7 +199,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
 
   const processData = (data: any) => {
     const tables: string[] = [];
-    tableMeta?.fields.forEach((field) => {
+    tableMeta?.fields.forEach((field: any) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE
         && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
         tables.push(field.oneToManyLinkManyTable!.dbName);
@@ -188,7 +224,7 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
       });
     });
 
-    tableMeta?.fields.forEach((field) => {
+    tableMeta?.fields.forEach((field: IField) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE) {
         data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
           row[field.dbName] = objects[row[`${field.dbName}Id`]];
@@ -233,6 +269,11 @@ const useTable = (tableId: string, options?: UseTableOptions) => {
     error,
     refetch,
   } as const;
+};
+
+export const useTableByDbName = (tableDbName?: string, options?: UseTableOptions) => {
+  const result = useTable('', options, tableDbName);
+  return result;
 };
 
 export const useAddRow = (dbName: string) => {

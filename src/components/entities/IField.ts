@@ -12,6 +12,7 @@ export enum FieldType {
   MANY_TO_MANY_FIRST = 'manyToManyFirst',
   MANY_TO_MANY_SECOND = 'manyToManySecond',
   USER_CREATOR = 'userCreator',
+  FILE = 'file',
 }
 
 export type IFieldOneToManyOptions = {

@@ -255,6 +255,21 @@ export function RenderWidget(
       />
     );
   }
+  if (language === TemplateLanguage.REACT) {
+    const template = parseReact(html, user.user, user.pages || []);
+    if (template.ListComponent) {
+      return (
+        <ErrorBoundary
+          fallback="Ошибка разбора"
+// fallbackRender={() => 'error'}
+          resetKeys={[html]}
+          onError={(err) => { console.log(err); }}
+        >
+          <template.ListComponent data={resultData} Component={template.Component} />
+        </ErrorBoundary>
+      );
+    }
+  }
   return (
     <WidgetList
       data={resultData}
