@@ -16,17 +16,23 @@ import Link from 'next/link';
 import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
+import { NextRouter } from 'next/router';
 import { IUser } from './entities/IUser';
-import { IPage } from './entities/IPage';
+import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 import { useTableByDbName } from './use-table';
 
-export function parseReact(code: string, user: IUser | null, pages: IPage[]):
-{
-  Component: React.ComponentType<any>,
-  filter?: (data: any[]) => any[],
-  ListComponent?: React.ComponentType<any>,
-} {
+export function parseReact(
+  code: string,
+  user: IUser | null,
+  pages: ISiteItem[],
+  router: NextRouter,
+):
+  {
+    Component: React.ComponentType<any>,
+    filter?: (data: any[]) => any[],
+    ListComponent?: React.ComponentType<any>,
+  } {
   try {
     const babelCode = babel.transform(code, {
       presets: ['react', 'es2017'],
@@ -36,7 +42,7 @@ export function parseReact(code: string, user: IUser | null, pages: IPage[]):
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode));
     return func({
-      React, Mui, Link, user, pages, useTableByDbName,
+      React, Mui, Link, user, pages, useTableByDbName, router,
     });
   } catch {
     return { Component: () => <div>Ошибка разбора</div> };

@@ -25,7 +25,7 @@ import IndexLayout from '@/components/layouts';
 import { Config } from '@/config/config.sample';
 import { IUser } from '@/components/entities/IUser';
 import UserContext from '@/components/UserContext';
-import { IPage } from '@/components/entities/IPage';
+import { ISiteItem } from '@/components/entities/ISiteItem';
 
 declare global {
   interface Window {
@@ -94,8 +94,12 @@ function CMSLayout({
   const pages = useQuery(gql`
     query {
         getAllSiteItems {
+          id
           title
           url
+          parentId
+          type
+          createdAt
         }
     }
     `);
@@ -125,7 +129,7 @@ function CMSLayout({
                   await refetch();
                   await pages.refetch();
                 },
-                pages: pages.data?.getAllSiteItems as IPage[],
+                pages: pages.data?.getAllSiteItems as ISiteItem[],
               }}
               >
                 {result}

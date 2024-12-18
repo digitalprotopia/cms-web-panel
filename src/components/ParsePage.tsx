@@ -19,6 +19,7 @@ import DynamicParse, { parseReact } from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
 import { TemplateLanguage } from './entities/ITemplate';
+import { useRouter } from 'next/router';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
@@ -55,8 +56,10 @@ export function ParseRow(
 
   const user = useContext(UserContext);
 
+  const router = useRouter();
+
   if (language === TemplateLanguage.REACT) {
-    const { Component } = parseReact(html, user.user, user.pages || []);
+    const { Component } = parseReact(html, user.user, user.pages || [], router);
     return (
       <ErrorBoundary
         fallback="Ошибка разбора"
@@ -234,9 +237,10 @@ export function RenderWidget(
     widgetViewType, html, fields, data, language, editMode,
   } = props;
   const user = useContext(UserContext);
+  const router = useRouter();
   let resultData = [...data];
   if (language === TemplateLanguage.REACT) {
-    const { filter } = parseReact(html, user.user, user.pages || []);
+    const { filter } = parseReact(html, user.user, user.pages || [], router);
     try {
       if (!editMode && filter) {
         resultData = data.filter(filter);
@@ -256,7 +260,7 @@ export function RenderWidget(
     );
   }
   if (language === TemplateLanguage.REACT) {
-    const template = parseReact(html, user.user, user.pages || []);
+    const template = parseReact(html, user.user, user.pages || [], router);
     if (template.ListComponent) {
       return (
         <ErrorBoundary
