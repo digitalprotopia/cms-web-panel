@@ -43,13 +43,17 @@ function DynamicPage() {
       setCurrentPage(pages.find((p) => p.url === '' && !p.parentId)?.id || null);
       return;
     }
-    slug.forEach((item) => {
+    for (const i in slug) {
+      const item = slug[i];
       const page = pages.find((p) => (p.type === SiteItemType.DYNAMIC || p.url === item)
         && ((!prevPage && !p.parentId) || p.parentId === prevPage));
       if (page) {
         prevPage = page.id;
+      } else {
+        prevPage = '';
+        break;
       }
-    });
+    }
     setCurrentPage(prevPage);
   }, [pages, slug]);
 

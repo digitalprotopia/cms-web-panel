@@ -35,6 +35,7 @@ const CREATE_PAGE = gql`
       isRoot
       seotag
       html
+      type
       createdAt
       updatedAt
     }
@@ -52,6 +53,7 @@ const UPDATE_PAGE = gql`
       isRoot
       seotag
       html
+      type
       createdAt
       updatedAt
     }
@@ -157,11 +159,11 @@ function PagesPage() {
     },
   });
 
-  const handleCreate = (formData: PageFormData) => {
+  const handleCreate = (formData: Partial<ISiteItem>) => {
     createPage({ variables: { input: formData } });
   };
 
-  const handleUpdate = (formData: PageFormData) => {
+  const handleUpdate = (formData: Partial<ISiteItem>) => {
     if (!selectedPage) return;
     updatePage({
       variables: {

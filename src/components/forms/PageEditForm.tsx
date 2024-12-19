@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
 import DefaultEditor from 'react-simple-wysiwyg';
-import { PageFormData } from '../entities/ISiteItem';
+import { ISiteItem, PageFormData, SiteItemType } from '../entities/ISiteItem';
 import { IForm } from '../entities/IForm';
 import { IWidget } from '../entities/IWidget';
 import { IRole } from '../entities/IRole';
@@ -29,6 +29,7 @@ export const GET_PAGES = gql`
         id
         name
       }
+      type
       createdAt
       updatedAt
     }
@@ -41,12 +42,12 @@ export default function PageForm({
   onCancel,
   roles,
 }: {
-  initialData: Partial<PageFormData>;
-  onSubmit: (data: PageFormData) => void;
+  initialData: Partial<ISiteItem>;
+  onSubmit: (data: Partial<ISiteItem>) => void;
   onCancel: () => void;
   roles: Partial<IRole>[];
 }) {
-  const [formData, setFormData] = useState<PageFormData>({
+  const [formData, setFormData] = useState<Partial<ISiteItem>>({
     name: initialData.name || '',
     title: initialData.title || '',
     url: initialData.url || '',
@@ -55,6 +56,7 @@ export default function PageForm({
     seotag: initialData.seotag || '',
     html: initialData.html || '',
     roleIds: initialData.roleIds || [],
+    type: initialData.type! || 'static',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -127,7 +129,7 @@ export default function PageForm({
           value={formData.parentId}
           options={pagesData.getAllSiteItems}
           getOptionLabelFromKey="title"
-          onChange={(e) => setFormData({ ...formData, parentId: typeof (e) === 'string' ? e : e?.[0] })}
+          onChange={(e) => setFormData({ ...formData, parentId: e as string })}
         />
       </div>
       <S3Autocomplete
@@ -140,6 +142,20 @@ export default function PageForm({
         multiple
         label="Роли"
       />
+      <TextField
+        label="Тип"
+        fullWidth
+        value={formData.type}
+        onChange={(e) => setFormData({ ...formData, type: e.target.value as SiteItemType })}
+        select
+        variant="standard"
+      >
+        {Object.values(SiteItemType).map((type) => (
+          <MenuItem key={type} value={type}>
+            {type}
+          </MenuItem>
+        ))}
+      </TextField>
       <h4>Контент</h4>
       <DefaultEditor
         value={formData.html}
