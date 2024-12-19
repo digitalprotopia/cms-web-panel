@@ -164,7 +164,7 @@ export const generateGetTableDataQuery = (
 interface UseTableOptions {
   onMetaLoaded?: (meta: TableMeta) => void;
   onDataLoaded?: (data: TableData[]) => void;
-  search: any;
+  search?: any;
 }
 
 const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: string) => {

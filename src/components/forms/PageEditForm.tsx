@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
 import DefaultEditor from 'react-simple-wysiwyg';
-import { ISiteItem, PageFormData, SiteItemType } from '../entities/ISiteItem';
+import { ISiteItem, SiteItemType } from '../entities/ISiteItem';
 import { IForm } from '../entities/IForm';
 import { IWidget } from '../entities/IWidget';
 import { IRole } from '../entities/IRole';

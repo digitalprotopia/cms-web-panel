@@ -230,11 +230,10 @@ export function RenderWidget(
     fields: TableField[],
     data: any,
     language: TemplateLanguage,
-    editMode: boolean,
   },
 ) {
   const {
-    widgetViewType, html, fields, data, language, editMode,
+    widgetViewType, html, fields, data, language,
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
@@ -334,7 +333,6 @@ function PageWidget(props: {
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
-      editMode={false}
     />
   );
 }

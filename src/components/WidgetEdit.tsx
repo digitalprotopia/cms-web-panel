@@ -298,7 +298,6 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
           fields={widgetTable.meta?.fields as TableField[]}
           data={widgetTable.meta ? [row] : []}
           language={form.language}
-          editMode
         />
       </div>
 

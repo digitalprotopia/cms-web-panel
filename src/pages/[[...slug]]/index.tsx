@@ -9,6 +9,7 @@ import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
 import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
+import { ITemplate } from '@/components/entities/ITemplate';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -21,13 +22,35 @@ const GET_SITEITEM = gql`
     getAllSites {
       templateGroup {
         templates {
+          id
           name
           html
+          createdAt
         }
       }
     }
   }
 `;
+
+const renderTemplate = (
+  template: ITemplate,
+  templates: ITemplate[],
+  templatesHistory: string[] = [],
+): string => {
+  if (templatesHistory.includes(template.id)) {
+    return '';
+  }
+  templatesHistory.push(template.id);
+
+  return template.html.replace(/\{include:([a-zA-Z0-9_]+)\}/g, (match) => {
+    const name = match.replace(/\{include:([a-zA-Z0-9_]+)\}/, '$1');
+    const nextTemplate = templates.find((t) => t.name === name);
+    if (nextTemplate) {
+      return renderTemplate(nextTemplate, templates, templatesHistory);
+    }
+    return '';
+  });
+};
 
 function DynamicPage() {
   const [currentPage, setCurrentPage] = useState<string | null>(null);
@@ -43,8 +66,10 @@ function DynamicPage() {
       setCurrentPage(pages.find((p) => p.url === '' && !p.parentId)?.id || null);
       return;
     }
+    // eslint-disable-next-line no-restricted-syntax, guard-for-in
     for (const i in slug) {
       const item = slug[i];
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
       const page = pages.find((p) => (p.type === SiteItemType.DYNAMIC || p.url === item)
         && ((!prevPage && !p.parentId) || p.parentId === prevPage));
       if (page) {
@@ -57,7 +82,7 @@ function DynamicPage() {
     setCurrentPage(prevPage);
   }, [pages, slug]);
 
-  const { data: siteItem, loading: siteItemLoading, error } = useQuery(
+  const { data: siteItem, loading: siteItemLoading } = useQuery(
     GET_SITEITEM,
     {
       variables: { id: currentPage },
@@ -69,18 +94,10 @@ function DynamicPage() {
 
   const site = siteItem?.getAllSites?.[0];
   const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
-  let html = template ? template.html : `<div>
+  let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
   <div>{menu}</div>
   <div>{content}</div>
   </div>`;
-
-  if (error || !siteItem?.getSiteItem) {
-    return (
-      <div className="page">
-        404
-      </div>
-    );
-  }
 
   html = html.replace('{content}', `  <div className="page">
     <div>
@@ -94,7 +111,8 @@ function DynamicPage() {
       let { url } = item;
       let currentItem: (ISiteItem | null) = item;
       while (currentItem?.parentId) {
-        currentItem = pages.find((p) => p.id === currentItem.parentId) || null;
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        currentItem = pages.find((p) => p.id === currentItem!.parentId) || null;
         url = `${currentItem?.url}/${url}`;
       }
       return (
@@ -105,7 +123,7 @@ function DynamicPage() {
     }) || [],
     title:
   <Typography variant="h4">
-    {siteItem.getSiteItem.title}
+    {siteItem?.getSiteItem?.title || ''}
   </Typography>,
   };
 

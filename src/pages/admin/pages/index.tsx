@@ -21,7 +21,6 @@ import Link from 'next/link';
 import { ISiteItem } from '@/components/entities/ISiteItem';
 
 import PageEditForm, { GET_PAGES } from '@/components/forms/PageEditForm';
-import { PageFormData } from '@/components/entities/ISiteItem';
 import { makeTree, TreeItem } from '@/components/guiElements/Tree';
 
 const CREATE_PAGE = gql`

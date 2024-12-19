@@ -27,6 +27,7 @@ export default function TemplateEditDialog({
           initialData={selectedTemplate || {}}
           onSubmit={onSubmit}
           // onCancel={onCancel}
+          templates={[]}
         />
       </DialogContent>
     </Dialog>
