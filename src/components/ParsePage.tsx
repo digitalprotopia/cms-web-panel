@@ -14,12 +14,12 @@ import { useSnackbar } from 'notistack';
 import Link from 'next/link';
 import { ErrorBoundary } from 'react-error-boundary';
 import UserContext from '@/components/UserContext';
+import { useRouter } from 'next/router';
 import useTable, { TableField, useAddRow } from './use-table';
 import DynamicParse, { parseReact } from './DynamicParse';
 import { FieldType } from './entities/IField';
 import FormField from './form';
 import { TemplateLanguage } from './entities/ITemplate';
-import { useRouter } from 'next/router';
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
@@ -238,21 +238,10 @@ export function RenderWidget(
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
-  let resultData = [...data];
-  if (language === TemplateLanguage.REACT) {
-    const { filter } = parseReact(html, user.user, user.pages || [], router);
-    try {
-      if (!editMode && filter) {
-        resultData = data.filter(filter);
-      }
-    } catch {
-      //
-    }
-  }
   if (widgetViewType === 'map') {
     return (
       <WidgetMap
-        data={resultData}
+        data={data}
         fields={fields}
         html={html}
         language={language}
@@ -269,14 +258,14 @@ export function RenderWidget(
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
-          <template.ListComponent data={resultData} Component={template.Component} />
+          <template.ListComponent data={data} Component={template.Component} />
         </ErrorBoundary>
       );
     }
   }
   return (
     <WidgetList
-      data={resultData}
+      data={data}
       fields={fields}
       html={html}
       language={language}
@@ -306,10 +295,36 @@ function PageWidget(props: {
     variables: { name: props.widgetName },
   });
 
-  const table = useTable(data?.getWidgetByName.tableView.tableId);
+  const user = useContext(UserContext);
+  const router = useRouter();
+
+  let search: any;
+  let filter: ReturnType<typeof parseReact>['filter'];
+  if (data && data.getWidgetByName.template.language === TemplateLanguage.REACT) {
+    const widget = parseReact(
+      data.getWidgetByName.template.html,
+      user.user,
+      user.pages || [],
+      router,
+    );
+    filter = widget.filter;
+    search = widget.search;
+  }
+
+  const table = useTable(data?.getWidgetByName.tableView.tableId, { search });
 
   if (!data || !table.data) {
     return null;
+  }
+
+  let resultData = table.data ? [...table.data] : [];
+
+  try {
+    if (filter) {
+      resultData = table.data.filter(filter);
+    }
+  } catch {
+    //
   }
 
   return (
@@ -317,7 +332,7 @@ function PageWidget(props: {
       widgetViewType={data.getWidgetByName.widgetViewType}
       html={data.getWidgetByName.template.html}
       fields={table.meta?.fields as TableField[]}
-      data={table.data}
+      data={resultData}
       language={data.getWidgetByName.template.language}
       editMode={false}
     />

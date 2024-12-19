@@ -31,6 +31,7 @@ export function parseReact(
   {
     Component: React.ComponentType<any>,
     filter?: (data: any[]) => any[],
+    search?: any,
     ListComponent?: React.ComponentType<any>,
   } {
   try {
