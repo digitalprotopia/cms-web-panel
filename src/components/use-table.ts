@@ -130,9 +130,9 @@ export const generateGetTableDataQuery = (
     }
   });
   return gql`
-      query GetTableData {
+      query GetTableData($search: ${tableName}Search) {
         ${tables.map((table) => `getAll${table} { id _cms_title }`).join('\n')}
-          getAll${tableName} {
+          getAll${tableName} (search: $search) {
           id
           createdAt
           _cms_title
@@ -164,6 +164,7 @@ export const generateGetTableDataQuery = (
 interface UseTableOptions {
   onMetaLoaded?: (meta: TableMeta) => void;
   onDataLoaded?: (data: TableData[]) => void;
+  search?: any;
 }
 
 const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: string) => {
@@ -193,6 +194,9 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
       skip: !tableMeta?.dbName || !tableMeta?.fields?.length,
       onCompleted: (data) => {
         options?.onDataLoaded?.(data[`getAll${tableMeta!.dbName}`]);
+      },
+      variables: {
+        search: options?.search,
       },
     },
   );

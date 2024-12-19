@@ -1,13 +1,16 @@
 const reactTemplates: Record<string, { definition: string, type: string }> = {
   list: {
     definition: `
-        const { React, Mui, Link, user, pages, useTableByDbName } = data;
+        const { React, Mui, Link, user, pages, useTableByDbName, router } = data;
       let filter = null;
       const result = { 
       }
       const MMCMS = {
         setFilter: (f) => {
           filter = f;
+        },
+        setSearch: (search) => {
+          result.search = search();
         },
         setComponent: (c) => {
           result.Component = c;
@@ -18,6 +21,7 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         user: data.user,
         pages: data.pages,
         Link: data.Link,
+        router: data.router,
       };
       
       {resultCode}
@@ -46,6 +50,7 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         setFilter: (f: (row: any) => boolean) => void;
         setComponent: (c: (props: {row: any}) => React.ReactNode) => void;
         setListComponent: (c: (props: {data: any[], children: React.ReactNode, Component: React.ComponentType<any>}) => React.ReactNode) => void;
+        setSearch: (s: any) => void;
         user: {
           id: string;
           name: string;
@@ -55,7 +60,8 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
           id: string
           title: string
           url: string
-        }[]
+        }[];
+        router: any;
       }
         `,
   },

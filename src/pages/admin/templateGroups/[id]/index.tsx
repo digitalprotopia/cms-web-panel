@@ -5,6 +5,13 @@ import {
   CircularProgress,
   Icon,
   Grid2,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions,
+  Button,
 } from '@mui/material';
 
 import { ITemplate, ITemplateFormData } from '@/components/entities/ITemplate';
@@ -13,19 +20,23 @@ import {
 } from 'next/router';
 import TemplateEdit from '@/components/TemplateEdit';
 import clsx from 'clsx';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Add, Delete } from '@mui/icons-material';
 
 const GET_TEMPLATES = gql`
-  query GetTemplates {
-    getTemplates {
+  query GetTemplateGroup($id: ID!) {
+    getTemplateGroup(id: $id) {
       id
-      name
       title
-      html
-      templateGroupId
-      createdAt
-      updatedAt
+      templates {
+        id
+        name
+        title
+        html
+        templateGroupId
+        createdAt
+        updatedAt
+      }
     }
   }
 `;
@@ -44,14 +55,14 @@ const GET_TEMPLATE = gql`
   }
 `;
 
-// const CREATE_TEMPLATE = gql`
-//   mutation CreateTemplate($input: TemplateInput!) {
-//     createTemplate(input: $input) {
-//       id
-//       html
-//     }
-//   }
-// `;
+const CREATE_TEMPLATE = gql`
+  mutation CreateTemplate($input: TemplateInput!) {
+    createTemplate(input: $input) {
+      id
+      html
+    }
+  }
+`;
 
 const UPDATE_TEMPLATE = gql`
   mutation UpdateTemplate($id: ID!, $input: TemplateInput!) {
@@ -66,16 +77,18 @@ const UPDATE_TEMPLATE = gql`
   }
 `;
 
-// const DELETE_TEMPLATE = gql`
-//   mutation DeleteTemplate($id: ID!) {
-//     deleteTemplate(id: $id)
-//   }
-// `;
+const DELETE_TEMPLATE = gql`
+  mutation DeleteTemplate($id: ID!) {
+    deleteTemplate(id: $id)
+  }
+`;
 
 interface ISidebarItem {
   label: string;
-  href: string;
+  // eslint-disable-next-line react/no-unused-prop-types
+  id: string;
   onClick: () => void;
+  onDelete: () => void;
 }
 
 interface MenuItemProps extends ISidebarItem {
@@ -83,17 +96,16 @@ interface MenuItemProps extends ISidebarItem {
 }
 
 function SidebarItem({
-  href, label, isActive, onClick,
+  label, isActive, onClick, onDelete,
 }: MenuItemProps) {
   return (
     <li
       className={clsx(
-        'rounded-md p-2',
+        'rounded-md p-2 flex justify-between',
         isActive ? 'bg-cms-primary' : 'bg-cms-gray-light',
       )}
     >
-      <Link
-        href={href}
+      <div
         onClick={onClick}
         className={clsx(
           'flex items-center',
@@ -102,35 +114,76 @@ function SidebarItem({
       >
         <Icon />
         <span className="ml-2">{label}</span>
-      </Link>
+      </div>
+      <div>
+        <IconButton onClick={() => onDelete()}>
+          <Delete />
+        </IconButton>
+      </div>
     </li>
   );
 }
 
 interface TemplateNavigationProps {
   items: ISidebarItem[];
+  currentId: string;
 }
 
-function TemplateNavigation({ items }: TemplateNavigationProps) {
-  const router = useRouter();
-  const currentId = router.query.id;
-
+function TemplateNavigation({ items, currentId }: TemplateNavigationProps) {
   return (
     <ul className="flex flex-col gap-2">
       {items.map((item) => (
         <SidebarItem
-          key={item.href}
+          key={item.id}
           {...item}
-          isActive={currentId === item.href.split('?').pop()}
+          isActive={currentId === item.id}
         />
       ))}
     </ul>
   );
 }
 
+function CreateTemplate(props: {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (formData: ITemplateFormData) => void;
+}) {
+  const [form, setForm] = useState<Partial<ITemplateFormData>>({
+    name: '',
+    title: '',
+  });
+  return (
+    <Dialog open={props.open} onClose={props.onClose}>
+      <DialogTitle>Создать шаблон</DialogTitle>
+      <DialogContent>
+        <TextField
+          label="Название"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+        />
+        <TextField
+          label="Код"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose}>Отмена</Button>
+        <Button
+          onClick={() => {
+            props.onSubmit(form as ITemplateFormData);
+            props.onClose();
+          }}
+        >
+          Создать
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function TemplatesPage() {
   const router = useRouter();
-  const currentPath = router.asPath;
   const templateId = useSearchParams().get('templateId');
   // TODO: investigate, why this is called many times:
   // alert('many times');
@@ -158,20 +211,22 @@ function TemplatesPage() {
 
   const templateGroupId = router.query.id;
 
-  const { data, loading, refetch } = useQuery(GET_TEMPLATES);
+  const { data, loading, refetch } = useQuery(GET_TEMPLATES, {
+    variables: { id: templateGroupId },
+  });
 
-  // const [createTemplate] = useMutation(CREATE_TEMPLATE, {
-  //   onCompleted: () => {
-  //     refetch();
-  //   },
-  //   onError: (error) => {
-  //     console.error('Ошибка при создании шаблона:', error);
-  //   },
-  // });
+  const [createTemplate] = useMutation(CREATE_TEMPLATE, {
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.error('Ошибка при создании шаблона:', error);
+    },
+  });
 
   const [updateTemplate] = useMutation(UPDATE_TEMPLATE, {
     onCompleted: () => {
-      setSelectedTemplate(null); // todo: вывести сообщение вместо очистки
+      // setSelectedTemplate(null); // todo: вывести сообщение вместо очистки
       refetch();
     },
     onError: (error) => {
@@ -179,19 +234,28 @@ function TemplatesPage() {
     },
   });
 
-  // const [deleteTemplate] = useMutation(DELETE_TEMPLATE, {
+  const [createDialog, setCreateDialog] = useState(false);
 
-  //   onCompleted: () => {
-  //     refetch();
-  //   },
-  //   onError: (error) => {
-  //     console.error('Ошибка при удалении шаблона:', error);
-  //   },
-  // });
+  const [deleteTemplate] = useMutation(DELETE_TEMPLATE, {
 
-  // const handleCreate = (formData: TemplateFormData) => {
-  //   createTemplate({ variables: { input: formData } });
-  // };
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.error('Ошибка при удалении шаблона:', error);
+    },
+  });
+
+  const handleCreate = (formData: ITemplateFormData) => {
+    createTemplate({
+      variables: {
+        input: {
+          ...formData,
+          templateGroupId,
+        },
+      },
+    });
+  };
 
   const handleUpdate = (formData: ITemplateFormData) => {
     if (!selectedTemplate) return;
@@ -210,11 +274,8 @@ function TemplatesPage() {
       </div>
     );
   }
-  const templates: ITemplate[] = data?.getTemplates?.filter(
-    (t: ITemplate) => (templateGroupId
-      ? t.templateGroupId === templateGroupId
-      : true),
-  );
+  const templates: ITemplate[] = data?.getTemplateGroup?.templates;
+
   if (!templates || !templates[0]) {
     throw new Error('У группы отсутсвуют шаблоны.');
   }
@@ -238,24 +299,47 @@ function TemplatesPage() {
             key={selectedTemplate.id}
             initialData={selectedTemplate}
             onSubmit={handleUpdate}
+            templates={templates}
           />
         </Grid2>
 
         <Grid2 className="p-4" size={3}>
           <TemplateNavigation
             key={templateGroupId as string}
+            currentId={selectedTemplate.id}
             items={[
               // todo: use getByValues
               ...(templates.map((t: ITemplate) => ({
                 label: t.name,
-                href: `${currentPath}?templateId=${t.id}`,
                 id: t.id,
-                onClick: () => { setSelectedTemplate(t); },
+                onClick: () => {
+                  router.query.templateId = t.id;
+                  router.push(router);
+                  setSelectedTemplate(t);
+                },
+                onDelete: () => {
+                  if (window.confirm('Вы уверены, что хотите удалить этот шаблон?')) {
+                    if (t.id === selectedTemplate.id) {
+                      setSelectedTemplate(null);
+                      router.query.templateId = undefined;
+                      router.push(router);
+                    }
+                    deleteTemplate({ variables: { id: t.id } });
+                  }
+                },
               })) || []),
             ]}
           />
+          <IconButton onClick={() => setCreateDialog(true)}>
+            <Add />
+          </IconButton>
         </Grid2>
       </Grid2>
+      <CreateTemplate
+        open={createDialog}
+        onClose={() => setCreateDialog(false)}
+        onSubmit={handleCreate}
+      />
     </div>
   );
 }

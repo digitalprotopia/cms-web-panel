@@ -6,9 +6,11 @@ import { ITemplate, ITemplateFormData } from './entities/ITemplate';
 export default function TemplateEdit({
   initialData,
   onSubmit,
+  templates,
 }: {
   initialData: Partial<ITemplate>;
   onSubmit: (data: ITemplateFormData) => void;
+  templates: ITemplateFormData[];
 }) {
   const {
     name = '', title = '', templateGroupId, html = '', css = '',
@@ -101,7 +103,14 @@ export default function TemplateEdit({
             </MenuItem>
           ))}
         </div>
-
+        <h4>Добавить шаблоны</h4>
+        <div>
+          {templates.map((template) => (
+            <MenuItem key={template.name} onClick={() => setFormData({ ...formData, html: `${formData.html}{include:${template.name}}` })}>
+              {template.title}
+            </MenuItem>
+          ))}
+        </div>
         <div className="flex justify-end gap-2 mt-5">
           <Button variant="contained" type="submit">
             Сохранить

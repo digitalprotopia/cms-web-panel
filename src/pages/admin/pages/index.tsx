@@ -5,49 +5,23 @@ import {
   CardContent,
   CardHeader,
   Button,
-  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   IconButton,
   Typography,
   CircularProgress,
-  MenuItem,
+  List,
 } from '@mui/material';
 import {
   Edit, AccessTime, Delete, Visibility,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import Link from 'next/link';
-import DefaultEditor from 'react-simple-wysiwyg';
 import { ISiteItem } from '@/components/entities/ISiteItem';
-import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
-import { IRole } from '@/components/entities/IRole';
 
-const GET_PAGES = gql`
-  query GetAllSiteItems {
-    getRoles {
-      id
-      name
-    }
-    getAllSiteItems {
-      id
-      name
-      title
-      url
-      parentId
-      isRoot
-      seotag
-      html
-      roles {
-        id
-        name
-      }
-      createdAt
-      updatedAt
-    }
-  }
-`;
+import PageEditForm, { GET_PAGES } from '@/components/forms/PageEditForm';
+import { makeTree, TreeItem } from '@/components/guiElements/Tree';
 
 const CREATE_PAGE = gql`
   mutation CreateSiteItem($input: SiteItemInput!) {
@@ -60,6 +34,7 @@ const CREATE_PAGE = gql`
       isRoot
       seotag
       html
+      type
       createdAt
       updatedAt
     }
@@ -77,6 +52,7 @@ const UPDATE_PAGE = gql`
       isRoot
       seotag
       html
+      type
       createdAt
       updatedAt
     }
@@ -88,142 +64,6 @@ const DELETE_PAGE = gql`
     deleteSiteItem(id: $id)
   }
 `;
-
-interface PageFormData {
-  id?: string;
-  name: string;
-  title: string;
-  url: string;
-  parentId?: string;
-  isRoot?: boolean;
-  seotag?: string;
-  html?: string;
-  roleIds?: string[];
-}
-
-function PageForm({
-  initialData = {},
-  onSubmit,
-  onCancel,
-  roles,
-}: {
-  initialData: Partial<PageFormData>;
-  onSubmit: (data: PageFormData) => void;
-  onCancel: () => void;
-  roles: Partial<IRole>[];
-}) {
-  const [formData, setFormData] = useState<PageFormData>({
-    name: initialData.name || '',
-    title: initialData.title || '',
-    url: initialData.url || '',
-    parentId: initialData.parentId,
-    isRoot: initialData.isRoot || false,
-    seotag: initialData.seotag || '',
-    html: initialData.html || '',
-    roleIds: initialData.roleIds || [],
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const snippets = useQuery(gql`
-    query {
-      getAllWidgets {
-        id
-        name
-        title
-        createdAt
-      }
-      getAllForms {
-        id
-        name
-        title
-        createdAt
-      }
-  }`);
-
-  return (
-    <form onSubmit={handleSubmit} className="p-4">
-      <div className="grid grid-cols-2 gap-4">
-        {/* <TextField
-          label="Название"
-          fullWidth
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          required
-        /> */}
-        <TextField
-          label="Заголовок"
-          fullWidth
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-        />
-      </div>
-
-      <TextField
-        label="URL"
-        fullWidth
-        value={formData.url}
-        onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-        // required
-        sx={{ mt: 2 }}
-      />
-
-      <TextField
-        label="SEO Тег"
-        fullWidth
-        value={formData.seotag}
-        onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
-        sx={{ mt: 2 }}
-      />
-      <S3Autocomplete
-        value={formData.roleIds!}
-        onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
-        options={roles.map((role) => ({
-          id: role.id!,
-          name: role.name!,
-        })) || []}
-        multiple
-        label="Роли"
-      />
-      <h4>Контент</h4>
-      <DefaultEditor
-        value={formData.html}
-        onChange={(e) => setFormData({ ...formData, html: e.target.value })}
-        style={{ height: 400 }}
-      />
-
-      <h4>Добавить виджеты</h4>
-      <div>
-        {snippets.data?.getAllWidgets?.map((widget: any) => (
-          <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
-            {widget.title}
-          </MenuItem>
-        ))}
-      </div>
-      <h4>Добавить формы</h4>
-      <div>
-        {snippets.data?.getAllForms?.map((form: any) => (
-          <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
-            {form.title}
-          </MenuItem>
-        ))}
-      </div>
-
-      <div className="flex justify-end gap-2 mt-5">
-        <Button variant="outlined" onClick={onCancel}>
-          Отмена
-        </Button>
-        <Button variant="contained" type="submit">
-          {initialData.id ? 'Обновить' : 'Создать'}
-        </Button>
-      </div>
-    </form>
-  );
-}
 
 function PageCard({
   page,
@@ -318,11 +158,11 @@ function PagesPage() {
     },
   });
 
-  const handleCreate = (formData: PageFormData) => {
+  const handleCreate = (formData: Partial<ISiteItem>) => {
     createPage({ variables: { input: formData } });
   };
 
-  const handleUpdate = (formData: PageFormData) => {
+  const handleUpdate = (formData: Partial<ISiteItem>) => {
     if (!selectedPage) return;
     updatePage({
       variables: {
@@ -346,6 +186,9 @@ function PagesPage() {
     );
   }
 
+  const items: ISiteItem[] = data?.getAllSiteItems || [];
+  const tree = makeTree(items);
+
   return (
     <div className="rounded p-4 shadow-lg bg-white">
       <div className="flex items-center gap-4">
@@ -360,22 +203,31 @@ function PagesPage() {
           Добавить страницу
         </Button>
       </div>
+      <div className="flex flex-col md:flex-row gap-4 mt-4">
+        <div className="flex-grow grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
+          {data?.getAllSiteItems?.map((page: ISiteItem) => (
+            <PageCard
+              key={page.id}
+              page={page}
+              onEdit={(_page) => {
+                setSelectedPage({
+                  ..._page,
+                  roleIds: _page.roles!.map((role) => role.id),
+                });
+                setIsFormOpen(true);
+              }}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-        {data?.getAllSiteItems?.map((page: ISiteItem) => (
-          <PageCard
-            key={page.id}
-            page={page}
-            onEdit={(_page) => {
-              setSelectedPage({
-                ..._page,
-                roleIds: _page.roles!.map((role) => role.id),
-              });
-              setIsFormOpen(true);
-            }}
-            onDelete={handleDelete}
-          />
-        ))}
+        <div className="md:w-64 shrink-0">
+          <List className="sticky top-4">
+            {tree.map((page) => (
+              <TreeItem key={page.id} item={page} />
+            ))}
+          </List>
+        </div>
       </div>
 
       <Dialog
@@ -391,7 +243,7 @@ function PagesPage() {
           {selectedPage ? 'Редактировать страницу' : 'Создать новую страницу'}
         </DialogTitle>
         <DialogContent>
-          <PageForm
+          <PageEditForm
             initialData={selectedPage || {}}
             onSubmit={selectedPage ? handleUpdate : handleCreate}
             onCancel={() => {
