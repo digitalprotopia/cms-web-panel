@@ -9,12 +9,12 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
-import {
-  Edit, AccessTime, Delete,
-} from '@mui/icons-material';
+import { Edit, AccessTime, Delete } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { ISite, SiteFormData } from '@/components/entities/ISite';
 import SiteEditDialog from '@/components/dialogs/SiteEditDialog';
+import { styled } from '@mui/material/styles';
+import { useRouter } from 'next/router';
 
 const GET_SITES = gql`
   query getAllSites {
@@ -66,6 +66,13 @@ const DELETE_SITE = gql`
   }
 `;
 
+const ClickableTitle = styled(Typography)({
+  cursor: 'pointer',
+  '&:hover': {
+    textDecoration: 'underline',
+  },
+});
+
 function SiteCard({
   site,
   onEdit,
@@ -75,10 +82,20 @@ function SiteCard({
   onEdit: (site: ISite) => void;
   onDelete: (id: string) => void;
 }) {
+  const router = useRouter();
+
+  const handleTitleClick = () => {
+    router.push(`/admin/sites/${site.id}`);
+  };
+
   return (
     <Card>
       <CardHeader
-        title={site.title}
+        title={(
+          <ClickableTitle variant="h6" onClick={handleTitleClick}>
+            {site.title}
+          </ClickableTitle>
+        )}
         action={(
           <div>
             <IconButton onClick={() => onEdit(site)} size="small">
@@ -137,7 +154,6 @@ function SitesPage() {
   });
 
   const [deleteSite] = useMutation(DELETE_SITE, {
-
     onCompleted: () => {
       refetch();
     },
