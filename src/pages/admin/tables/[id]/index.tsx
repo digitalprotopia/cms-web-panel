@@ -205,6 +205,9 @@ function CellEdit({
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
       return (cell.getValue() as any)?.id;
     }
+    if (field.type === FieldType.USER) {
+      return (cell.getValue() as any)?.id;
+    }
     return cell.getValue();
   });
   const editRow = useEditRow(meta.dbName);
@@ -526,7 +529,7 @@ function TablePage() {
             );
           }
           let cellValue: any = cell.getValue();
-          if (field.type === FieldType.DATE) {
+          if (field.type === FieldType.DATE_TIME) {
             cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
           }
           if (field.type === FieldType.TEXT) {
@@ -545,6 +548,9 @@ function TablePage() {
             cellValue = cellValue?.map((item: any) => item?._cms_title || 'Не существует').join(', ');
           }
           if (field.type === FieldType.USER_CREATOR) {
+            cellValue = cellValue?.name;
+          }
+          if (field.type === FieldType.USER) {
             cellValue = cellValue?.name;
           }
           if (field.type === FieldType.FILE) {

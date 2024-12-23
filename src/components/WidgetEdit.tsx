@@ -182,7 +182,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
 
   const row = widgetTable.data?.[0] || {};
   widgetTable.meta?.fields.forEach((field: IField) => {
-    if (field.type === FieldType.DATE) {
+    if (field.type === FieldType.DATE_TIME) {
       row[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
     }
     if (field.type === FieldType.BOOLEAN) {

@@ -73,7 +73,7 @@ export function ParseRow(
   }
   const resultRow = { ...row };
   fields.forEach((field) => {
-    if (field.type === FieldType.DATE) {
+    if (field.type === FieldType.DATE_TIME) {
       resultRow[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
     }
     if (field.type === FieldType.BOOLEAN) {

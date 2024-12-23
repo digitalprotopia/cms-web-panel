@@ -6,15 +6,43 @@ import {
   TextField,
 } from '@mui/material';
 import dayjs from 'dayjs';
+import { gql, useQuery } from '@apollo/client';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
+import { IUser } from './entities/IUser';
 
 interface FormFieldProps {
   title: string;
   field: TableField;
   value: any;
   onChange: (value: any) => void;
+}
+
+function FormFieldUser(props: FormFieldProps) {
+  const users = useQuery(gql`
+    query {
+      getUsers {
+        id
+        name
+      }
+    }
+  `);
+  if (!users.data) {
+    return null;
+  }
+
+  return (
+    <S3Autocomplete
+      label={props.title}
+      value={props.value || ''}
+      options={users.data.getUsers.map((user: IUser) => ({
+        id: user.id,
+        name: user.name,
+      }))}
+      onChange={(value) => props.onChange(value)}
+    />
+  );
 }
 
 function FormFieldOneToManyOne(props: FormFieldProps) {
@@ -100,7 +128,10 @@ export default function FormField(props: FormFieldProps) {
       />
     );
   }
-  if (props.field.type === FieldType.STRING) {
+  if (props.field.type === FieldType.STRING
+      || props.field.type === FieldType.EMAIL
+      || props.field.type === FieldType.PHONE
+      || props.field.type === FieldType.URL) {
     return (
       <TextField
         label={props.title}
@@ -147,12 +178,43 @@ export default function FormField(props: FormFieldProps) {
       />
     );
   }
-  if (props.field.type === FieldType.DATE) {
+  if (props.field.type === FieldType.DECIMAL
+    || props.field.type === FieldType.CURRENCY) {
+    return (
+      <TextField
+        label={props.title}
+        value={props.value || 0}
+        type="number"
+        onChange={(e) => props.onChange(parseFloat(e.target.value))}
+      />
+    );
+  }
+  if (props.field.type === FieldType.DATE_TIME) {
     return (
       <TextField
         label={props.title}
         value={dayjs(props.value || new Date()).format('YYYY-MM-DDTHH:mm')}
         type="datetime-local"
+        onChange={(e) => props.onChange(new Date(e.target.value))}
+      />
+    );
+  }
+  if (props.field.type === FieldType.DATE) {
+    return (
+      <TextField
+        label={props.title}
+        value={dayjs(props.value || new Date()).format('YYYY-MM-DD')}
+        type="date"
+        onChange={(e) => props.onChange(new Date(e.target.value))}
+      />
+    );
+  }
+  if (props.field.type === FieldType.TIME) {
+    return (
+      <TextField
+        label={props.title}
+        value={dayjs(props.value || new Date()).format('HH:mm')}
+        type="time"
         onChange={(e) => props.onChange(new Date(e.target.value))}
       />
     );
@@ -184,6 +246,16 @@ export default function FormField(props: FormFieldProps) {
             });
           }
         }}
+      />
+    );
+  }
+  if (props.field.type === FieldType.USER) {
+    return (
+      <FormFieldUser
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
       />
     );
   }
