@@ -7,10 +7,15 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { gql, useQuery } from '@apollo/client';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import {
+  DatePicker, DateTimePicker, LocalizationProvider, TimePicker,
+} from '@mui/x-date-pickers';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
 import { IUser } from './entities/IUser';
+import 'dayjs/locale/ru';
 
 interface FormFieldProps {
   title: string;
@@ -190,33 +195,40 @@ export default function FormField(props: FormFieldProps) {
     );
   }
   if (props.field.type === FieldType.DATE_TIME) {
+    console.log(props.value);
     return (
-      <TextField
-        label={props.title}
-        value={dayjs(props.value || new Date()).format('YYYY-MM-DDTHH:mm')}
-        type="datetime-local"
-        onChange={(e) => props.onChange(new Date(e.target.value))}
-      />
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
+        <DateTimePicker
+          timezone="system"
+          sx={{ width: '200px' }}
+          label={props.title}
+          value={props.value ? dayjs(props.value) : null}
+          onChange={(value) => props.onChange(value)}
+        />
+      </LocalizationProvider>
     );
   }
   if (props.field.type === FieldType.DATE) {
     return (
-      <TextField
-        label={props.title}
-        value={dayjs(props.value || new Date()).format('YYYY-MM-DD')}
-        type="date"
-        onChange={(e) => props.onChange(new Date(e.target.value))}
-      />
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
+        <DatePicker
+          label={props.title}
+          value={props.value ? dayjs(props.value) : null}
+          onChange={(value) => props.onChange(value?.format('YYYY-MM-DD'))}
+        />
+      </LocalizationProvider>
     );
   }
   if (props.field.type === FieldType.TIME) {
+    console.log(props.value);
     return (
-      <TextField
-        label={props.title}
-        value={dayjs(props.value || new Date()).format('HH:mm')}
-        type="time"
-        onChange={(e) => props.onChange(new Date(e.target.value))}
-      />
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
+        <TimePicker
+          label={props.title}
+          value={props.value ? dayjs(props.value, 'HH:mm:ss') : null}
+          onChange={(value) => props.onChange(value?.format('HH:mm:ss'))}
+        />
+      </LocalizationProvider>
     );
   }
   if (props.field.type === FieldType.BOOLEAN) {

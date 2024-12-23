@@ -99,6 +99,11 @@ const menuItems: ISidebarItem[] = [
     label: 'Боты',
     href: '/admin/bots',
   },
+  {
+    icon: SmartToyOutlined,
+    label: 'Обслуживание',
+    href: '/admin/maintenance',
+  },
 ];
 
 function SidebarItem({
