@@ -19,6 +19,7 @@ import 'dayjs/locale/ru';
 
 interface FormFieldProps {
   title: string;
+  // eslint-disable-next-line react/no-unused-prop-types
   field: TableField;
   value: any;
   onChange: (value: any) => void;
