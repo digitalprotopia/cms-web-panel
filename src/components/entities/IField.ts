@@ -13,6 +13,14 @@ export enum FieldType {
   MANY_TO_MANY_SECOND = 'manyToManySecond',
   USER_CREATOR = 'userCreator',
   FILE = 'file',
+  DECIMAL = 'decimal',
+  DATE_TIME = 'dateTime',
+  TIME = 'time',
+  PHONE = 'phone',
+  EMAIL = 'email',
+  URL = 'url',
+  CURRENCY = 'currency',
+  USER = 'user',
 }
 
 export type IFieldOneToManyOptions = {

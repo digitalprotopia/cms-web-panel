@@ -1,4 +1,5 @@
 import { IEntity } from './IEntity';
+import { FieldType } from './IField';
 
 export enum FormFieldType {
   STRING = 'string',
@@ -12,7 +13,7 @@ export interface IFormField extends IEntity {
   name: string;
   tableFieldId: string;
   formId: string;
-  formFieldType: FormFieldType;
+  formFieldType: FieldType;
   // templateId: string;
   // TODO: Доступы
 }

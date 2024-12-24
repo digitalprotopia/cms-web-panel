@@ -205,6 +205,9 @@ function CellEdit({
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
       return (cell.getValue() as any)?.id;
     }
+    if (field.type === FieldType.USER) {
+      return (cell.getValue() as any)?.id;
+    }
     return cell.getValue();
   });
   const editRow = useEditRow(meta.dbName);
@@ -526,8 +529,10 @@ function TablePage() {
             );
           }
           let cellValue: any = cell.getValue();
-          if (field.type === FieldType.DATE) {
-            cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
+          if (field.type === FieldType.DATE_TIME) {
+            if (cellValue) {
+              cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
+            }
           }
           if (field.type === FieldType.TEXT) {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
@@ -545,7 +550,10 @@ function TablePage() {
             cellValue = cellValue?.map((item: any) => item?._cms_title || 'Не существует').join(', ');
           }
           if (field.type === FieldType.USER_CREATOR) {
-            cellValue = cellValue?.name;
+            cellValue = cellValue?.name || <i>Нет значения</i>;
+          }
+          if (field.type === FieldType.USER) {
+            cellValue = cellValue?.name || <i>Нет значения</i>;
           }
           if (field.type === FieldType.FILE) {
             cellValue = cellValue ? (
@@ -571,9 +579,12 @@ function TablePage() {
               </div>
             ) : null;
           }
+          if (cellValue === '' || cellValue === null) {
+            cellValue = <i>Нет значения</i>;
+          }
           return (
             <div onClick={() => setEditMode(true)}>
-              {cellValue || <i>Нет текста</i>}
+              {cellValue}
             </div>
           );
         },
