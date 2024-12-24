@@ -530,7 +530,9 @@ function TablePage() {
           }
           let cellValue: any = cell.getValue();
           if (field.type === FieldType.DATE_TIME) {
-            cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
+            if (cellValue) {
+              cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
+            }
           }
           if (field.type === FieldType.TEXT) {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;

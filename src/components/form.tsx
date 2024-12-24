@@ -195,11 +195,9 @@ export default function FormField(props: FormFieldProps) {
     );
   }
   if (props.field.type === FieldType.DATE_TIME) {
-    console.log(props.value);
     return (
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
         <DateTimePicker
-          timezone="system"
           sx={{ width: '200px' }}
           label={props.title}
           value={props.value ? dayjs(props.value) : null}
