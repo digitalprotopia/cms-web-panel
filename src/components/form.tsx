@@ -1,8 +1,14 @@
 import {
+  Button,
   Checkbox,
+  Dialog,
+  DialogContent,
   FormControl,
   FormControlLabel,
+  FormLabel,
   MenuItem,
+  Radio,
+  RadioGroup,
   TextField,
 } from '@mui/material';
 import dayjs from 'dayjs';
@@ -11,18 +17,171 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
   DatePicker, DateTimePicker, LocalizationProvider, TimePicker,
 } from '@mui/x-date-pickers';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import { MaterialReactTable } from 'material-react-table';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
 import { IUser } from './entities/IUser';
 import 'dayjs/locale/ru';
+import { IFile } from './entities/IFile';
+
+export const toBase64 = (file: File) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result?.toString().replace(/^data:(.*,)?/, ''));
+  reader.onerror = reject;
+});
 
 interface FormFieldProps {
   title: string;
-  // eslint-disable-next-line react/no-unused-prop-types
   field: TableField;
   value: any;
   onChange: (value: any) => void;
+}
+
+function FormFieldFile(props: FormFieldProps) {
+  const router = useRouter();
+  const { loading, data } = useQuery(gql`
+    query {
+      getFiles {
+        id
+        name
+        size
+        extension
+        createdAt
+        updatedAt
+      }
+    }
+  `);
+
+  const [selectedFile, setSelectedFile] = useState<Partial<IFile>>({});
+
+  const [openFileDialog, setOpenFileDialog] = useState(false);
+
+  const [formType, setFormType] = useState<'id' | 'file'>('file');
+
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        size: 400,
+      },
+      {
+        accessorKey: 'name',
+        header: 'Имя',
+        size: 150,
+      },
+      {
+        accessorKey: 'size',
+        header: 'Размер',
+        size: 150,
+      },
+      {
+        accessorKey: 'actions',
+        header: 'Действия',
+        size: 300,
+        Cell: ({ row }: { row: any }) => (
+          <div className="flex gap-2">
+            {['jpg', 'jpeg', 'png', 'gif'].includes(row.original.extension) ? (
+              <img
+                src={`${window.config.server}/download/?id=${row.original.id}`}
+                alt={row.original.name}
+                className="w-20 h-20"
+              />
+            ) : null}
+            <Button
+              onClick={() => {
+                setSelectedFile(row.original);
+                props.onChange({
+                  id: row.original.id,
+                });
+                setOpenFileDialog(false);
+              }}
+            >
+              Выбрать
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [router],
+  );
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <>
+      <FormControl>
+        <RadioGroup
+          value={formType}
+          onChange={(e) => setFormType(e.target.value as any)}
+        >
+          <FormControlLabel
+            value="id"
+            control={<Radio />}
+            label={(
+              <>
+                {selectedFile?.name}
+                <Button
+                  onClick={() => setOpenFileDialog(true)}
+                  disabled={formType === 'file'}
+                >
+                  Выбрать из галереи
+                </Button>
+              </>
+)}
+          />
+          <FormControlLabel
+            value="file"
+            control={<Radio />}
+            label={(
+              <input
+                type="file"
+                onChange={async (e) => {
+                  if (e.target.files?.[0]) {
+                    props.onChange({
+                      file: await toBase64(e.target.files[0]),
+                      name: e.target.files[0].name,
+                    });
+                  }
+                }}
+                disabled={formType === 'id'}
+              />
+)}
+          />
+        </RadioGroup>
+      </FormControl>
+      <Dialog open={openFileDialog} onClose={() => setOpenFileDialog(false)}>
+        <DialogContent>
+          <MaterialReactTable
+            columns={columns}
+            data={data.getFiles}
+            enableColumnResizing
+            enableFullScreenToggle={false}
+            enableDensityToggle
+            enableColumnFilters
+            enablePagination
+            enableSorting
+            muiTableProps={{
+              sx: {
+                tableLayout: 'fixed',
+              },
+            }}
+            renderTopToolbarCustomActions={() => (
+              <div className="px-4 py-2">
+                <h1 className="text-xl font-bold">Файлы</h1>
+              </div>
+            )}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
 
 function FormFieldUser(props: FormFieldProps) {
@@ -71,13 +230,6 @@ function FormFieldOneToManyOne(props: FormFieldProps) {
     </TextField>
   );
 }
-
-const toBase64 = (file: File) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => resolve(reader.result?.toString().replace(/^data:(.*,)?/, ''));
-  reader.onerror = reject;
-});
 
 function FormFieldMultipleId(props: FormFieldProps) {
   let tableId = '';
@@ -247,16 +399,11 @@ export default function FormField(props: FormFieldProps) {
   }
   if (props.field.type === FieldType.FILE) {
     return (
-      <input
-        type="file"
-        onChange={async (e) => {
-          if (e.target.files?.[0]) {
-            props.onChange({
-              file: await toBase64(e.target.files[0]),
-              name: e.target.files[0].name,
-            });
-          }
-        }}
+      <FormFieldFile
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
       />
     );
   }
