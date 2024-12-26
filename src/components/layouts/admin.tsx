@@ -22,6 +22,8 @@ import {
   DashboardOutlined,
   SmartToyOutlined,
   SvgIconComponent,
+  BuildOutlined,
+  FileCopyOutlined,
 } from '@mui/icons-material';
 import LanguageIcon from '@mui/icons-material/Language';
 import WidgetsOutlinedIcon from '@mui/icons-material/Widgets';
@@ -95,12 +97,17 @@ const menuItems: ISidebarItem[] = [
     href: '/admin/templateGroups',
   },
   {
+    icon: FileCopyOutlined,
+    label: 'Файлы',
+    href: '/admin/files',
+  },
+  {
     icon: SmartToyOutlined,
     label: 'Боты',
     href: '/admin/bots',
   },
   {
-    icon: SmartToyOutlined,
+    icon: BuildOutlined,
     label: 'Обслуживание',
     href: '/admin/maintenance',
   },
