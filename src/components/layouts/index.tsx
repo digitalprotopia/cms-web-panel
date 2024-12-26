@@ -31,6 +31,10 @@ function Header() {
 
   const user = useContext(UserContext);
 
+  if (!user.user) {
+    return null;
+  }
+
   return (
     <>
       <div className="rounded-none z-10 shadow-lg">
