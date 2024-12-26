@@ -479,6 +479,11 @@ function TablePage() {
                 }}
               >
                 <div className="p-4">
+                  <div className="text-sm">
+                    Службеное название:
+                    {' '}
+                    {field.dbName}
+                  </div>
                   <h4>Редактировать поле</h4>
                   <TextField
                     label="Название"
