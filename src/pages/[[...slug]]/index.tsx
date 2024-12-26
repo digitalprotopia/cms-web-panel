@@ -1,6 +1,3 @@
-import {
-  Typography,
-} from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
 
 import ParsePage from '@/components/ParsePage';
@@ -61,6 +58,11 @@ function DynamicPage() {
   const slug = useRouter().query.slug as string[];
 
   useEffect(() => {
+    user.setCurrentPage!(currentPage
+      ? pages.find((p) => p.id === currentPage) as (ISiteItem | null) : null);
+  }, [currentPage]);
+
+  useEffect(() => {
     let prevPage = '';
     if (!slug || !slug.length) {
       setCurrentPage(pages.find((p) => p.url === '' && !p.parentId)?.id || null);
@@ -101,7 +103,6 @@ function DynamicPage() {
 
   html = html.replace('{content}', `  <div className="page">
     <div>
-      {title}
       ${siteItem?.getSiteItem?.html || ''}
     </div>
   </div>`);
@@ -121,10 +122,7 @@ function DynamicPage() {
         </Link>
       );
     }) || [],
-    title:
-  <Typography variant="h4">
-    {siteItem?.getSiteItem?.title || ''}
-  </Typography>,
+    title: siteItem?.getSiteItem?.title || '',
   };
 
   return (

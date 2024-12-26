@@ -17,14 +17,14 @@ import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
 import { NextRouter } from 'next/router';
-import { IUser } from './entities/IUser';
 import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 import { useTableByDbName } from './use-table';
+import { UserContextData } from './UserContext';
 
 export function parseReact(
   code: string,
-  user: IUser | null,
+  context: UserContextData,
   pages: ISiteItem[],
   router: NextRouter,
 ):
@@ -43,7 +43,7 @@ export function parseReact(
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode));
     return func({
-      React, Mui, Link, user, pages, useTableByDbName, router,
+      React, Mui, Link, context, user: context.user, pages, useTableByDbName, router,
     });
   } catch {
     return { Component: () => <div>Ошибка разбора</div> };

@@ -59,7 +59,7 @@ export function ParseRow(
   const router = useRouter();
 
   if (language === TemplateLanguage.REACT) {
-    const { Component } = parseReact(html, user.user, user.pages || [], router);
+    const { Component } = parseReact(html, user, user.pages || [], router);
     return (
       <ErrorBoundary
         fallback="Ошибка разбора"
@@ -248,7 +248,7 @@ export function RenderWidget(
     );
   }
   if (language === TemplateLanguage.REACT) {
-    const template = parseReact(html, user.user, user.pages || [], router);
+    const template = parseReact(html, user, user.pages || [], router);
     if (template.ListComponent) {
       return (
         <ErrorBoundary
@@ -302,7 +302,7 @@ function PageWidget(props: {
   if (data && data.getWidgetByName.template.language === TemplateLanguage.REACT) {
     const widget = parseReact(
       data.getWidgetByName.template.html,
-      user.user,
+      user,
       user.pages || [],
       router,
     );
@@ -312,7 +312,7 @@ function PageWidget(props: {
 
   const table = useTable(data?.getWidgetByName.tableView.tableId, { search });
 
-  if (!data || !table.data) {
+  if (!data || (data?.getWidgetByName.tableView.tableId && !table.data)) {
     return null;
   }
 

@@ -326,7 +326,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         onClick={handleSave}
         disabled={
           !form.name || !form.title! || !form.templateHtml
-          || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
+          || (form.widgetViewType === WidgetViewType.STATIC && !form.tableId)
         }
       >
         {isEditMode ? 'Сохранить' : 'Создать'}
