@@ -56,14 +56,8 @@ const theme = createTheme({
   },
 } as any);
 
-interface User {
-  id: string;
-  name: string;
-  role: string;
-}
-
 interface MeQueryResponse {
-  me: User;
+  me: IUser;
 }
 
 const GET_ME = gql`

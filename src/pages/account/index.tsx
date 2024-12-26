@@ -1,10 +1,10 @@
 import { gql, useMutation } from '@apollo/client';
 import Head from 'next/head';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Button, TextField } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { AccountCircle } from '@mui/icons-material';
-import { IUser } from '@/components/entities/IUser';
+import UserContext from '@/components/UserContext';
 
 const EDIT_ME = gql`
     mutation($user: UserInput!) {
@@ -30,14 +30,13 @@ const SEND_EMAIL_CONFIRMATION_LINK = gql`
   }
 `;
 
-export default function Account(props: {
-  user: Partial<IUser>;
-  refetchUser: () => void;
-}) {
+export default function Account() {
   const { enqueueSnackbar } = useSnackbar();
 
+  const user = useContext(UserContext);
+
   const [form, setForm] = useState({
-    name: props.user.name,
+    name: user.user?.name,
     email: '',
     password: '',
     passwordConfirm: '',
@@ -81,11 +80,11 @@ export default function Account(props: {
           <div className="flex my-6">
             <AccountCircle className="size-10 mr-4 text-black/60" />
             <div className="flex flex-col">
-              <span className="text-base">{props.user.name}</span>
+              <span className="text-base">{user.user?.name}</span>
               <span
                 className="text-black/60 text-sm"
               >
-                {props.user.role === 'admin' ? 'Администратор' : 'Пользователь'}
+                {user.user?.role.name === 'admin' ? 'Администратор' : 'Пользователь'}
               </span>
             </div>
           </div>
@@ -103,13 +102,13 @@ export default function Account(props: {
               className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
               variant="contained"
               disabled={
-                      form.name === props.user.name
+                      form.name === user.user?.name
                   }
               onClick={async () => {
                 await editMe({
                   variables: { user: { name: form.name } },
                 });
-                await props.refetchUser();
+                await user.refetch();
                 enqueueSnackbar('Данные успешно изменены', { variant: 'success' });
               }}
             >
@@ -139,7 +138,7 @@ export default function Account(props: {
               className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
               variant="contained"
               disabled={
-                      form.email === props.user.email
+                      form.email === user.user?.email
                   }
               onClick={async () => {
                 await sendEmailConfirmationLink({ variables: { email: form.email } });
@@ -202,7 +201,7 @@ export default function Account(props: {
                   enqueueSnackbar(e.message, { variant: 'error' });
                   return;
                 }
-                await props.refetchUser();
+                await user.refetch();
                 enqueueSnackbar('Пароль успешно изменен', { variant: 'success' });
               }}
             >
