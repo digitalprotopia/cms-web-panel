@@ -45,8 +45,15 @@ export function parseReact(
     return func({
       React, Mui, Link, context, user: context.user, pages, useTableByDbName, router,
     });
-  } catch {
-    return { Component: () => <div>Ошибка разбора</div> };
+  } catch (e) {
+    return {
+      Component: () => (
+        <div>
+          Ошибка разбора:
+          <pre>{e?.toString()}</pre>
+        </div>
+      ),
+    };
   }
 }
 
@@ -122,7 +129,7 @@ function DynamicParse(props: {
 
     return (
       <ReplaceContext.Provider value={props.replace}>
-        <ErrorBoundary fallback="Ошибка разбора" resetKeys={[props.html]}>
+        <ErrorBoundary onError={(e) => console.error(e)} fallback="Ошибка разбора" resetKeys={[props.html]}>
           {result}
         </ErrorBoundary>
       </ReplaceContext.Provider>

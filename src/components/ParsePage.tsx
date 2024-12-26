@@ -62,8 +62,12 @@ export function ParseRow(
     const { Component } = parseReact(html, user, user.pages || [], router);
     return (
       <ErrorBoundary
-        fallback="Ошибка разбора"
-  // fallbackRender={() => 'error'}
+        fallbackRender={({ error }) => (
+          <div>
+            Ошибка разбора:
+            <pre>{error?.message}</pre>
+          </div>
+        )}
         resetKeys={[html]}
         onError={(err) => { console.log(err); }}
       >
@@ -252,8 +256,12 @@ export function RenderWidget(
     if (template.ListComponent) {
       return (
         <ErrorBoundary
-          fallback="Ошибка разбора"
-// fallbackRender={() => 'error'}
+          fallbackRender={({ error }) => (
+            <div>
+              Ошибка разбора:
+              <pre>{error?.message}</pre>
+            </div>
+          )}
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
