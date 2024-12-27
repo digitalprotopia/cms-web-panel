@@ -78,12 +78,12 @@ function DynamicParse(props: {
             }
             return <Replace key={index} />;
           }
-          if (
-            domNode.type === 'tag'
-            && !domNode.name.match(/^[a-z]+$/)
-          ) {
-            return null;
-          }
+          // if (
+          //   domNode.type === 'tag'
+          //   && !domNode.name.match(/^[a-z0-9A-Z-]+$/)
+          // ) {
+          //   return null;
+          // }
           if (domNode.type === 'tag' && domNode.attribs && Object.keys(domNode.attribs).length) {
             let Tag: any = domNode.name;
             Object.keys(domNode.attribs).forEach((attr) => {

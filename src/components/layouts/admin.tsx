@@ -260,7 +260,7 @@ export default function AdminLayout({
             </div>
           </div>
           <div className="bg-cms-gray-light flex-1 flex gap-4 p-4">
-            {user.user ? (
+            {user.user?.role.id ? (
               <>
                 <nav className="max-w-72 h-fit mx-auto flex-1 bg-white rounded p-4 shadow-lg">
                   <MenuNavigation items={menuItems} />
