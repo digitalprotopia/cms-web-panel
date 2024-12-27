@@ -570,7 +570,7 @@ function TablePage() {
                     e.stopPropagation();
                   }}
                 >
-                  {['jpg', 'jpeg', 'png', 'gif'].includes(cellValue?.extension) ? (
+                  {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(cellValue?.extension) ? (
                     <img
                       src={`${window.config.server}/download/?id=${cellValue?.id}`}
                       alt={cellValue?.name}

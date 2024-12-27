@@ -64,7 +64,7 @@ function FilesPage() {
         size: 300,
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
-            {['jpg', 'jpeg', 'png', 'gif'].includes(row.original.extension) ? (
+            {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(row.original.extension) ? (
               <img
                 src={`${window.config.server}/download/?id=${row.original.id}`}
                 alt={row.original.name}
