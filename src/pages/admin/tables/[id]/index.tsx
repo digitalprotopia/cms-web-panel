@@ -22,7 +22,9 @@ import {
 import {
   Add, ArrowDropDown, Close, Delete, Download, Save,
 } from '@mui/icons-material';
-import { gql, useApolloClient, useQuery } from '@apollo/client';
+import {
+  gql, useApolloClient, useMutation, useQuery,
+} from '@apollo/client';
 
 import TableEditor from '@/components/table-editor';
 
@@ -428,6 +430,12 @@ function TablePage() {
     // },
   });
 
+  const [sortFields] = useMutation(gql`
+    mutation($tableId: ID! $positions: [PositionItem]!) {
+      sortFields(tableId: $tableId positions: $positions)
+    }
+  `);
+
   const handleRefetch = useCallback(async () => {
     try {
       await refetch();
@@ -436,10 +444,13 @@ function TablePage() {
     }
   }, [refetch]);
 
+  const fields = meta?.fields ? [...meta.fields] : [];
+  fields.sort((a, b) => a.position - b.position);
+
   const columns = useMemo(() => {
     if (!meta?.fields) return [];
 
-    const result = meta.fields.map(
+    const result = fields.map(
       (field: IField): MRT_ColumnDef<MRT_RowData> => ({
         accessorKey: field.dbName,
         header: field.name,
@@ -596,6 +607,7 @@ function TablePage() {
       }),
     );
     result.push({
+      enableColumnOrdering: false,
       header: '+',
       Header: () => {
         const dropDownRef = useRef();
@@ -712,6 +724,21 @@ function TablePage() {
         columns={columns}
         data={data}
         enableRowActions
+        enableColumnOrdering
+        onColumnOrderChange={async (order) => {
+          const positions = (order as string[]).filter((item) => item !== '+' && item !== 'mrt-row-actions')
+            .map((item, index) => ({
+              id: meta.fields.find((field: IField) => field.dbName === item)?.id,
+              position: index,
+            }));
+          await sortFields({
+            variables: {
+              tableId: id,
+              positions,
+            },
+          });
+          handleRefetch();
+        }}
         renderRowActions={({ row }) => (
           <IconButton
             color="error"
@@ -721,7 +748,10 @@ function TablePage() {
             <Delete />
           </IconButton>
         )}
-        state={{ isLoading: loading }}
+        state={{
+          isLoading: loading,
+          columnOrder: ['mrt-row-actions', ...fields.map((field) => field.dbName), '+'],
+        }}
         muiTablePaperProps={{
           elevation: 0,
           sx: {
