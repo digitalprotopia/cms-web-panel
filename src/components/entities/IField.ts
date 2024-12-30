@@ -41,4 +41,5 @@ export interface IField extends IEntity {
   tableId: string;
   type: FieldType;
   options?: IFieldOptions;
+  position: number;
 }

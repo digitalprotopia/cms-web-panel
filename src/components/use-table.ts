@@ -3,7 +3,7 @@ import {
   FieldType, IField, IFieldOptions,
 } from './entities/IField';
 
-interface TableField {
+type TableField = IField & {
   id: string;
   name: string;
   type: string;
@@ -24,7 +24,7 @@ interface TableField {
     id: string;
     dbName: string;
   };
-}
+};
 
 interface TableMeta {
   id: string;
@@ -52,6 +52,7 @@ export const GET_TABLE_BY_ID = gql`
         name
         type
         dbName
+        position
         oneToManyLinkOneTable {
           id
           dbName
@@ -85,6 +86,7 @@ export const GET_TABLE_BY_DB_NAME = gql`
         name
         type
         dbName
+        position
         oneToManyLinkOneTable {
           id
           dbName

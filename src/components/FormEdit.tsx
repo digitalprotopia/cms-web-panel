@@ -18,6 +18,7 @@ import useTable, { TableField } from './use-table';
 import FormField from './form';
 import { ITable } from './entities/ITable';
 import { IField } from './entities/IField';
+import DndComponent from './guiElements/DndComponent';
 
 function FormEdit({ id, onClose, tables }: {
   id?: string;
@@ -64,6 +65,7 @@ function FormEdit({ id, onClose, tables }: {
             title: field.name,
             formFieldType: 'string',
             tableFieldId: field.id,
+            position: field.position,
           })),
         }));
       }
@@ -86,6 +88,7 @@ function FormEdit({ id, onClose, tables }: {
           fields {
             name
             title
+            position
             formFieldType
             tableFieldId
           }
@@ -106,6 +109,7 @@ function FormEdit({ id, onClose, tables }: {
             title: field.title,
             formFieldType: field.formFieldType,
             tableFieldId: field.tableFieldId,
+            position: field.position,
           })),
         });
       },
@@ -133,6 +137,10 @@ function FormEdit({ id, onClose, tables }: {
       console.error('Error saving form:', error);
     }
   };
+
+  const fields = [...form.fields];
+
+  fields.sort((a, b) => a.position - b.position);
 
   return (
     <div className="flex flex-col gap-4 py-4">
@@ -176,43 +184,58 @@ function FormEdit({ id, onClose, tables }: {
           </Typography>
 
           <div className="grid grid-cols-1 gap-4">
-            {form.fields.map((field, index) => {
+            <DndComponent
+              items={
+            fields.map((field, index) => {
               const tableField = table.meta?.fields.find(
                 (f: IField) => f.id === field.tableFieldId,
               );
-              return (
-                <Card key={index} className="p-4">
-                  <div className="flex items-center gap-4">
-                    <TextField
-                      label={`Название поля (${tableField?.name})`}
-                      value={field.title}
-                      onChange={(e) => {
-                        const newFields = [...form.fields];
-                        newFields[index] = { ...field, title: e.target.value };
-                        setForm((prev) => ({ ...prev, fields: newFields }));
-                      }}
-                      fullWidth
-                    />
-                    <FormField
-                      title={field.title}
-                      field={tableField as TableField}
-                      value=""
-                      onChange={() => {}}
-                    />
-                    <IconButton
-                      onClick={() => {
-                        const newFields = [...form.fields];
-                        newFields.splice(index, 1);
-                        setForm((prev) => ({ ...prev, fields: newFields }));
-                      }}
-                      color="error"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </div>
-                </Card>
-              );
-            })}
+              return {
+                id: index.toString(),
+                component: (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-center gap-4">
+                      <TextField
+                        label={`Название поля (${tableField?.name})`}
+                        value={field.title}
+                        onChange={(e) => {
+                          const newFields = [...fields];
+                          newFields[index] = { ...field, title: e.target.value };
+                          setForm((prev) => ({ ...prev, fields: newFields }));
+                        }}
+                        fullWidth
+                      />
+                      <FormField
+                        title={field.title}
+                        field={tableField as TableField}
+                        value=""
+                        onChange={() => {}}
+                      />
+                      <IconButton
+                        onClick={() => {
+                          const newFields = [...fields];
+                          newFields.splice(index, 1);
+                          setForm((prev) => ({ ...prev, fields: newFields }));
+                        }}
+                        color="error"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </div>
+                  </Card>
+                ),
+              };
+            })
+}
+              onDrop={(newIndexes) => {
+                const newFields: any[] = [];
+                newIndexes.forEach((index) => {
+                  newFields.push(fields[parseInt(index, 10)]);
+                  newFields[newFields.length - 1].position = newFields.length - 1;
+                });
+                setForm((prev) => ({ ...prev, fields: newFields }));
+              }}
+            />
           </div>
 
           {table.meta?.fields && (
@@ -233,6 +256,7 @@ function FormEdit({ id, onClose, tables }: {
                           title: field.name,
                           formFieldType: field.type,
                           tableFieldId: field.id,
+                          position: form.fields.length,
                         });
                         setForm((prev) => ({ ...prev, fields: newFields }));
                       }
