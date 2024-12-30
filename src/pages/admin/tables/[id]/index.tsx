@@ -448,7 +448,7 @@ function TablePage() {
   fields.sort((a, b) => a.position - b.position);
 
   const columns = useMemo(() => {
-    if (!meta?.fields) return [];
+    // if (!meta?.fields) return [];
 
     const result = fields.map(
       (field: IField): MRT_ColumnDef<MRT_RowData> => ({

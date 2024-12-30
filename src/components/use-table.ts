@@ -196,7 +196,7 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
   } = useQuery(
     generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
     {
-      skip: !tableMeta?.dbName || !tableMeta?.fields?.length,
+      skip: !tableMeta?.dbName || !tableMeta?.fields,
       onCompleted: (data) => {
         options?.onDataLoaded?.(data[`getAll${tableMeta!.dbName}`]);
       },
