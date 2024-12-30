@@ -22,6 +22,7 @@ import {
   DashboardOutlined,
   SmartToyOutlined,
   SvgIconComponent,
+  NavigationSharp,
 } from '@mui/icons-material';
 import LanguageIcon from '@mui/icons-material/Language';
 import WidgetsOutlinedIcon from '@mui/icons-material/Widgets';
@@ -88,6 +89,11 @@ const menuItems: ISidebarItem[] = [
     icon: CopyAllOutlined,
     label: 'Страницы',
     href: '/admin/pages',
+  },
+  {
+    icon: NavigationSharp,
+    label: 'Навигация',
+    href: '/admin/navigation',
   },
   {
     icon: DashboardOutlined,

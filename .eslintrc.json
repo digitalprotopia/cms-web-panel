@@ -1,18 +1,17 @@
-module.exports = {
-  ignorePatterns: ["node_modules/*", ".next/*", "out/*", "mock-server/*"],
-  extends: [
+{
+  "ignorePatterns": ["node_modules/*", ".next/*", "out/*", "mock-server/*"],
+  "extends": [
     "eslint:recommended",
     "next/core-web-vitals",
     "next/typescript",
     "airbnb",
-    "airbnb-typescript",
-    // "prettier",
+    "airbnb-typescript"
   ],
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
-    project: "./tsconfig.json",
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
   },
-  rules: {
+  "rules": {
     "react/jsx-filename-extension": "off",
     "linebreak-style": "off",
     "no-console": "off",
@@ -36,5 +35,14 @@ module.exports = {
     "react/require-default-props": "off",
     "react/prop-types": "off",
     "react/no-unstable-nested-components": "off",
-  },
-};
+    "object-curly-newline": [
+      "error",
+      {
+        "ObjectExpression": { "consistent": true },
+        "ObjectPattern": { "consistent": true },
+        "ImportDeclaration": { "consistent": true },
+        "ExportDeclaration": { "consistent": true }
+      }
+    ]
+  }
+}
