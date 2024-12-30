@@ -360,6 +360,7 @@ function FormWidget(props: {
                         id
                         title
                         name
+                        position
                         tableFieldId
                         formFieldType
                         createdAt
@@ -419,6 +420,10 @@ function FormWidget(props: {
   if (!data?.getFormByName) {
     return null;
   }
+
+  const fields = [...data.getFormByName.fields];
+  fields.sort((a: any, b: any) => a.position - b.position);
+
   return (
     <div>
       <Typography variant="h4">{data.getFormByName.title}</Typography>
@@ -444,7 +449,7 @@ function FormWidget(props: {
         <Button onClick={async () => {
           const _form:any = {};
           await addRow(form);
-          data.getFormByName.fields.forEach((field: any) => {
+          fields.forEach((field: any) => {
             if (field.field.type === 'string') {
               _form[field.field.dbName] = '';
             }

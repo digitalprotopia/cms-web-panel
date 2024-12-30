@@ -22,7 +22,7 @@ const getItemStyle = (
 ): CSSProperties => ({
   // some basic styles to make the items look a bit nicer
   userSelect: 'none',
-  padding: grid * 2,
+  //   padding: grid * 2,
   margin: `0 0 ${grid}px 0`,
 
   // change background colour if dragging
@@ -33,17 +33,16 @@ const getItemStyle = (
 });
 
 const getListStyle = (isDraggingOver: boolean) => ({
-  background: isDraggingOver ? 'lightblue' : 'lightgrey',
+  background: isDraggingOver ? 'lightblue' : undefined,
   padding: grid,
-  width: 250,
 });
 
 interface DndComponentProps {
   items: {
-    id: any,
+    id: string,
     component: React.JSX.Element,
   }[]
-  onDrop: (items: any[]) => void;
+  onDrop: (items: string[]) => void;
 }
 
 export default function DndComponent(props: DndComponentProps) {
