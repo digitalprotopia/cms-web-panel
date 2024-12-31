@@ -1,32 +1,48 @@
 import { useState } from 'react';
 import { Box, Button, Card, CardContent, Typography, Skeleton } from '@mui/material';
+import { gql, useMutation } from '@apollo/client';
 import { ISiteMenu } from '../entities/ISiteMenu';
 import SiteMenuItems from './SiteMenuItems';
 import CreateMenuItemDialog from './CreateMenuItemDialog';
+import EditMenuDialog from './EditMenuDialog';
+
+const DELETE_SITE_MENU = gql`
+  mutation DeleteSiteMenu($id: ID!) {
+    deleteSiteMenu(id: $id)
+  }
+`;
 
 interface SiteMenuListProps {
   siteId: string;
   menus: ISiteMenu[];
   loading?: boolean;
-  isDefaultMenu?: boolean;
+  refetchMenus: () => Promise<any>;
 }
 
-export default function SiteMenuList({
-  siteId,
-  menus,
-  loading,
-  isDefaultMenu = false,
-}: SiteMenuListProps) {
-  const [selectedMenu, setSelectedMenu] = useState<ISiteMenu | null>(null);
+export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: SiteMenuListProps) {
+  const [menuToEdit, setMenuToEdit] = useState<ISiteMenu | null>(null);
+  const [menuToAddItem, setMenuToAddItem] = useState<ISiteMenu | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const [deleteMenu] = useMutation(DELETE_SITE_MENU, {
+    onCompleted: () => refetchMenus(),
+  });
+
+  const handleMenuUpdate = () => {
+    refetchMenus();
+  };
+
+  const handleDelete = async (menuId: string) => {
+    if (window.confirm('Вы уверены, что хотите удалить это меню?')) {
+      await deleteMenu({
+        variables: { id: menuId },
+      });
+    }
+  };
 
   if (loading) {
     return (
       <Box>
-        {!isDefaultMenu && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Skeleton width={150} height={40} />
-          </Box>
-        )}
         {[1, 2].map((i) => (
           <Card key={i} sx={{ mb: 2 }}>
             <CardContent>
@@ -47,28 +63,61 @@ export default function SiteMenuList({
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6">{menu.title}</Typography>
-              <Button variant="outlined" size="small" onClick={() => setSelectedMenu(menu)}>
-                Добавить пункт меню
-              </Button>
+              <Box>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    setMenuToEdit(menu);
+                    setEditDialogOpen(true);
+                  }}
+                  sx={{ mr: 1 }}
+                >
+                  Редактировать
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={() => handleDelete(menu.id)}
+                  sx={{ mr: 1 }}
+                >
+                  Удалить
+                </Button>
+                <Button variant="outlined" size="small" onClick={() => setMenuToAddItem(menu)}>
+                  Добавить пункт меню
+                </Button>
+              </Box>
             </Box>
-            <SiteMenuItems items={menu.items} />
+            <SiteMenuItems items={menu.items} menuId={menu.id} onUpdate={handleMenuUpdate} />
           </CardContent>
         </Card>
       ))}
 
       {menus.length === 0 && (
         <Typography color="text.secondary" sx={{ mt: 2 }}>
-          {isDefaultMenu ? 'Основное меню не настроено' : 'Дополнительные меню не найдены'}
+          Меню не найдены. Создайте новое меню для этого сайта.
         </Typography>
       )}
 
+      <EditMenuDialog
+        open={editDialogOpen}
+        onClose={() => {
+          setEditDialogOpen(false);
+          setMenuToEdit(null);
+        }}
+        menu={menuToEdit}
+        onSuccess={handleMenuUpdate}
+      />
+
       <CreateMenuItemDialog
-        open={!!selectedMenu}
-        onClose={() => setSelectedMenu(null)}
-        menuId={selectedMenu?.id || ''}
+        open={!!menuToAddItem}
+        onClose={() => setMenuToAddItem(null)}
+        menuId={menuToAddItem?.id || ''}
         siteId={siteId}
         onSuccess={() => {
-          window.location.reload();
+          handleMenuUpdate();
+          setMenuToAddItem(null);
         }}
       />
     </Box>

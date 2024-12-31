@@ -1,16 +1,10 @@
 import { ISite } from '@/components/entities/ISite';
 import { ISiteMenu } from '@/components/entities/ISiteMenu';
 import SiteMenuList from '@/components/navigation/SiteMenuList';
-import { useQuery, gql } from '@apollo/client';
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from '@mui/material';
+import { useQuery, gql, useMutation } from '@apollo/client';
+import { Box, Button, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import { useState } from 'react';
+import CreateMenuDialog from '@/components/navigation/CreateMenuDialog';
 
 const GET_ALL_SITES = gql`
   query GetAllSites {
@@ -49,24 +43,55 @@ const GET_SITE_MENUS = gql`
   }
 `;
 
+const CREATE_SITE_MENU = gql`
+  mutation CreateSiteMenu($input: SiteMenuInput!) {
+    createSiteMenu(input: $input) {
+      id
+      name
+      title
+      siteId
+      createdAt
+    }
+  }
+`;
+
 export default function NavigationPage() {
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
 
   const { data: sitesData, loading: sitesLoading } = useQuery<{
     getAllSites: ISite[];
   }>(GET_ALL_SITES);
 
-  const { data: menusData, loading: menusLoading } = useQuery<{
+  const {
+    data: menusData,
+    loading: menusLoading,
+    refetch: refetchMenus,
+  } = useQuery<{
     getSiteMenus: ISiteMenu[];
   }>(GET_SITE_MENUS, {
     variables: { siteId: selectedSiteId },
     skip: !selectedSiteId,
   });
 
-  const defaultMenu = menusData?.getSiteMenus.find(
-    (menu) => menu.name === 'default',
-  );
-  const otherMenus = menusData?.getSiteMenus.filter((menu) => menu.name !== 'default') || [];
+  const [createMenu] = useMutation(CREATE_SITE_MENU, {
+    onCompleted: () => {
+      refetchMenus();
+      setIsCreateMenuOpen(false);
+    },
+  });
+
+  const handleCreateMenu = async (name: string, title: string) => {
+    await createMenu({
+      variables: {
+        input: {
+          name,
+          title,
+          siteId: selectedSiteId,
+        },
+      },
+    });
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -91,32 +116,27 @@ export default function NavigationPage() {
       </FormControl>
 
       {selectedSiteId && (
-        <>
-          {defaultMenu && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                Основное меню
-              </Typography>
-              <SiteMenuList
-                siteId={selectedSiteId}
-                menus={[defaultMenu]}
-                loading={menusLoading}
-                isDefaultMenu
-              />
-            </Box>
-          )}
-
-          <Box>
-            <Typography variant="h5" sx={{ mb: 2 }}>
-              Дополнительные меню
-            </Typography>
-            <SiteMenuList
-              siteId={selectedSiteId}
-              menus={otherMenus}
-              loading={menusLoading}
-            />
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+            <Typography variant="h5">Меню сайта</Typography>
+            <Button variant="contained" color="primary" onClick={() => setIsCreateMenuOpen(true)}>
+              Создать меню
+            </Button>
           </Box>
-        </>
+
+          <SiteMenuList
+            siteId={selectedSiteId}
+            menus={menusData?.getSiteMenus || []}
+            loading={menusLoading}
+            refetchMenus={refetchMenus}
+          />
+
+          <CreateMenuDialog
+            open={isCreateMenuOpen}
+            onClose={() => setIsCreateMenuOpen(false)}
+            onSubmit={handleCreateMenu}
+          />
+        </Box>
       )}
     </Box>
   );
