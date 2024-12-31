@@ -17,6 +17,7 @@ import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
 import { NextRouter } from 'next/router';
+import Head from 'next/head';
 import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 import { useTableByDbName } from './use-table';
@@ -43,7 +44,7 @@ export function parseReact(
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode));
     return func({
-      React, Mui, Link, context, user: context.user, pages, useTableByDbName, router,
+      React, Mui, Link, context, user: context.user, pages, useTableByDbName, router, Head,
     });
   } catch (e) {
     return {

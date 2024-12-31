@@ -1,7 +1,7 @@
 const reactTemplates: Record<string, { definition: string, type: string }> = {
   list: {
     definition: `
-        const { React, Mui, Link, user, pages, context, useTableByDbName, router } = data;
+        const { React, Mui, Link, user, pages, context, useTableByDbName, router, Head } = data;
       let filter = null;
       const result = { 
       }
@@ -23,6 +23,7 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         Link: data.Link,
         router: data.router,
         context: data.context,
+        Head: data.Head,
       };
       
       {resultCode}
@@ -64,6 +65,7 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         }[];
         router: any;
         context: any;
+        Head: any;
       }
         `,
   },

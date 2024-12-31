@@ -7,6 +7,7 @@ import { useContext, useEffect, useState } from 'react';
 import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 import { ITemplate } from '@/components/entities/ITemplate';
+import Head from 'next/head';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -132,6 +133,7 @@ function DynamicPage() {
           text-decoration: underline;
         }`}
       </style>
+      <Head><title>{siteItem?.getSiteItem?.title || ''}</title></Head>
       <ParsePage html={html} args={args} />
     </>
   );
