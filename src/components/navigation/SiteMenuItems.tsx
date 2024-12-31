@@ -4,30 +4,38 @@ import {
   ListItem,
   ListItemText,
   IconButton,
-  Menu,
-  MenuItem,
+  Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
+  Box,
+  Typography,
 } from '@mui/material';
-import { MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { gql, useMutation } from '@apollo/client';
 import { ISiteMenuItem } from '../entities/ISiteMenuItem';
+
+const CREATE_MENU_ITEM = gql`
+  mutation CreateSiteMenuItem($input: SiteMenuItemInput!) {
+    createSiteMenuItem(input: $input) {
+      id
+      title
+      url
+      order
+      createdAt
+    }
+  }
+`;
 
 const UPDATE_MENU_ITEM = gql`
   mutation UpdateSiteMenuItem($id: ID!, $input: SiteMenuItemInput!) {
     updateSiteMenuItem(id: $id, input: $input) {
       id
       title
-      name
       url
       order
-      menuId
-      parentId
-      updatedAt
     }
   }
 `;
@@ -44,110 +52,144 @@ interface SiteMenuItemsProps {
   onUpdate: () => void;
 }
 
+interface MenuItemFormData {
+  title: string;
+  url: string;
+}
+
 export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItemsProps) {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedItem, setSelectedItem] = useState<ISiteMenuItem | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editUrl, setEditUrl] = useState('');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ISiteMenuItem | null>(null);
+  const [formData, setFormData] = useState<MenuItemFormData>({ title: '', url: '' });
 
-  const [updateMenuItem] = useMutation(UPDATE_MENU_ITEM);
-  const [deleteMenuItem] = useMutation(DELETE_MENU_ITEM);
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, item: ISiteMenuItem) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedItem(item);
+  const handleCloseDialog = () => {
+    setIsCreateDialogOpen(false);
+    setEditingItem(null);
+    setFormData({ title: '', url: '' });
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedItem(null);
+  const [createMenuItem] = useMutation(CREATE_MENU_ITEM, {
+    onCompleted: () => {
+      onUpdate();
+      handleCloseDialog();
+    },
+  });
+
+  const [updateMenuItem] = useMutation(UPDATE_MENU_ITEM, {
+    onCompleted: () => {
+      onUpdate();
+      handleCloseDialog();
+    },
+  });
+
+  const [deleteMenuItem] = useMutation(DELETE_MENU_ITEM, {
+    onCompleted: onUpdate,
+  });
+
+  const handleEditClick = (item: ISiteMenuItem) => {
+    setEditingItem(item);
+    setFormData({ title: item.title, url: item.url });
   };
 
-  const handleEditClick = () => {
-    if (selectedItem) {
-      setEditTitle(selectedItem.title);
-      setEditUrl(selectedItem.url);
-      setEditDialogOpen(true);
-    }
-    handleMenuClose();
-  };
-
-  const handleEditSave = async () => {
-    if (selectedItem) {
+  const handleSubmit = async () => {
+    if (editingItem) {
       await updateMenuItem({
         variables: {
-          id: selectedItem.id,
+          id: editingItem.id,
           input: {
-            title: editTitle,
-            url: editUrl,
+            ...formData,
             menuId,
-            order: selectedItem.order,
+            order: editingItem.order,
           },
         },
       });
-      setEditDialogOpen(false);
-      onUpdate();
-    }
-  };
-
-  const handleDelete = async () => {
-    if (selectedItem) {
-      await deleteMenuItem({
+    } else {
+      await createMenuItem({
         variables: {
-          id: selectedItem.id,
+          input: {
+            ...formData,
+            menuId,
+            order: items.length,
+          },
         },
       });
-      handleMenuClose();
-      onUpdate();
     }
   };
 
-  const sortedItems = [...items].sort((a, b) => a.order - b.order);
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Вы уверены, что хотите удалить этот пункт меню?')) {
+      await deleteMenuItem({
+        variables: { id },
+      });
+    }
+  };
 
   return (
     <>
+      <Box sx={{ mb: 2 }}>
+        <Button variant="outlined" size="small" onClick={() => setIsCreateDialogOpen(true)}>
+          Добавить пункт меню
+        </Button>
+      </Box>
+
       <List>
-        {sortedItems.map((item) => (
+        {items.map((item) => (
           <ListItem
             key={item.id}
-            secondaryAction={(
-              <IconButton onClick={(e) => handleMenuOpen(e, item)}>
-                <MoreVertIcon />
-              </IconButton>
-            )}
+            secondaryAction={
+              <Box>
+                <IconButton onClick={() => handleEditClick(item)} size="small">
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={() => handleDelete(item.id)} size="small">
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            }
           >
             <ListItemText primary={item.title} secondary={item.url} />
           </ListItem>
         ))}
+        {items.length === 0 && (
+          <Typography color="text.secondary" variant="body2">
+            Нет пунктов меню
+          </Typography>
+        )}
       </List>
 
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-        <MenuItem onClick={handleEditClick}>Редактировать</MenuItem>
-        <MenuItem onClick={handleDelete}>Удалить</MenuItem>
-      </Menu>
-
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
-        <DialogTitle>Редактировать пункт меню</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
+      <Dialog
+        open={isCreateDialogOpen || !!editingItem}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingItem ? 'Редактировать пункт меню' : 'Добавить пункт меню'}
+        </DialogTitle>
+        <DialogContent>
           <TextField
             label="Название"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             fullWidth
-            sx={{ mb: 2 }}
+            margin="normal"
           />
           <TextField
             label="URL"
-            value={editUrl}
-            onChange={(e) => setEditUrl(e.target.value)}
+            value={formData.url}
+            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
             fullWidth
+            margin="normal"
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Отмена</Button>
-          <Button onClick={handleEditSave} variant="contained">
-            Сохранить
+          <Button onClick={handleCloseDialog}>Отмена</Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={!formData.title || !formData.url}
+          >
+            {editingItem ? 'Сохранить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

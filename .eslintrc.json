@@ -5,8 +5,10 @@
     "next/core-web-vitals",
     "next/typescript",
     "airbnb",
-    "airbnb-typescript"
+    "airbnb-typescript",
+    "prettier"
   ],
+  "plugins": ["prettier"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "./tsconfig.json"
@@ -43,6 +45,15 @@
         "ImportDeclaration": { "consistent": true },
         "ExportDeclaration": { "consistent": true }
       }
-    ]
+    ],
+    "react/jsx-wrap-multilines": ["error", {
+      "declaration": "parens",
+      "assignment": "parens",
+      "return": "parens",
+      "arrow": "parens",
+      "condition": "parens",
+      "logical": "parens",
+      "prop": "parens"
+    }]
   }
 }
