@@ -20,7 +20,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Download, Save,
+  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, Save
 } from '@mui/icons-material';
 import {
   gql, useApolloClient, useMutation, useQuery,
@@ -554,7 +554,22 @@ function TablePage() {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
           }
           if (field.type === FieldType.GEO) {
-            cellValue = `${cellValue?.lat}, ${cellValue?.lng}`;
+            return (
+              <div className="flex items-center">
+                {cellValue?.lat && cellValue?.lng ? (
+                  <span>
+                    {`${cellValue.lat}, ${cellValue.lng}`}
+                  </span>
+                ) : (
+                  <i>
+                    Нет значения
+                  </i>
+                )}
+                <IconButton onClick={() => setEditMode(true)} color="primary">
+                  <MapOutlined />
+                </IconButton>
+              </div>
+            );
           }
           if (field.type === FieldType.ONE_TO_MANY_ONE) {
             cellValue = cellValue?._cms_title;
