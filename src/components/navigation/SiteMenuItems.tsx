@@ -49,6 +49,7 @@ const CREATE_MENU_ITEM = gql`
       id
       title
       url
+      parentId
       order
       createdAt
     }
@@ -61,6 +62,7 @@ const UPDATE_MENU_ITEM = gql`
       id
       title
       url
+      parentId
       order
     }
   }
@@ -85,14 +87,53 @@ interface MenuItemFormData {
 
 type ItemType = 'custom' | 'page';
 
+interface MenuItemNode extends ISiteMenuItem {
+  children: MenuItemNode[];
+}
+
+function buildMenuTree(items: ISiteMenuItem[]): MenuItemNode[] {
+  const itemMap = new Map<string, MenuItemNode>();
+  const roots: MenuItemNode[] = [];
+
+  // First, create all nodes
+  items.forEach((item) => {
+    itemMap.set(item.id, { ...item, children: [] });
+  });
+
+  // Then, build the tree
+  items.forEach((item) => {
+    const node = itemMap.get(item.id)!;
+    if (item.parentId) {
+      const parent = itemMap.get(item.parentId);
+      if (parent) {
+        parent.children.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+
+  // Sort each level by order
+  const sortNodes = (nodes: MenuItemNode[]) => {
+    nodes.sort((a, b) => a.order - b.order);
+    nodes.forEach((node) => sortNodes(node.children));
+  };
+  sortNodes(roots);
+
+  return roots;
+}
+
 export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItemsProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ISiteMenuItem | null>(null);
   const [formData, setFormData] = useState<MenuItemFormData>({ title: '', url: '' });
   const [itemType, setItemType] = useState<ItemType>('custom');
   const [selectedPageId, setSelectedPageId] = useState<string>('');
+  const [parentId, setParentId] = useState<string | undefined>(undefined);
 
   const { data: pagesData } = useQuery<{ getAllSiteItems: ISiteItem[] }>(GET_SITE_PAGES);
+
+  const menuTree = buildMenuTree(items);
 
   const handleCloseDialog = () => {
     setIsCreateDialogOpen(false);
@@ -134,6 +175,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             ...formData,
             menuId,
             order: editingItem.order,
+            parentId: editingItem.parentId,
           },
         },
       });
@@ -143,18 +185,31 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
           input: {
             ...formData,
             menuId,
-            order: items.length,
+            parentId,
+            order: items.filter((item) => item.parentId === parentId).length,
           },
         },
       });
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить этот пункт меню?')) {
-      await deleteMenuItem({
-        variables: { id },
-      });
+  const handleDelete = async (itemId: string) => {
+    if (window.confirm('Вы уверены, что хотите удалить этот пункт меню и все его подпункты?')) {
+      // Get all descendant items
+      const getDescendantIds = (id: string): string[] => {
+        const children = items.filter((item) => item.parentId === id);
+        return [id, ...children.flatMap((child) => getDescendantIds(child.id))];
+      };
+
+      const idsToDelete = getDescendantIds(itemId);
+
+      // Delete all items in sequence
+      for (const id of idsToDelete) {
+        await deleteMenuItem({
+          variables: { id },
+        });
+      }
+      onUpdate();
     }
   };
 
@@ -177,87 +232,35 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     }
   };
 
-  const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
+  const renderMenuItems = (nodes: MenuItemNode[], level: number = 0) => {
+    // Generate a unique droppableId for each level
+    const droppableId = level === 0 ? 'droppable-root' : `droppable-${level}-${nodes[0]?.parentId}`;
 
-    const reorderedItems = Array.from(items);
-    const [movedItem] = reorderedItems.splice(result.source.index, 1);
-    reorderedItems.splice(result.destination.index, 0, movedItem);
-
-    // Calculate which items need order updates
-    const startIdx = Math.min(result.source.index, result.destination.index);
-    const endIdx = Math.max(result.source.index, result.destination.index);
-
-    try {
-      // First sort the items to get current order
-      const sortedItems = [...items].sort((a, b) => a.order - b.order);
-
-      // Then create reordered array with new positions
-      const reorderedSortedItems = Array.from(sortedItems);
-      const [movedSortedItem] = reorderedSortedItems.splice(result.source.index, 1);
-      reorderedSortedItems.splice(result.destination.index, 0, movedSortedItem);
-
-      // Update orders for affected items
-      const updatePromises = reorderedSortedItems
-        .map((item, index) => {
-          // Only update items that have changed position
-          if (index >= startIdx && index <= endIdx) {
-            return updateMenuItem({
-              variables: {
-                id: item.id,
-                input: {
-                  title: item.title,
-                  url: item.url,
-                  menuId,
-                  order: index,
+    return (
+      <Droppable droppableId={droppableId}>
+        {(provided) => (
+          <List
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            sx={{
+              'pl': level * 3,
+              '& .MuiListItem-root': {
+                'bgcolor': 'background.paper',
+                '&:hover': {
+                  bgcolor: 'action.hover',
                 },
               },
-            });
-          }
-          return null;
-        })
-        .filter(Boolean);
-
-      // Wait for all updates to complete and then refresh the data
-      await Promise.all(updatePromises);
-
-      // Refresh the entire menu data
-      onUpdate();
-    } catch (error) {
-      console.error('Failed to update menu items order:', error);
-      // Optionally show an error message to the user
-    }
-  };
-
-  // Sort items by order
-  const sortedItems = [...items].sort((a, b) => a.order - b.order);
-
-  return (
-    <>
-      <Box sx={{ mb: 2 }}>
-        <Button variant="outlined" size="small" onClick={() => setIsCreateDialogOpen(true)}>
-          Добавить пункт меню
-        </Button>
-      </Box>
-
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="menu-items">
-          {(provided) => (
-            <List
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              sx={{
-                '& .MuiListItem-root': {
-                  'bgcolor': 'background.paper',
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                  },
-                },
-              }}
-            >
-              {sortedItems.map((item, index) => (
-                <Draggable key={item.id} draggableId={item.id} index={index}>
-                  {(provided, snapshot) => (
+            }}
+          >
+            {nodes.map((item, index) => (
+              <Draggable
+                key={item.id}
+                draggableId={item.id}
+                index={index}
+                isDragDisabled={level === 0 && item.children.length > 0}
+              >
+                {(provided, snapshot) => (
+                  <>
                     <ListItem
                       ref={provided.innerRef}
                       {...provided.draggableProps}
@@ -272,6 +275,17 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                       }}
                       secondaryAction={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              setParentId(item.id);
+                              console.log(item.id);
+                              setIsCreateDialogOpen(true);
+                            }}
+                            sx={{ mr: 1 }}
+                          >
+                            Добавить
+                          </Button>
                           <IconButton onClick={() => handleEditClick(item)} size="small">
                             <EditIcon />
                           </IconButton>
@@ -296,18 +310,101 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                       </Box>
                       <ListItemText primary={item.title} secondary={item.url} sx={{ mr: 6 }} />
                     </ListItem>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-              {sortedItems.length === 0 && (
-                <Typography color="text.secondary" variant="body2">
-                  Нет пунктов меню
-                </Typography>
-              )}
-            </List>
-          )}
-        </Droppable>
+                    {item.children.length > 0 && renderMenuItems(item.children, level + 1)}
+                  </>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </List>
+        )}
+      </Droppable>
+    );
+  };
+
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    // Special handling for root level
+    const isRoot = result.source.droppableId === 'droppable-root';
+    const sourceParentId = isRoot
+      ? undefined
+      : result.source.droppableId.split('-').slice(2).join('-');
+    const destinationParentId = isRoot
+      ? undefined
+      : result.destination.droppableId.split('-').slice(2).join('-');
+
+    // Only allow reordering within the same parent
+    if (sourceParentId !== destinationParentId) {
+      return;
+    }
+
+    // Get items to reorder based on whether we're handling root or nested items
+    let itemsToReorder;
+    if (isRoot) {
+      // For root items, get all items without parentId
+      itemsToReorder = items.filter((item) => !item.parentId).sort((a, b) => a.order - b.order);
+    } else {
+      // For nested items, get all items with the same parentId
+      itemsToReorder = items
+        .filter((item) => item.parentId === sourceParentId)
+        .sort((a, b) => a.order - b.order);
+    }
+
+    // Create a new array with the current order
+    const reorderedItems = Array.from(itemsToReorder);
+
+    // Remove the item from its current position and insert it at the new position
+    const [movedItem] = reorderedItems.splice(result.source.index, 1);
+    reorderedItems.splice(result.destination.index, 0, movedItem);
+
+    try {
+      // Update orders for all items in the reordered array
+      const updatePromises = reorderedItems.map((item, index) =>
+        updateMenuItem({
+          variables: {
+            id: item.id,
+            input: {
+              title: item.title,
+              url: item.url,
+              menuId,
+              parentId: sourceParentId, // undefined for root items, parentId for nested
+              order: index,
+            },
+          },
+        }),
+      );
+
+      await Promise.all(updatePromises);
+      onUpdate();
+    } catch (error) {
+      console.error('Failed to update menu items order:', error);
+    }
+  };
+
+  return (
+    <>
+      <Box sx={{ mb: 2 }}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => {
+            setParentId(undefined);
+            setIsCreateDialogOpen(true);
+          }}
+        >
+          Добавить корневой пункт меню
+        </Button>
+      </Box>
+
+      <DragDropContext onDragEnd={handleDragEnd}>
+        {menuTree.length > 0 ? (
+          renderMenuItems(menuTree)
+        ) : (
+          <Typography color="text.secondary" variant="body2">
+            Нет пунктов меню
+          </Typography>
+        )}
       </DragDropContext>
 
       <Dialog

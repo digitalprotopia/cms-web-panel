@@ -36,6 +36,8 @@ const GET_SITE_MENUS = gql`
         title
         url
         order
+        parentId
+        createdAt
       }
       createdAt
       updatedAt

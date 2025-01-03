@@ -73,6 +73,8 @@ const GET_MENU_ITEMS = gql`
         title
         url
         order
+        parentId
+        createdAt
       }
     }
   }
