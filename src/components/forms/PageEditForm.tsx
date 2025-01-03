@@ -5,16 +5,11 @@ import {
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
 import DefaultEditor from 'react-simple-wysiwyg';
-import '@blocknote/core/fonts/inter.css';
-import { BlockNoteView } from '@blocknote/mantine';
-import '@blocknote/mantine/style.css';
-import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote } from '@blocknote/react';
-import { BlockNoteSchema, defaultBlockSpecs, filterSuggestionItems } from '@blocknote/core';
 import { ISiteItem, SiteItemType } from '../entities/ISiteItem';
 import { IForm } from '../entities/IForm';
 import { IWidget } from '../entities/IWidget';
 import { IRole } from '../entities/IRole';
-import { BlockEditorWidget, insertBlockEditorWidget } from '../BlockEditorWidget';
+import BlockEditor from '../BlockEditor';
 
 export const GET_PAGES = gql`
   query GetAllSiteItems {
@@ -88,21 +83,6 @@ export default function PageForm({
         }`);
 
   const { data: pagesData, loading } = useQuery(GET_PAGES);
-
-  const schema = BlockNoteSchema.create({
-    blockSpecs: {
-      // Adds all default blocks.
-      ...defaultBlockSpecs,
-      // Adds the Alert block.
-      widget: BlockEditorWidget,
-    },
-  });
-
-  const editor = useCreateBlockNote({
-    initialContent: initialData.blockContent,
-    schema,
-    // schema: withMultiColumn(BlockNoteSchema.create()),
-  });
 
   if (loading) {
     return (
@@ -183,29 +163,11 @@ export default function PageForm({
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
       />
-      <BlockNoteView
-        slashMenu={false}
-        editor={editor}
-        // editable={false}
-        onChange={() => {
-          setFormData({ ...formData, blockContent: editor.document });
-          console.log(editor.document);
-          // editor.blocksToFullHTML(editor.document).then((html) => {
-          //   setFormData({ ...formData, html });
-          // });
-        }}
-      >
-        <SuggestionMenuController
-          triggerCharacter="/"
-          getItems={async (query) => (
-          // Gets all default slash menu items and `insertAlert` item.
-            filterSuggestionItems(
-              [...getDefaultReactSlashMenuItems(editor), insertBlockEditorWidget(editor as any)],
-              query,
-            ))}
-        />
-      </BlockNoteView>
-
+      <h4>Блочный редактор</h4>
+      <BlockEditor
+        initialData={initialData.blockContent}
+        onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+      />
       <h4>Добавить виджеты</h4>
       <div>
         {snippets.data?.getAllWidgets?.map((widget: IWidget) => (

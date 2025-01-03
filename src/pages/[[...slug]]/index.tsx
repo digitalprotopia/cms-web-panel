@@ -8,6 +8,7 @@ import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 import { ITemplate } from '@/components/entities/ITemplate';
 import Head from 'next/head';
+import BlockEditor from '@/components/BlockEditor';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -15,6 +16,7 @@ const GET_SITEITEM = gql`
       url
       title
       html
+      blockContent
       id
     }
     getAllSites {
@@ -105,6 +107,7 @@ function DynamicPage() {
   html = html.replace('{content}', `  <div className="page">
     <div>
       ${siteItem?.getSiteItem?.html || ''}
+      {blockContent}
     </div>
   </div>`);
 
@@ -124,6 +127,11 @@ function DynamicPage() {
       );
     }) || [],
     title: siteItem?.getSiteItem?.title || '',
+    blockContent: <BlockEditor
+      initialData={siteItem?.getSiteItem.blockContent}
+      onChange={() => {}}
+      isEditable={false}
+    />,
   };
 
   return (

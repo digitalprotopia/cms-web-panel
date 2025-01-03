@@ -307,7 +307,7 @@ export function PageWidget(props: {
 
   let search: any;
   let filter: ReturnType<typeof parseReact>['filter'];
-  if (data && data.getWidgetByName.template.language === TemplateLanguage.REACT) {
+  if (data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
     const widget = parseReact(
       data.getWidgetByName.template.html,
       user,
@@ -318,9 +318,9 @@ export function PageWidget(props: {
     search = widget.search;
   }
 
-  const table = useTable(data?.getWidgetByName.tableView.tableId, { search });
+  const table = useTable(data?.getWidgetByName?.tableView.tableId, { search });
 
-  if (!data || (data?.getWidgetByName.tableView.tableId && !table.data)) {
+  if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
     return null;
   }
 
