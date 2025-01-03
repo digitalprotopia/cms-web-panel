@@ -17,7 +17,7 @@ import {
 import { BlockNoteView } from '@blocknote/mantine';
 import { DashboardOutlined, WidgetsOutlined } from '@mui/icons-material';
 import { IWidget } from './entities/IWidget';
-import { FormWidget, PageWidget } from './ParsePage';
+import { FormWidget, PageWidget } from './ParseWidgets';
 
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
@@ -163,6 +163,58 @@ export const BlockEditorForm = createReactBlockSpec(
   },
 );
 
+export function Posts() {
+  const posts = useQuery(gql`
+    query {
+      getPosts {
+        id
+        title
+        content
+        blockContent
+      }
+    }
+  `);
+
+  if (!posts.data) {
+    return null;
+  }
+
+  return (
+    <div>
+      {posts.data.getPosts.map((post: any) => (
+        <div key={post.id}>
+          <h2>{post.title}</h2>
+          <div dangerouslySetInnerHTML={{ __html: post.content }} />
+          { /* eslint-disable-next-line @typescript-eslint/no-use-before-define */ }
+          <BlockEditor
+            initialData={post.blockContent}
+            onChange={() => {}}
+            isEditable={false}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export const BlockEditorPosts = createReactBlockSpec(
+  {
+    type: 'posts',
+    propSchema: {
+
+    },
+    content: 'none',
+    isSelectable: false,
+  },
+  {
+    render: (props) => (
+      <div data-widget-type="posts">
+        {props.editor.isEditable ? 'Посты' : <Posts />}
+      </div>
+    ),
+  },
+);
+
 export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
   widgets.map((widget) => ({
     title: widget.title,
@@ -199,6 +251,24 @@ export const insertBlockEditorForms = (editor: BlockNoteEditor, widgets: IForm[]
     icon: <DashboardOutlined />,
   })));
 
+export const insertBlockEditorPosts = (editor: BlockNoteEditor) => (
+  {
+    title: 'Посты',
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: 'posts' as any,
+        props: {
+        } as any,
+      });
+    },
+    aliases: [
+      'posts',
+    ],
+    group: 'Посты',
+    icon: <DashboardOutlined />,
+  }
+);
+
 interface BlockEditorProps {
   initialData: any;
   onChange: (data: any) => void;
@@ -233,6 +303,7 @@ function BlockEditor({
       // Adds the Alert block.
       widget: BlockEditorWidget,
       form: BlockEditorForm,
+      posts: BlockEditorPosts,
     },
   });
 
@@ -290,6 +361,7 @@ function BlockEditor({
               ),
               ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
               ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
+              insertBlockEditorPosts(editor as any),
               ],
               query,
             ))}

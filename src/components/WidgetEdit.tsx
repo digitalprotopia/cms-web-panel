@@ -13,7 +13,7 @@ import dayjs from 'dayjs';
 import { Editor, useMonaco } from '@monaco-editor/react';
 import useTable, { TableField } from './use-table';
 import { FieldType, IField } from './entities/IField';
-import { RenderWidget } from './ParsePage';
+import { RenderWidget } from './ParseWidgets';
 import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
