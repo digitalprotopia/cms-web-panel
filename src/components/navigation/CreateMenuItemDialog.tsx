@@ -17,76 +17,13 @@ import {
   Divider,
 } from '@mui/material';
 import { useState } from 'react';
-import { gql, useMutation, useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { ISiteItem } from '../entities/ISiteItem';
 import { ISiteMenuItem } from '../entities/ISiteMenuItem';
-
-export const GET_SITE_PAGES = gql`
-  query GetAllSiteItems {
-    getRoles {
-      id
-      name
-    }
-    getAllSiteItems {
-      id
-      name
-      title
-      url
-      parentId
-      isRoot
-      seotag
-      html
-      roles {
-        id
-        name
-      }
-      type
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const CREATE_MENU_ITEM = gql`
-  mutation CreateSiteMenuItem($input: SiteMenuItemInput!) {
-    createSiteMenuItem(input: $input) {
-      id
-      title
-      name
-      url
-      order
-      menuId
-      parentId
-      createdAt
-    }
-  }
-`;
-
-const GET_MENU_ITEMS = gql`
-  query GetSiteMenus($siteId: ID!) {
-    getSiteMenus(siteId: $siteId) {
-      id
-      name
-      title
-      items {
-        id
-        title
-        url
-        order
-        parentId
-        createdAt
-      }
-    }
-  }
-`;
-
-interface CreateMenuItemDialogProps {
-  open: boolean;
-  onClose: () => void;
-  menuId: string;
-  siteId: string;
-  onSuccess: () => void;
-}
+import { CreateMenuItemDialogProps } from './types/types';
+import { GET_SITE_PAGES } from '@/graphql/SiteItem';
+import { GET_SITE_MENUS } from '@/graphql/SiteMenu';
+import { CREATE_MENU_ITEM } from '@/graphql/SiteMenuItem';
 
 export default function CreateMenuItemDialog({
   open,
@@ -102,7 +39,7 @@ export default function CreateMenuItemDialog({
   const { data: pagesData } = useQuery<{ getAllSiteItems: ISiteItem[] }>(GET_SITE_PAGES);
   const { data: menuData } = useQuery<{
     getSiteMenus: Array<{ id: string; items: ISiteMenuItem[] }>;
-  }>(GET_MENU_ITEMS, {
+  }>(GET_SITE_MENUS, {
     variables: { siteId },
   });
 
@@ -123,7 +60,7 @@ export default function CreateMenuItemDialog({
     },
     refetchQueries: [
       {
-        query: GET_MENU_ITEMS,
+        query: GET_SITE_MENUS,
         variables: { siteId },
       },
     ],
@@ -163,6 +100,7 @@ export default function CreateMenuItemDialog({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
               <FormControl fullWidth>
                 <InputLabel>Страница сайта</InputLabel>
+
                 <Select
                   value={selectedPageId}
                   label="Страница сайта"
@@ -171,6 +109,7 @@ export default function CreateMenuItemDialog({
                   <MenuItem value="">
                     <em>Произвольная ссылка</em>
                   </MenuItem>
+
                   {pagesData?.getAllSiteItems.map((page) => (
                     <MenuItem key={page.id} value={page.id}>
                       {page.title}
@@ -187,6 +126,7 @@ export default function CreateMenuItemDialog({
                     onChange={(e) => setTitle(e.target.value)}
                     fullWidth
                   />
+
                   <TextField
                     label="URL"
                     value={url}
@@ -203,13 +143,16 @@ export default function CreateMenuItemDialog({
             <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
               Существующие пункты меню:
             </Typography>
+
             <Divider />
+
             <List dense>
               {existingItems.map((item) => (
                 <ListItem key={item.id}>
                   <ListItemText primary={item.title} secondary={item.url} />
                 </ListItem>
               ))}
+
               {existingItems.length === 0 && (
                 <ListItem>
                   <ListItemText secondary="Пока нет добавленных пунктов меню" />
@@ -219,8 +162,10 @@ export default function CreateMenuItemDialog({
           </Box>
         </Box>
       </DialogContent>
+
       <DialogActions>
         <Button onClick={handleClose}>Отмена</Button>
+
         <Button
           onClick={handleSubmit}
           variant="contained"

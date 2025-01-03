@@ -1,61 +1,13 @@
 import { ISite } from '@/components/entities/ISite';
 import { ISiteMenu } from '@/components/entities/ISiteMenu';
 import SiteMenuList from '@/components/navigation/SiteMenuList';
-import { useQuery, gql, useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import { useState } from 'react';
 import CreateMenuDialog from '@/components/navigation/CreateMenuDialog';
-
-const GET_ALL_SITES = gql`
-  query GetAllSites {
-    getAllSites {
-      id
-      title
-      favicon
-      domain
-      templateGroupId
-      menus {
-        id
-        name
-        title
-      }
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const GET_SITE_MENUS = gql`
-  query GetSiteMenus($siteId: ID!) {
-    getSiteMenus(siteId: $siteId) {
-      id
-      name
-      title
-      items {
-        id
-        title
-        url
-        order
-        parentId
-        createdAt
-      }
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const CREATE_SITE_MENU = gql`
-  mutation CreateSiteMenu($input: SiteMenuInput!) {
-    createSiteMenu(input: $input) {
-      id
-      name
-      title
-      siteId
-      createdAt
-    }
-  }
-`;
+import { CREATE_SITE_MENU } from '@/graphql/SiteMenu';
+import { GET_ALL_SITES } from '@/graphql/Site';
+import { GET_SITE_MENUS } from '@/graphql/SiteMenu';
 
 export default function NavigationPage() {
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');

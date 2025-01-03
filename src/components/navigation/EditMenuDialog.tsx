@@ -7,46 +7,24 @@ import {
   TextField,
 } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { gql, useMutation } from '@apollo/client';
-import { ISiteMenu } from '../entities/ISiteMenu';
-
-const EDIT_SITE_MENU = gql`
-  mutation EditSiteMenu($id: ID!, $input: SiteMenuInput!) {
-    editSiteMenu(id: $id, input: $input) {
-      id
-      name
-      title
-      siteId
-      updatedAt
-    }
-  }
-`;
-
-const GET_SITE_MENUS = gql`
-  query GetSiteMenus($siteId: ID!) {
-    getSiteMenus(siteId: $siteId) {
-      id
-      name
-      title
-    }
-  }
-`;
-
-interface EditMenuDialogProps {
-  open: boolean;
-  onClose: () => void;
-  menu: ISiteMenu | null;
-  onSuccess: () => void;
-}
+import { useMutation } from '@apollo/client';
+import { EditMenuDialogProps } from './types/types';
+import { EDIT_SITE_MENU, GET_SITE_MENUS } from '@/graphql/SiteMenu';
 
 export default function EditMenuDialog({ open, onClose, menu, onSuccess }: EditMenuDialogProps) {
-  const [name, setName] = useState('');
-  const [title, setTitle] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    title: '',
+  });
 
   useEffect(() => {
     if (menu) {
-      setName(menu.name);
-      setTitle(menu.title);
+      const { name, title } = menu;
+
+      setFormData({
+        name,
+        title,
+      });
     }
   }, [menu]);
 
@@ -63,16 +41,25 @@ export default function EditMenuDialog({ open, onClose, menu, onSuccess }: EditM
     },
   });
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!menu) return;
 
+    const { id, siteId } = menu;
+
     await editMenu({
       variables: {
-        id: menu.id,
+        id,
         input: {
-          name,
-          title,
-          siteId: menu.siteId,
+          ...formData,
+          siteId,
         },
       },
     });
@@ -81,24 +68,30 @@ export default function EditMenuDialog({ open, onClose, menu, onSuccess }: EditM
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Редактировать меню</DialogTitle>
+
       <DialogContent>
         <TextField
+          name="name"
           label="Название"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={formData.name}
+          onChange={handleChange}
           fullWidth
           margin="normal"
         />
+
         <TextField
+          name="title"
           label="Заголовок"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={formData.title}
+          onChange={handleChange}
           fullWidth
           margin="normal"
         />
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
+
         <Button onClick={handleSubmit} variant="contained">
           Сохранить
         </Button>

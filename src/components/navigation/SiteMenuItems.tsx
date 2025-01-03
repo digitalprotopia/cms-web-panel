@@ -24,104 +24,14 @@ import {
   Edit as EditIcon,
   DragIndicator as DragIcon,
 } from '@mui/icons-material';
-import { gql, useMutation, useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { ISiteMenuItem } from '../entities/ISiteMenuItem';
 import { ISiteItem } from '../entities/ISiteItem';
-
-const GET_SITE_PAGES = gql`
-  query GetAllSiteItems {
-    getAllSiteItems {
-      id
-      name
-      title
-      url
-      parentId
-      isRoot
-      type
-    }
-  }
-`;
-
-const CREATE_MENU_ITEM = gql`
-  mutation CreateSiteMenuItem($input: SiteMenuItemInput!) {
-    createSiteMenuItem(input: $input) {
-      id
-      title
-      url
-      parentId
-      order
-      createdAt
-    }
-  }
-`;
-
-const UPDATE_MENU_ITEM = gql`
-  mutation UpdateSiteMenuItem($id: ID!, $input: SiteMenuItemInput!) {
-    updateSiteMenuItem(id: $id, input: $input) {
-      id
-      title
-      url
-      parentId
-      order
-    }
-  }
-`;
-
-const DELETE_MENU_ITEM = gql`
-  mutation DeleteSiteMenuItem($id: ID!) {
-    deleteSiteMenuItem(id: $id)
-  }
-`;
-
-interface SiteMenuItemsProps {
-  items: ISiteMenuItem[];
-  menuId: string;
-  onUpdate: () => void;
-}
-
-interface MenuItemFormData {
-  title: string;
-  url: string;
-}
-
-type ItemType = 'custom' | 'page';
-
-interface MenuItemNode extends ISiteMenuItem {
-  children: MenuItemNode[];
-}
-
-function buildMenuTree(items: ISiteMenuItem[]): MenuItemNode[] {
-  const itemMap = new Map<string, MenuItemNode>();
-  const roots: MenuItemNode[] = [];
-
-  // First, create all nodes
-  items.forEach((item) => {
-    itemMap.set(item.id, { ...item, children: [] });
-  });
-
-  // Then, build the tree
-  items.forEach((item) => {
-    const node = itemMap.get(item.id)!;
-    if (item.parentId) {
-      const parent = itemMap.get(item.parentId);
-      if (parent) {
-        parent.children.push(node);
-      }
-    } else {
-      roots.push(node);
-    }
-  });
-
-  // Sort each level by order
-  const sortNodes = (nodes: MenuItemNode[]) => {
-    nodes.sort((a, b) => a.order - b.order);
-    nodes.forEach((node) => sortNodes(node.children));
-  };
-  sortNodes(roots);
-
-  return roots;
-}
+import { CREATE_MENU_ITEM, UPDATE_MENU_ITEM, DELETE_MENU_ITEM } from '@/graphql/SiteMenuItem';
+import { SiteMenuItemsProps, MenuItemFormData, ItemType, MenuItemNode } from './types/types';
+import { buildMenuTree } from './utils/buildMenuTree';
+import { GET_SITE_PAGES } from '@/graphql/SiteItem';
 
 export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItemsProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

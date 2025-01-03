@@ -1,23 +1,12 @@
 import { useState } from 'react';
 import { Box, Button, Card, CardContent, Typography, Skeleton } from '@mui/material';
-import { gql, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { ISiteMenu } from '../entities/ISiteMenu';
 import SiteMenuItems from './SiteMenuItems';
 import CreateMenuItemDialog from './CreateMenuItemDialog';
 import EditMenuDialog from './EditMenuDialog';
-
-const DELETE_SITE_MENU = gql`
-  mutation DeleteSiteMenu($id: ID!) {
-    deleteSiteMenu(id: $id)
-  }
-`;
-
-interface SiteMenuListProps {
-  siteId: string;
-  menus: ISiteMenu[];
-  loading?: boolean;
-  refetchMenus: () => Promise<any>;
-}
+import { DELETE_SITE_MENU } from '@/graphql/SiteMenu';
+import { SiteMenuListProps } from './types/types';
 
 export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: SiteMenuListProps) {
   const [menuToEdit, setMenuToEdit] = useState<ISiteMenu | null>(null);
@@ -47,7 +36,9 @@ export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: S
           <Card key={i} sx={{ mb: 2 }}>
             <CardContent>
               <Skeleton width={150} height={24} sx={{ mb: 2 }} />
+
               <Skeleton width="100%" height={48} />
+
               <Skeleton width="100%" height={48} />
             </CardContent>
           </Card>
@@ -63,6 +54,7 @@ export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: S
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6">{menu.title}</Typography>
+
               <Box>
                 <Button
                   variant="outlined"
@@ -75,6 +67,7 @@ export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: S
                 >
                   Редактировать
                 </Button>
+
                 <Button
                   variant="outlined"
                   color="error"
@@ -84,11 +77,13 @@ export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: S
                 >
                   Удалить
                 </Button>
+
                 <Button variant="outlined" size="small" onClick={() => setMenuToAddItem(menu)}>
                   Добавить пункт меню
                 </Button>
               </Box>
             </Box>
+
             <SiteMenuItems items={menu.items} menuId={menu.id} onUpdate={handleMenuUpdate} />
           </CardContent>
         </Card>
