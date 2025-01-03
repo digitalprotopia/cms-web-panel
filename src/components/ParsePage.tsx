@@ -59,11 +59,15 @@ export function ParseRow(
   const router = useRouter();
 
   if (language === TemplateLanguage.REACT) {
-    const { Component } = parseReact(html, user.user, user.pages || [], router);
+    const { Component } = parseReact(html, user, user.pages || [], router);
     return (
       <ErrorBoundary
-        fallback="Ошибка разбора"
-  // fallbackRender={() => 'error'}
+        fallbackRender={({ error }) => (
+          <div>
+            Ошибка разбора:
+            <pre>{error?.message}</pre>
+          </div>
+        )}
         resetKeys={[html]}
         onError={(err) => { console.log(err); }}
       >
@@ -73,7 +77,7 @@ export function ParseRow(
   }
   const resultRow = { ...row };
   fields.forEach((field) => {
-    if (field.type === FieldType.DATE) {
+    if (field.type === FieldType.DATE_TIME) {
       resultRow[field.dbName] = dayjs(row[field.dbName]).format('YYYY-MM-DD HH:mm');
     }
     if (field.type === FieldType.BOOLEAN) {
@@ -248,12 +252,16 @@ export function RenderWidget(
     );
   }
   if (language === TemplateLanguage.REACT) {
-    const template = parseReact(html, user.user, user.pages || [], router);
+    const template = parseReact(html, user, user.pages || [], router);
     if (template.ListComponent) {
       return (
         <ErrorBoundary
-          fallback="Ошибка разбора"
-// fallbackRender={() => 'error'}
+          fallbackRender={({ error }) => (
+            <div>
+              Ошибка разбора:
+              <pre>{error?.message}</pre>
+            </div>
+          )}
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
@@ -302,7 +310,7 @@ function PageWidget(props: {
   if (data && data.getWidgetByName.template.language === TemplateLanguage.REACT) {
     const widget = parseReact(
       data.getWidgetByName.template.html,
-      user.user,
+      user,
       user.pages || [],
       router,
     );
@@ -312,7 +320,7 @@ function PageWidget(props: {
 
   const table = useTable(data?.getWidgetByName.tableView.tableId, { search });
 
-  if (!data || !table.data) {
+  if (!data || (data?.getWidgetByName.tableView.tableId && !table.data)) {
     return null;
   }
 
@@ -352,6 +360,7 @@ function FormWidget(props: {
                         id
                         title
                         name
+                        position
                         tableFieldId
                         formFieldType
                         createdAt
@@ -411,6 +420,10 @@ function FormWidget(props: {
   if (!data?.getFormByName) {
     return null;
   }
+
+  const fields = [...data.getFormByName.fields];
+  fields.sort((a: any, b: any) => a.position - b.position);
+
   return (
     <div>
       <Typography variant="h4">{data.getFormByName.title}</Typography>
@@ -436,7 +449,7 @@ function FormWidget(props: {
         <Button onClick={async () => {
           const _form:any = {};
           await addRow(form);
-          data.getFormByName.fields.forEach((field: any) => {
+          fields.forEach((field: any) => {
             if (field.field.type === 'string') {
               _form[field.field.dbName] = '';
             }

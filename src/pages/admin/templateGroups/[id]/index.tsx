@@ -85,7 +85,6 @@ const DELETE_TEMPLATE = gql`
 
 interface ISidebarItem {
   label: string;
-  // eslint-disable-next-line react/no-unused-prop-types
   id: string;
   onClick: () => void;
   onDelete: () => void;

@@ -3,7 +3,7 @@ import {
   FieldType, IField, IFieldOptions,
 } from './entities/IField';
 
-interface TableField {
+type TableField = IField & {
   id: string;
   name: string;
   type: string;
@@ -24,7 +24,7 @@ interface TableField {
     id: string;
     dbName: string;
   };
-}
+};
 
 interface TableMeta {
   id: string;
@@ -52,6 +52,7 @@ export const GET_TABLE_BY_ID = gql`
         name
         type
         dbName
+        position
         oneToManyLinkOneTable {
           id
           dbName
@@ -85,6 +86,7 @@ export const GET_TABLE_BY_DB_NAME = gql`
         name
         type
         dbName
+        position
         oneToManyLinkOneTable {
           id
           dbName
@@ -148,6 +150,9 @@ export const generateGetTableDataQuery = (
     if (field.type === FieldType.USER_CREATOR) {
       return `${field.dbName} { id name }`;
     }
+    if (field.type === FieldType.USER) {
+      return `${field.dbName} { id name }`;
+    }
     if (field.type === FieldType.FILE) {
       return `${field.dbName} { id name extension }`;
     }
@@ -191,7 +196,7 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
   } = useQuery(
     generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
     {
-      skip: !tableMeta?.dbName || !tableMeta?.fields?.length,
+      skip: !tableMeta?.dbName || !tableMeta?.fields,
       onCompleted: (data) => {
         options?.onDataLoaded?.(data[`getAll${tableMeta!.dbName}`]);
       },

@@ -1,4 +1,5 @@
 import { IEntity } from './IEntity';
+import { IRole } from './IRole';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -16,5 +17,5 @@ export interface IUser extends IEntity {
   confirmEmail?: string;
   confirmEmailExpires?: Date;
   confirmEmailCode?: string;
-  role: UserRole;
+  role: IRole;
 }

@@ -37,6 +37,7 @@
     "react/require-default-props": "off",
     "react/prop-types": "off",
     "react/no-unstable-nested-components": "off",
+    "react/no-unused-prop-types": "off",
     "object-curly-newline": [
       "error",
       {
@@ -46,14 +47,17 @@
         "ExportDeclaration": { "consistent": true }
       }
     ],
-    "react/jsx-wrap-multilines": ["error", {
-      "declaration": "parens",
-      "assignment": "parens",
-      "return": "parens",
-      "arrow": "parens",
-      "condition": "parens",
-      "logical": "parens",
-      "prop": "parens"
-    }]
+    "react/jsx-wrap-multilines": [
+      "error",
+      {
+        "declaration": "parens",
+        "assignment": "parens",
+        "return": "parens",
+        "arrow": "parens",
+        "condition": "parens",
+        "logical": "parens",
+        "prop": "parens"
+      }
+    ]
   }
 }

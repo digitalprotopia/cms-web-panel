@@ -56,14 +56,8 @@ const theme = createTheme({
   },
 } as any);
 
-interface User {
-  id: string;
-  name: string;
-  role: string;
-}
-
 interface MeQueryResponse {
-  me: User;
+  me: IUser;
 }
 
 const GET_ME = gql`
@@ -87,9 +81,17 @@ function CMSLayout({
 }>) {
   const router = useRouter();
 
+  const [currentPage, setCurrentPage] = useState<ISiteItem | null>(null);
+
   const {
     data, refetch, error, loading,
   } = useQuery<MeQueryResponse>(GET_ME);
+
+  useEffect(() => {
+    if (router.pathname.startsWith('/admin') || router.pathname.startsWith('/auth')) {
+      setCurrentPage(null);
+    }
+  }, [router.pathname]);
 
   const pages = useQuery(gql`
     query {
@@ -130,6 +132,8 @@ function CMSLayout({
                   await pages.refetch();
                 },
                 pages: pages.data?.getAllSiteItems as ISiteItem[],
+                currentPage,
+                setCurrentPage,
               }}
               >
                 {result}

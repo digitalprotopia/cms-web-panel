@@ -17,14 +17,15 @@ import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
 import { NextRouter } from 'next/router';
-import { IUser } from './entities/IUser';
+import Head from 'next/head';
 import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 import { useTableByDbName } from './use-table';
+import { UserContextData } from './UserContext';
 
 export function parseReact(
   code: string,
-  user: IUser | null,
+  context: UserContextData,
   pages: ISiteItem[],
   router: NextRouter,
 ):
@@ -43,10 +44,17 @@ export function parseReact(
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode));
     return func({
-      React, Mui, Link, user, pages, useTableByDbName, router,
+      React, Mui, Link, context, user: context.user, pages, useTableByDbName, router, Head,
     });
-  } catch {
-    return { Component: () => <div>Ошибка разбора</div> };
+  } catch (e) {
+    return {
+      Component: () => (
+        <div>
+          Ошибка разбора:
+          <pre>{e?.toString()}</pre>
+        </div>
+      ),
+    };
   }
 }
 
@@ -71,12 +79,12 @@ function DynamicParse(props: {
             }
             return <Replace key={index} />;
           }
-          if (
-            domNode.type === 'tag'
-            && !domNode.name.match(/^[a-z]+$/)
-          ) {
-            return null;
-          }
+          // if (
+          //   domNode.type === 'tag'
+          //   && !domNode.name.match(/^[a-z0-9A-Z-]+$/)
+          // ) {
+          //   return null;
+          // }
           if (domNode.type === 'tag' && domNode.attribs && Object.keys(domNode.attribs).length) {
             let Tag: any = domNode.name;
             Object.keys(domNode.attribs).forEach((attr) => {
@@ -122,7 +130,7 @@ function DynamicParse(props: {
 
     return (
       <ReplaceContext.Provider value={props.replace}>
-        <ErrorBoundary fallback="Ошибка разбора" resetKeys={[props.html]}>
+        <ErrorBoundary onError={(e) => console.error(e)} fallback="Ошибка разбора" resetKeys={[props.html]}>
           {result}
         </ErrorBoundary>
       </ReplaceContext.Provider>

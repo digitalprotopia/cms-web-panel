@@ -71,7 +71,9 @@ export default function TemplateEdit({
 
         <div className="flex flex-wrap gap-2">
           {[{ templateName: 'Add menu', templateHTML: 'menu' },
-            { templateName: 'Add content', templateHTML: 'content' }]
+            { templateName: 'Add content', templateHTML: 'content' },
+            { templateName: 'Add title', templateHTML: 'title' },
+          ]
             .map((field) => (
               <Button
                 key={field.templateName}

@@ -22,7 +22,9 @@ import {
 import {
   Add, ArrowDropDown, Close, Delete, Download, Save,
 } from '@mui/icons-material';
-import { gql, useApolloClient, useQuery } from '@apollo/client';
+import {
+  gql, useApolloClient, useMutation, useQuery,
+} from '@apollo/client';
 
 import TableEditor from '@/components/table-editor';
 
@@ -203,6 +205,9 @@ function CellEdit({
       return (cell.getValue() as any)?.map((item: any) => item?.id);
     }
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
+      return (cell.getValue() as any)?.id;
+    }
+    if (field.type === FieldType.USER) {
       return (cell.getValue() as any)?.id;
     }
     return cell.getValue();
@@ -425,6 +430,12 @@ function TablePage() {
     // },
   });
 
+  const [sortFields] = useMutation(gql`
+    mutation($tableId: ID! $positions: [PositionItem]!) {
+      sortFields(tableId: $tableId positions: $positions)
+    }
+  `);
+
   const handleRefetch = useCallback(async () => {
     try {
       await refetch();
@@ -433,10 +444,13 @@ function TablePage() {
     }
   }, [refetch]);
 
-  const columns = useMemo(() => {
-    if (!meta?.fields) return [];
+  const fields = meta?.fields ? [...meta.fields] : [];
+  fields.sort((a, b) => a.position - b.position);
 
-    const result = meta.fields.map(
+  const columns = useMemo(() => {
+    // if (!meta?.fields) return [];
+
+    const result = fields.map(
       (field: IField): MRT_ColumnDef<MRT_RowData> => ({
         accessorKey: field.dbName,
         header: field.name,
@@ -476,6 +490,11 @@ function TablePage() {
                 }}
               >
                 <div className="p-4">
+                  <div className="text-sm">
+                    Службеное название:
+                    {' '}
+                    {field.dbName}
+                  </div>
                   <h4>Редактировать поле</h4>
                   <TextField
                     label="Название"
@@ -526,8 +545,10 @@ function TablePage() {
             );
           }
           let cellValue: any = cell.getValue();
-          if (field.type === FieldType.DATE) {
-            cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
+          if (field.type === FieldType.DATE_TIME) {
+            if (cellValue) {
+              cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
+            }
           }
           if (field.type === FieldType.TEXT) {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
@@ -545,7 +566,10 @@ function TablePage() {
             cellValue = cellValue?.map((item: any) => item?._cms_title || 'Не существует').join(', ');
           }
           if (field.type === FieldType.USER_CREATOR) {
-            cellValue = cellValue?.name;
+            cellValue = cellValue?.name || <i>Нет значения</i>;
+          }
+          if (field.type === FieldType.USER) {
+            cellValue = cellValue?.name || <i>Нет значения</i>;
           }
           if (field.type === FieldType.FILE) {
             cellValue = cellValue ? (
@@ -557,7 +581,7 @@ function TablePage() {
                     e.stopPropagation();
                   }}
                 >
-                  {['jpg', 'jpeg', 'png', 'gif'].includes(cellValue?.extension) ? (
+                  {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(cellValue?.extension) ? (
                     <img
                       src={`${window.config.server}/download/?id=${cellValue?.id}`}
                       alt={cellValue?.name}
@@ -571,15 +595,19 @@ function TablePage() {
               </div>
             ) : null;
           }
+          if (cellValue === '' || cellValue === null) {
+            cellValue = <i>Нет значения</i>;
+          }
           return (
             <div onClick={() => setEditMode(true)}>
-              {cellValue || <i>Нет текста</i>}
+              {cellValue}
             </div>
           );
         },
       }),
     );
     result.push({
+      enableColumnOrdering: false,
       header: '+',
       Header: () => {
         const dropDownRef = useRef();
@@ -696,6 +724,21 @@ function TablePage() {
         columns={columns}
         data={data}
         enableRowActions
+        enableColumnOrdering
+        onColumnOrderChange={async (order) => {
+          const positions = (order as string[]).filter((item) => item !== '+' && item !== 'mrt-row-actions')
+            .map((item, index) => ({
+              id: meta.fields.find((field: IField) => field.dbName === item)?.id,
+              position: index,
+            }));
+          await sortFields({
+            variables: {
+              tableId: id,
+              positions,
+            },
+          });
+          handleRefetch();
+        }}
         renderRowActions={({ row }) => (
           <IconButton
             color="error"
@@ -705,7 +748,10 @@ function TablePage() {
             <Delete />
           </IconButton>
         )}
-        state={{ isLoading: loading }}
+        state={{
+          isLoading: loading,
+          columnOrder: ['mrt-row-actions', ...fields.map((field) => field.dbName), '+'],
+        }}
         muiTablePaperProps={{
           elevation: 0,
           sx: {
