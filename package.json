@@ -18,6 +18,7 @@
     "@blocknote/xl-multi-column": "^0.22.0",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@mantine/core": "^7.15.2",
     "@monaco-editor/react": "^4.6.0",
     "@mui/icons-material": "^6.1.5",
     "@mui/material": "^6.1.5",

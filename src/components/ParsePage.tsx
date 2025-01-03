@@ -345,7 +345,7 @@ export function PageWidget(props: {
   );
 }
 
-function FormWidget(props: {
+export function FormWidget(props: {
   formName: string;
 }) {
   const [form, setForm] = useState<any>({});

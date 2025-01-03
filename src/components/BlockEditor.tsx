@@ -9,21 +9,20 @@ import {
   createReactBlockSpec, getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
 } from '@blocknote/react';
 import { Menu } from '@mantine/core';
-import { RiAlertFill } from 'react-icons/ri';
 import {
   multiColumnDropCursor, withMultiColumn,
   locales as multiColumnLocales, getMultiColumnSlashMenuItems,
 } from '@blocknote/xl-multi-column';
-import { useMemo } from 'react';
+// import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
-import { WidgetsOutlined } from '@mui/icons-material';
+import { DashboardOutlined, WidgetsOutlined } from '@mui/icons-material';
 import { IWidget } from './entities/IWidget';
-import { PageWidget } from './ParsePage';
+import { FormWidget, PageWidget } from './ParsePage';
 
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
+import { IForm } from './entities/IForm';
 
-// The Widget block.
 export const BlockEditorWidget = createReactBlockSpec(
   {
     type: 'widget',
@@ -40,7 +39,8 @@ export const BlockEditorWidget = createReactBlockSpec(
   {
     render: (props) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const snippets = useQuery(gql`
+      const snippets = useQuery(
+        gql`
             query {
             getAllWidgets {
             id
@@ -48,16 +48,12 @@ export const BlockEditorWidget = createReactBlockSpec(
             title
             createdAt
             }
-            getAllForms {
-            id
-            name
-            title
-            createdAt
-            }
-            }`);
+            }`,
+        { skip: !props.editor.isEditable },
+      );
 
       return (
-        <div className={props.editor.isEditable ? 'widget' : ''} data-widget-type={props.block.props.type}>
+        <div className={props.editor.isEditable ? 'widget' : 'widget-view'} data-widget-type={props.block.props.type}>
           {/* Icon which opens a menu to choose the Widget type */}
           {props.editor.isEditable
             ? (
@@ -97,6 +93,76 @@ export const BlockEditorWidget = createReactBlockSpec(
   },
 );
 
+export const BlockEditorForm = createReactBlockSpec(
+  {
+    type: 'form',
+    propSchema: {
+      textAlignment: defaultProps.textAlignment,
+      textColor: defaultProps.textColor,
+      type: {
+        type: 'string',
+        default: '',
+      },
+    },
+    content: 'inline',
+  },
+  {
+    render: (props) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const snippets = useQuery(
+        gql`
+            query {
+            getAllForms {
+            id
+            name
+            title
+            createdAt
+            }
+            }`,
+        { skip: !props.editor.isEditable },
+      );
+
+      return (
+        <div className={props.editor.isEditable ? 'widget' : 'widget-view'} data-widget-type={props.block.props.type}>
+          {/* Icon which opens a menu to choose the Widget type */}
+          {props.editor.isEditable
+            ? (
+              <Menu withinPortal={false}>
+                <Menu.Target>
+                  <div contentEditable={false}>
+                    <Menu.Item>
+                      {snippets.data?.getAllForms?.find((f: IForm) => f.name === props.block.props.type)?.title || 'Выберете форму'}
+                    </Menu.Item>
+                  </div>
+                </Menu.Target>
+                {/* Dropdown to change the Widget type */}
+                <Menu.Dropdown>
+                  <Menu.Label>Виджет</Menu.Label>
+                  <Menu.Divider />
+                  {(snippets.data?.getAllForms || []).map((form: IForm) => (
+                    <Menu.Item
+                      key={form.name}
+                      onClick={() => props.editor.updateBlock(props.block, {
+                        type: 'form',
+                        props: { type: form.name },
+                      })}
+                    >
+                      {form.title}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
+            )
+            : null}
+          <div>
+            {props.block.props.type ? <FormWidget formName={props.block.props.type} /> : null}
+          </div>
+        </div>
+      );
+    },
+  },
+);
+
 export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
   widgets.map((widget) => ({
     title: widget.title,
@@ -113,6 +179,24 @@ export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidg
     ],
     group: 'Виджеты',
     icon: <WidgetsOutlined />,
+  })));
+
+export const insertBlockEditorForms = (editor: BlockNoteEditor, widgets: IForm[]) => (
+  widgets.map((form) => ({
+    title: form.title,
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: 'form' as any,
+        props: {
+          type: form.name,
+        } as any,
+      });
+    },
+    aliases: [
+      form.name,
+    ],
+    group: 'Формы',
+    icon: <DashboardOutlined />,
   })));
 
 interface BlockEditorProps {
@@ -148,6 +232,7 @@ function BlockEditor({
       ...defaultBlockSpecs,
       // Adds the Alert block.
       widget: BlockEditorWidget,
+      form: BlockEditorForm,
     },
   });
 
@@ -165,13 +250,13 @@ function BlockEditor({
   });
 
   // Gets the default slash menu items merged with the multi-column ones.
-  const getSlashMenuItems = useMemo(() => async (query: string) => filterSuggestionItems(
-    combineByGroup(
-      getDefaultReactSlashMenuItems(editor),
-      getMultiColumnSlashMenuItems(editor),
-    ),
-    query,
-  ), [editor]);
+  // const getSlashMenuItems = useMemo(() => async (query: string) => filterSuggestionItems(
+  //   combineByGroup(
+  //     getDefaultReactSlashMenuItems(editor),
+  //     getMultiColumnSlashMenuItems(editor),
+  //   ),
+  //   query,
+  // ), [editor]);
 
   return (
     <>
@@ -203,7 +288,9 @@ function BlockEditor({
                 getDefaultReactSlashMenuItems(editor),
                 getMultiColumnSlashMenuItems(editor),
               ),
-              ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || [])],
+              ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
+              ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
+              ],
               query,
             ))}
         />
