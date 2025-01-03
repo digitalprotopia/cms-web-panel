@@ -84,7 +84,7 @@ export const BlockEditorWidget = createReactBlockSpec(
               </Menu>
             )
             : null}
-          <div>
+          <div style={{ flex: 1 }}>
             {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
           </div>
         </div>
@@ -154,7 +154,7 @@ export const BlockEditorForm = createReactBlockSpec(
               </Menu>
             )
             : null}
-          <div>
+          <div style={{ flex: 1 }}>
             {props.block.props.type ? <FormWidget formName={props.block.props.type} /> : null}
           </div>
         </div>
