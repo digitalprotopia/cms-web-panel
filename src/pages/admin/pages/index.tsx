@@ -34,6 +34,7 @@ const CREATE_PAGE = gql`
       isRoot
       seotag
       html
+      blockContent
       type
       createdAt
       updatedAt
@@ -52,6 +53,7 @@ const UPDATE_PAGE = gql`
       isRoot
       seotag
       html
+      blockContent
       type
       createdAt
       updatedAt

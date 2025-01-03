@@ -280,7 +280,7 @@ export function RenderWidget(
   );
 }
 
-function PageWidget(props: {
+export function PageWidget(props: {
   widgetName: string;
 }) {
   const { data } = useQuery(gql`

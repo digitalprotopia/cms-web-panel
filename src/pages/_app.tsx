@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-no-constructed-context-values */
 import './globals.css';
+import '../components/BlockEditorWidget.css';
 import client from '@/components/apollo-client';
 import {
   createTheme,
