@@ -4,9 +4,18 @@ import {
   defaultBlockSpecs, filterSuggestionItems,
   locales,
   combineByGroup,
+  Block,
 } from '@blocknote/core';
 import {
   createReactBlockSpec, getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
+
+  SideMenuProps,
+  useBlockNoteEditor,
+  useComponentsContext,
+  SideMenuController,
+  SideMenu,
+  DragHandleButton,
+  AddBlockButton,
 } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import {
@@ -15,7 +24,9 @@ import {
 } from '@blocknote/xl-multi-column';
 // import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
-import { DashboardOutlined, WidgetsOutlined } from '@mui/icons-material';
+import {
+  DashboardOutlined, North, South, WidgetsOutlined,
+} from '@mui/icons-material';
 import { IWidget } from './entities/IWidget';
 import { FormWidget, PageWidget } from './ParseWidgets';
 
@@ -275,6 +286,62 @@ interface BlockEditorProps {
   isEditable?: boolean;
 }
 
+export function AddBottomButton(props: SideMenuProps) {
+  const editor = useBlockNoteEditor();
+
+  const Components = useComponentsContext()!;
+
+  return (
+    <Components.SideMenu.Button
+      label="Добавить снизу"
+      icon={(
+        <South
+          onClick={() => {
+            let { block } = props;
+            while (editor.getParentBlock(block)) {
+              block = editor.getParentBlock(block) as Block;
+              console.log(block);
+            }
+
+            editor.insertBlocks([{
+              type: 'paragraph',
+              props: {},
+            }], block, 'after');
+          }}
+        />
+      )}
+    />
+  );
+}
+
+export function AddUpButton(props: SideMenuProps) {
+  const editor = useBlockNoteEditor();
+
+  const Components = useComponentsContext()!;
+
+  return (
+    <Components.SideMenu.Button
+      label="Добавить сверху"
+      icon={(
+        <North
+          onClick={() => {
+            let { block } = props;
+            while (editor.getParentBlock(block)) {
+              block = editor.getParentBlock(block) as Block;
+              console.log(block);
+            }
+
+            editor.insertBlocks([{
+              type: 'paragraph',
+              props: {},
+            }], block, 'after');
+          }}
+        />
+      )}
+    />
+  );
+}
+
 function BlockEditor({
   initialData, onChange, isEditable = true,
 }: BlockEditorProps) {
@@ -340,16 +407,27 @@ function BlockEditor({
       </style>
       <BlockNoteView
         slashMenu={false}
+        sideMenu={false}
         editor={editor}
         editable={isEditable}
         onChange={() => {
           onChange(editor.document);
-          console.log(editor.document);
         // editor.blocksToFullHTML(editor.document).then((html) => {
         //   setFormData({ ...formData, html });
         // });
         }}
       >
+        <SideMenuController
+          sideMenu={(props) => (
+            <SideMenu {...props}>
+              {/* Button which removes the hovered block. */}
+              <AddBlockButton {...props} />
+              <AddUpButton {...props} />
+              <AddBottomButton {...props} />
+              <DragHandleButton {...props} />
+            </SideMenu>
+          )}
+        />
         <SuggestionMenuController
           triggerCharacter="/"
           getItems={async (query) => (
