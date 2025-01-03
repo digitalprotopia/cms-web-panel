@@ -9,6 +9,7 @@ import { ISiteItem, SiteItemType } from '../entities/ISiteItem';
 import { IForm } from '../entities/IForm';
 import { IWidget } from '../entities/IWidget';
 import { IRole } from '../entities/IRole';
+import BlockEditor from '../BlockEditor';
 
 export const GET_PAGES = gql`
   query GetAllSiteItems {
@@ -25,6 +26,7 @@ export const GET_PAGES = gql`
       isRoot
       seotag
       html
+      blockContent
       roles {
         id
         name
@@ -161,7 +163,11 @@ export default function PageForm({
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
       />
-
+      <h4>Блочный редактор</h4>
+      <BlockEditor
+        initialData={initialData.blockContent}
+        onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+      />
       <h4>Добавить виджеты</h4>
       <div>
         {snippets.data?.getAllWidgets?.map((widget: IWidget) => (

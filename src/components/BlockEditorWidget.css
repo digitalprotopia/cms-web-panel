@@ -1,0 +1,77 @@
+.widget {
+    display: flex;
+    align-items: start;
+    flex-grow: 1;
+    border-radius: 4px;
+    min-height: 48px;
+    padding: 4px;
+}
+
+.widget input, .widget-view input {
+    box-sizing: initial;
+}
+ 
+.widget[data-widget-type="warning"] {
+    background-color: #fff6e6;
+}
+ 
+.widget[data-widget-type="error"] {
+    background-color: #ffe6e6;
+}
+ 
+.widget[data-widget-type="info"] {
+    background-color: #e6ebff;
+}
+ 
+.widget[data-widget-type="success"] {
+    background-color: #e6ffe6;
+}
+ 
+[data-color-scheme="dark"] .widget[data-widget-type="warning"] {
+    background-color: #805d20;
+}
+ 
+[data-color-scheme="dark"] .widget[data-widget-type="error"] {
+    background-color: #802020;
+}
+ 
+[data-color-scheme="dark"] .widget[data-widget-type="info"] {
+    background-color: #203380;
+}
+ 
+[data-color-scheme="dark"] .widget[data-widget-type="success"] {
+    background-color: #208020;
+}
+ 
+.widget-icon-wrapper {
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 12px;
+    margin-right: 12px;
+    height: 18px;
+    width: 18px;
+    user-select: none;
+    cursor: pointer;
+}
+ 
+.widget-icon[data-widget-icon-type="warning"] {
+    color: #e69819
+}
+ 
+.widget-icon[data-widget-icon-type="error"] {
+    color: #d80d0d
+}
+ 
+.widget-icon[data-widget-icon-type="info"] {
+    color: #507aff
+}
+ 
+.widget-icon[data-widget-icon-type="success"] {
+    color: #0bc10b
+}
+ 
+.inline-content {
+    flex-grow: 1;
+}

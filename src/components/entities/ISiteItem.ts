@@ -14,6 +14,7 @@ export interface ISiteItem extends IEntity {
   isRoot: boolean;
   seotag: string;
   html: string;
+  blockContent: any;
   roleIds?: string[];
   roles?: IRole[];
   type: SiteItemType;

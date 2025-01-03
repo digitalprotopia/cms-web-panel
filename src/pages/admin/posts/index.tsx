@@ -19,6 +19,7 @@ import {
 import dayjs from 'dayjs';
 import DefaultEditor from 'react-simple-wysiwyg';
 import { IPost } from '@/components/entities/IPost';
+import BlockEditor from '@/components/BlockEditor';
 
 const GET_POSTS = gql`
   query GetPosts {
@@ -26,6 +27,7 @@ const GET_POSTS = gql`
       id
       title
       content
+      blockContent
       createdAt
     }
   }
@@ -37,6 +39,7 @@ const CREATE_POST = gql`
       id
       title
       content
+      blockContent
       createdAt
     }
   }
@@ -48,6 +51,7 @@ const UPDATE_POST = gql`
       id
       title
       content
+      blockContent
       createdAt
     }
   }
@@ -59,22 +63,16 @@ const DELETE_POST = gql`
   }
 `;
 
-interface PostFormData {
-  id?: string;
-  title: string;
-  content: string;
-}
-
 function PostForm({
   initialData = {},
   onSubmit,
   onCancel,
 }: {
-  initialData: Partial<PostFormData>;
-  onSubmit: (data: PostFormData) => void;
+  initialData: Partial<IPost>;
+  onSubmit: (data: Partial<IPost>) => void;
   onCancel: () => void;
 }) {
-  const [formData, setFormData] = useState<PostFormData>({
+  const [formData, setFormData] = useState<Partial<IPost>>({
     title: initialData.title || '',
     content: initialData.content || '',
   });
@@ -123,6 +121,11 @@ function PostForm({
       <DefaultEditor
         value={formData.content}
         onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+      />
+      <h4>Блочный редактор</h4>
+      <BlockEditor
+        initialData={initialData.blockContent}
+        onChange={(blockContent) => setFormData({ ...formData, blockContent })}
       />
 
       <div className="flex justify-end gap-2 mt-5">
@@ -224,11 +227,11 @@ function PostsPost() {
     },
   });
 
-  const handleCreate = (formData: PostFormData) => {
+  const handleCreate = (formData: Partial<IPost>) => {
     createPost({ variables: { input: formData } });
   };
 
-  const handleUpdate = (formData: PostFormData) => {
+  const handleUpdate = (formData: Partial<IPost>) => {
     if (!selectedPost) return;
     updatePost({
       variables: {

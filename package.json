@@ -12,8 +12,13 @@
   "dependencies": {
     "@apollo/client": "^3.11.8",
     "@babel/standalone": "^7.26.4",
+    "@blocknote/core": "^0.22.0",
+    "@blocknote/mantine": "^0.22.0",
+    "@blocknote/react": "^0.22.0",
+    "@blocknote/xl-multi-column": "^0.22.0",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@mantine/core": "^7.15.2",
     "@monaco-editor/react": "^4.6.0",
     "@mui/icons-material": "^6.1.5",
     "@mui/material": "^6.1.5",
