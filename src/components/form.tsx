@@ -19,13 +19,15 @@ import {
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { MaterialReactTable } from 'material-react-table';
+import {
+  YMaps, Map, FullscreenControl, Placemark, SearchControl,
+} from '@pbe/react-yandex-maps';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
 import { IUser } from './entities/IUser';
 import 'dayjs/locale/ru';
 import { IFile } from './entities/IFile';
-import { YMaps, Map, FullscreenControl, Placemark, SearchControl } from '@pbe/react-yandex-maps';
 
 export const toBase64 = (file: File) => new Promise((resolve, reject) => {
   const reader = new FileReader();

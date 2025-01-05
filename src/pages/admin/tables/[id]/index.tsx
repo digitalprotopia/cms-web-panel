@@ -20,7 +20,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, Save
+  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, Save,
 } from '@mui/icons-material';
 import {
   gql, useApolloClient, useMutation, useQuery,
