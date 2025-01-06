@@ -10,7 +10,7 @@ export const GET_SITE_MENUS = gql`
         id
         title
         url
-        order
+        position
         parentId
         createdAt
       }

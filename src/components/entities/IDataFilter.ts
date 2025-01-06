@@ -3,6 +3,6 @@ import { IEntity } from './IEntity';
 export interface IDataFilter extends IEntity {
   fields?: string;
   limit?: number;
-  order?: string;
+  position?: string;
   conditions?: string;
 }

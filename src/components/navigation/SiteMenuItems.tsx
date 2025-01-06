@@ -26,12 +26,12 @@ import {
 } from '@mui/icons-material';
 import { useMutation, useQuery } from '@apollo/client';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { CREATE_MENU_ITEM, UPDATE_MENU_ITEM, DELETE_MENU_ITEM } from '@/graphql/SiteMenuItem';
+import { GET_SITE_PAGES } from '@/graphql/SiteItem';
 import { ISiteMenuItem } from '../entities/ISiteMenuItem';
 import { ISiteItem } from '../entities/ISiteItem';
-import { CREATE_MENU_ITEM, UPDATE_MENU_ITEM, DELETE_MENU_ITEM } from '@/graphql/SiteMenuItem';
 import { SiteMenuItemsProps, MenuItemFormData, ItemType, MenuItemNode } from './types/types';
 import { buildMenuTree } from './utils/buildMenuTree';
-import { GET_SITE_PAGES } from '@/graphql/SiteItem';
 
 export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItemsProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -84,7 +84,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
           input: {
             ...formData,
             menuId,
-            order: editingItem.order,
+            position: editingItem.position,
             parentId: editingItem.parentId,
           },
         },
@@ -96,7 +96,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             ...formData,
             menuId,
             parentId,
-            order: items.filter((item) => item.parentId === parentId).length,
+            position: items.filter((item) => item.parentId === parentId).length,
           },
         },
       });
@@ -153,9 +153,9 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             {...provided.droppableProps}
             ref={provided.innerRef}
             sx={{
-              'pl': level * 3,
+              pl: level * 3,
               '& .MuiListItem-root': {
-                'bgcolor': 'background.paper',
+                bgcolor: 'background.paper',
                 '&:hover': {
                   bgcolor: 'action.hover',
                 },
@@ -184,7 +184,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                         }),
                       }}
                       secondaryAction={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        (<Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Button
                             size="small"
                             onClick={() => {
@@ -202,17 +202,17 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                           <IconButton onClick={() => handleDelete(item.id)} size="small">
                             <DeleteIcon />
                           </IconButton>
-                        </Box>
+                        </Box>)
                       }
                     >
                       <Box
                         {...provided.dragHandleProps}
                         sx={{
-                          'display': 'flex',
-                          'alignItems': 'center',
-                          'mr': 2,
-                          'cursor': 'grab',
-                          'color': 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          mr: 2,
+                          cursor: 'grab',
+                          color: 'text.secondary',
                           '&:hover': { color: 'text.primary' },
                         }}
                       >
@@ -253,12 +253,12 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     let itemsToReorder;
     if (isRoot) {
       // For root items, get all items without parentId
-      itemsToReorder = items.filter((item) => !item.parentId).sort((a, b) => a.order - b.order);
+      itemsToReorder = items.filter((item) => !item.parentId).sort((a, b) => a.position - b.position);
     } else {
       // For nested items, get all items with the same parentId
       itemsToReorder = items
         .filter((item) => item.parentId === sourceParentId)
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => a.position - b.position);
     }
 
     // Create a new array with the current order
@@ -270,20 +270,18 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
 
     try {
       // Update orders for all items in the reordered array
-      const updatePromises = reorderedItems.map((item, index) =>
-        updateMenuItem({
-          variables: {
-            id: item.id,
-            input: {
-              title: item.title,
-              url: item.url,
-              menuId,
-              parentId: sourceParentId, // undefined for root items, parentId for nested
-              order: index,
-            },
+      const updatePromises = reorderedItems.map((item, index) => updateMenuItem({
+        variables: {
+          id: item.id,
+          input: {
+            title: item.title,
+            url: item.url,
+            menuId,
+            parentId: sourceParentId, // undefined for root items, parentId for nested
+            position: index,
           },
-        }),
-      );
+        },
+      }));
 
       await Promise.all(updatePromises);
       onUpdate();
