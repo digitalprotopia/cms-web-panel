@@ -16,8 +16,13 @@ import Link from 'next/link';
 import * as Mui from '@mui/material';
 
 import * as babel from '@babel/standalone';
-import { NextRouter } from 'next/router';
+import { NextRouter, useRouter } from 'next/router';
 import Head from 'next/head';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import listPlugin from '@fullcalendar/list';
+import ruLocale from '@fullcalendar/core/locales/ru';
+import dayjs from 'dayjs';
 import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 import { useTableByDbName } from './use-table';
@@ -41,11 +46,26 @@ export function parseReact(
     }).code;
 
     const resultCode = babelCode!.replace('"use strict";', '').trim();
+    const data = {
+      React,
+      Mui,
+      Link,
+      context,
+      user: context.user,
+      pages,
+      useTableByDbName,
+      router,
+      Head,
+      FullCalendar,
+      dayGridPlugin,
+      listPlugin,
+      ruLocale,
+      dayjs,
+      useRouter,
+    };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('data', getReactTemplateDefinition('list', resultCode));
-    return func({
-      React, Mui, Link, context, user: context.user, pages, useTableByDbName, router, Head,
-    });
+    const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
+    return func(data);
   } catch (e) {
     return {
       Component: () => (
