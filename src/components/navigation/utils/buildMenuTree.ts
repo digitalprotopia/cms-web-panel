@@ -23,9 +23,9 @@ export function buildMenuTree(items: ISiteMenuItem[]): MenuItemNode[] {
     }
   });
 
-  // Sort each level by order
+  // Sort each level by position
   const sortNodes = (nodes: MenuItemNode[]) => {
-    nodes.sort((a, b) => a.order - b.order);
+    nodes.sort((a, b) => a.position - b.position);
     nodes.forEach((node) => sortNodes(node.children));
   };
   sortNodes(roots);

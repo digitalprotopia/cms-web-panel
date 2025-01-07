@@ -84,7 +84,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
           input: {
             ...formData,
             menuId,
-            order: editingItem.order,
+            position: editingItem.position,
             parentId: editingItem.parentId,
           },
         },
@@ -96,7 +96,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             ...formData,
             menuId,
             parentId,
-            order: items.filter((item) => item.parentId === parentId).length,
+            position: items.filter((item) => item.parentId === parentId).length,
           },
         },
       });
@@ -240,11 +240,11 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     if (sourceParentId) {
       itemsWithSameSourceParent = items
         .filter((item) => item.parentId === sourceParentId)
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => a.position - b.position);
     } else {
       itemsWithSameSourceParent = items
         .filter((item) => !item.parentId)
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => a.position - b.position);
     }
     const draggedItem = itemsWithSameSourceParent[result.source.index];
 
@@ -268,7 +268,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                 url: item.url,
                 menuId,
                 parentId: sourceParentId,
-                order: index,
+                position: index,
               },
             },
           }),
@@ -280,11 +280,11 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
         if (destinationParentId) {
           itemsWithSameDestParent = items
             .filter((item) => item.parentId === destinationParentId)
-            .sort((a, b) => a.order - b.order);
+            .sort((a, b) => a.position - b.position);
         } else {
           itemsWithSameDestParent = items
             .filter((item) => !item.parentId)
-            .sort((a, b) => a.order - b.order);
+            .sort((a, b) => a.position - b.position);
         }
 
         await updateMenuItem({
@@ -295,7 +295,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
               url: draggedItem.url,
               menuId,
               parentId: destinationParentId,
-              order: result.destination.index,
+              position: result.destination.index,
             },
           },
         });
@@ -314,7 +314,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                 url: item.url,
                 menuId,
                 parentId: destinationParentId,
-                order: newIndex,
+                position: newIndex,
               },
             },
           });
@@ -333,7 +333,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                 url: item.url,
                 menuId,
                 parentId: sourceParentId,
-                order: index,
+                position: index,
               },
             },
           }),

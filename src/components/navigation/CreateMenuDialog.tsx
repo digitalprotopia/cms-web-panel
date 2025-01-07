@@ -36,16 +36,16 @@ export default function CreateMenuDialog({ open, onClose, onSubmit }: CreateMenu
       <DialogContent>
         <TextField
           label="Название"
-          value={formData.name}
-          onChange={handleChange('name')}
+          value={formData.title}
+          onChange={handleChange('title')}
           fullWidth
           margin="normal"
         />
 
         <TextField
-          label="Заголовок"
-          value={formData.title}
-          onChange={handleChange('title')}
+          label="Техническое название"
+          value={formData.name}
+          onChange={handleChange('name')}
           fullWidth
           margin="normal"
         />
