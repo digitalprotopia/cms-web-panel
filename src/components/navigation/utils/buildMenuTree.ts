@@ -1,7 +1,7 @@
 import { ISiteMenuItem } from '@/components/entities/ISiteMenuItem';
 import { MenuItemNode } from '../types/types';
 
-export function buildMenuTree(items: ISiteMenuItem[]): MenuItemNode[] {
+export default function buildMenuTree(items: ISiteMenuItem[]): MenuItemNode[] {
   const itemMap = new Map<string, MenuItemNode>();
   const roots: MenuItemNode[] = [];
 

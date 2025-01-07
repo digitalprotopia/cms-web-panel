@@ -25,23 +25,67 @@ import {
   DragIndicator as DragIcon,
 } from '@mui/icons-material';
 import { useMutation, useQuery } from '@apollo/client';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { ISiteMenuItem } from '../entities/ISiteMenuItem';
-import { ISiteItem } from '../entities/ISiteItem';
-import { CREATE_MENU_ITEM, UPDATE_MENU_ITEM, DELETE_MENU_ITEM } from '@/graphql/SiteMenuItem';
-import { SiteMenuItemsProps, MenuItemFormData, ItemType, MenuItemNode } from './types/types';
-import { buildMenuTree } from './utils/buildMenuTree';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from 'react-beautiful-dnd';
+import {
+  CREATE_MENU_ITEM,
+  UPDATE_MENU_ITEM,
+  DELETE_MENU_ITEM,
+} from '@/graphql/SiteMenuItem';
 import { GET_SITE_PAGES } from '@/graphql/SiteItem';
+import { ISiteMenuItem, ISiteMenuItemType } from '../entities/ISiteMenuItem';
+import { ISiteItem } from '../entities/ISiteItem';
+import {
+  SiteMenuItemsProps,
+  MenuItemFormData,
+  MenuItemNode,
+} from './types/types';
+import buildMenuTree from './utils/buildMenuTree';
 
-export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItemsProps) {
+const isMovingToChild = (
+  draggedId: string,
+  targetParentId: string | undefined,
+  allItems: ISiteMenuItem[],
+): boolean => {
+  if (!targetParentId) return false;
+
+  let currentParent = allItems.find((item) => item.id === targetParentId);
+  while (currentParent) {
+    if (currentParent.id === draggedId) {
+      return true;
+    }
+    currentParent = allItems.find(
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      (item) => item.id === currentParent?.parentId,
+    );
+  }
+  return false;
+};
+
+export default function SiteMenuItems({
+  items,
+  menuId,
+  onUpdate,
+}: SiteMenuItemsProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ISiteMenuItem | null>(null);
-  const [formData, setFormData] = useState<MenuItemFormData>({ title: '', url: '' });
-  const [itemType, setItemType] = useState<ItemType>('custom');
+  const [formData, setFormData] = useState<MenuItemFormData>({
+    title: '',
+    url: '',
+  });
+  const [itemType, setItemType] = useState<ISiteMenuItemType>(
+    ISiteMenuItemType.URL,
+  );
   const [selectedPageId, setSelectedPageId] = useState<string>('');
   const [parentId, setParentId] = useState<string | undefined>(undefined);
 
-  const { data: pagesData } = useQuery<{ getAllSiteItems: ISiteItem[] }>(GET_SITE_PAGES);
+  const { data: pagesData } = useQuery<{ getAllSiteItems: ISiteItem[] }>(
+    GET_SITE_PAGES,
+  );
 
   const menuTree = buildMenuTree(items);
 
@@ -49,7 +93,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     setIsCreateDialogOpen(false);
     setEditingItem(null);
     setFormData({ title: '', url: '' });
-    setItemType('custom');
+    setItemType(ISiteMenuItemType.URL);
     setSelectedPageId('');
   };
 
@@ -104,7 +148,11 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
   };
 
   const handleDelete = async (itemId: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить этот пункт меню и все его подпункты?')) {
+    if (
+      window.confirm(
+        'Вы уверены, что хотите удалить этот пункт меню и все его подпункты?',
+      )
+    ) {
       const getDescendantIds = (id: string): string[] => {
         const children = items.filter((item) => item.parentId === id);
         return [id, ...children.flatMap((child) => getDescendantIds(child.id))];
@@ -112,7 +160,9 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
 
       const idsToDelete = getDescendantIds(itemId);
 
+      // eslint-disable-next-line no-restricted-syntax
       for (const id of idsToDelete) {
+        // eslint-disable-next-line no-await-in-loop
         await deleteMenuItem({
           variables: { id },
         });
@@ -122,7 +172,9 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
   };
 
   const handlePageSelect = (pageId: string) => {
-    const selectedPage = pagesData?.getAllSiteItems.find((page) => page.id === pageId);
+    const selectedPage = pagesData?.getAllSiteItems.find(
+      (page) => page.id === pageId,
+    );
     if (selectedPage) {
       setSelectedPageId(pageId);
       setFormData({
@@ -132,7 +184,10 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     }
   };
 
-  const handleItemTypeChange = (_: React.MouseEvent<HTMLElement>, newType: ItemType) => {
+  const handleItemTypeChange = (
+    _: React.MouseEvent<HTMLElement>,
+    newType: ISiteMenuItemType,
+  ) => {
     if (newType !== null) {
       setItemType(newType);
       setFormData({ title: '', url: '' });
@@ -141,7 +196,9 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
   };
 
   const renderMenuItems = (nodes: MenuItemNode[], level: number = 0) => {
-    const droppableId = level === 0 ? 'droppable-root' : `droppable-${level}-${nodes[0]?.parentId}`;
+    const droppableId = level === 0
+      ? 'droppable-root'
+      : `droppable-${level}-${nodes[0]?.parentId}`;
 
     return (
       <Droppable droppableId={droppableId}>
@@ -150,9 +207,9 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             {...provided.droppableProps}
             ref={provided.innerRef}
             sx={{
-              'pl': level * 3,
+              pl: level * 3,
               '& .MuiListItem-root': {
-                'bgcolor': 'background.paper',
+                bgcolor: 'background.paper',
                 '&:hover': {
                   bgcolor: 'action.hover',
                 },
@@ -160,12 +217,17 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             }}
           >
             {nodes.map((item, index) => (
-              <Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={false}>
-                {(provided, snapshot) => (
+              <Draggable
+                key={item.id}
+                draggableId={item.id}
+                index={index}
+                isDragDisabled={false}
+              >
+                {(innerProvided, snapshot) => (
                   <>
                     <ListItem
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
+                      ref={innerProvided.innerRef}
+                      {...innerProvided.draggableProps}
                       sx={{
                         mb: 1,
                         border: '1px solid',
@@ -176,7 +238,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                         }),
                       }}
                       secondaryAction={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        (<Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Button
                             size="small"
                             onClick={() => {
@@ -187,31 +249,43 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                           >
                             Добавить
                           </Button>
-                          <IconButton onClick={() => handleEditClick(item)} size="small">
+                          <IconButton
+                            onClick={() => handleEditClick(item)}
+                            size="small"
+                          >
                             <EditIcon />
                           </IconButton>
-                          <IconButton onClick={() => handleDelete(item.id)} size="small">
+                          <IconButton
+                            onClick={() => handleDelete(item.id)}
+                            size="small"
+                          >
                             <DeleteIcon />
                           </IconButton>
-                        </Box>
+                          {/* eslint-disable-next-line react/jsx-closing-tag-location */}
+                        </Box>)
                       }
                     >
                       <Box
-                        {...provided.dragHandleProps}
+                        {...innerProvided.dragHandleProps}
                         sx={{
-                          'display': 'flex',
-                          'alignItems': 'center',
-                          'mr': 2,
-                          'cursor': 'grab',
-                          'color': 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          mr: 2,
+                          cursor: 'grab',
+                          color: 'text.secondary',
                           '&:hover': { color: 'text.primary' },
                         }}
                       >
                         <DragIcon />
                       </Box>
-                      <ListItemText primary={item.title} secondary={item.url} sx={{ mr: 6 }} />
+                      <ListItemText
+                        primary={item.title}
+                        secondary={item.url}
+                        sx={{ mr: 6 }}
+                      />
                     </ListItem>
-                    {item.children.length > 0 && renderMenuItems(item.children, level + 1)}
+                    {item.children.length > 0
+                      && renderMenuItems(item.children, level + 1)}
                   </>
                 )}
               </Draggable>
@@ -226,15 +300,13 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
-    const sourceParentId =
-      result.source.droppableId === 'droppable-root'
-        ? undefined
-        : result.source.droppableId.split('-').slice(2).join('-');
+    const sourceParentId = result.source.droppableId === 'droppable-root'
+      ? undefined
+      : result.source.droppableId.split('-').slice(2).join('-');
 
-    const destinationParentId =
-      result.destination.droppableId === 'droppable-root'
-        ? undefined
-        : result.destination.droppableId.split('-').slice(2).join('-');
+    const destinationParentId = result.destination.droppableId === 'droppable-root'
+      ? undefined
+      : result.destination.droppableId.split('-').slice(2).join('-');
 
     let itemsWithSameSourceParent;
     if (sourceParentId) {
@@ -248,7 +320,11 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     }
     const draggedItem = itemsWithSameSourceParent[result.source.index];
 
-    const isValidMove = !isMovingToChild(draggedItem.id, destinationParentId, items);
+    const isValidMove = !isMovingToChild(
+      draggedItem.id,
+      destinationParentId,
+      items,
+    );
     if (!isValidMove) {
       return;
     }
@@ -259,20 +335,18 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
         const [movedItem] = reorderedItems.splice(result.source.index, 1);
         reorderedItems.splice(result.destination.index, 0, movedItem);
 
-        const updatePromises = reorderedItems.map((item, index) =>
-          updateMenuItem({
-            variables: {
-              id: item.id,
-              input: {
-                title: item.title,
-                url: item.url,
-                menuId,
-                parentId: sourceParentId,
-                position: index,
-              },
+        const updatePromises = reorderedItems.map((item, index) => updateMenuItem({
+          variables: {
+            id: item.id,
+            input: {
+              title: item.title,
+              url: item.url,
+              menuId,
+              parentId: sourceParentId,
+              position: index,
             },
-          }),
-        );
+          },
+        }));
 
         await Promise.all(updatePromises);
       } else {
@@ -324,20 +398,18 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
           (item) => item.id !== draggedItem.id,
         );
 
-        const sourceUpdatePromises = remainingSourceItems.map((item, index) =>
-          updateMenuItem({
-            variables: {
-              id: item.id,
-              input: {
-                title: item.title,
-                url: item.url,
-                menuId,
-                parentId: sourceParentId,
-                position: index,
-              },
+        const sourceUpdatePromises = remainingSourceItems.map((item, index) => updateMenuItem({
+          variables: {
+            id: item.id,
+            input: {
+              title: item.title,
+              url: item.url,
+              menuId,
+              parentId: sourceParentId,
+              position: index,
             },
-          }),
-        );
+          },
+        }));
 
         await Promise.all([...updatePromises, ...sourceUpdatePromises]);
       }
@@ -346,23 +418,6 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     } catch (error) {
       console.error('Failed to update menu items:', error);
     }
-  };
-
-  const isMovingToChild = (
-    draggedId: string,
-    targetParentId: string | undefined,
-    allItems: ISiteMenuItem[],
-  ): boolean => {
-    if (!targetParentId) return false;
-
-    let currentParent = allItems.find((item) => item.id === targetParentId);
-    while (currentParent) {
-      if (currentParent.id === draggedId) {
-        return true;
-      }
-      currentParent = allItems.find((item) => item.id === currentParent?.parentId);
-    }
-    return false;
   };
 
   return (
@@ -409,8 +464,12 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                 fullWidth
                 size="small"
               >
-                <ToggleButton value="custom">Произвольная ссылка</ToggleButton>
-                <ToggleButton value="page">Страница сайта</ToggleButton>
+                <ToggleButton value={ISiteMenuItemType.URL}>
+                  Произвольная ссылка
+                </ToggleButton>
+                <ToggleButton value={ISiteMenuItemType.SiteItem}>
+                  Страница сайта
+                </ToggleButton>
               </ToggleButtonGroup>
             </Box>
           )}
@@ -423,7 +482,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             margin="normal"
           />
 
-          {itemType === 'page' && !editingItem ? (
+          {itemType === ISiteMenuItemType.SiteItem && !editingItem ? (
             <FormControl fullWidth margin="normal">
               <InputLabel>Выберите страницу</InputLabel>
               <Select

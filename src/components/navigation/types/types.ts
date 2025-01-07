@@ -40,8 +40,6 @@ export interface MenuItemFormData {
   url: string;
 }
 
-export type ItemType = 'custom' | 'page';
-
 export interface MenuItemNode extends ISiteMenuItem {
   children: MenuItemNode[];
 }

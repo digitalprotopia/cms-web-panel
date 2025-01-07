@@ -21,13 +21,13 @@ export default function CreateMenuDialog({ open, onClose, onSubmit }: CreateMenu
     onClose();
   };
 
-  const handleChange =
-    (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: e.target.value,
-      }));
-    };
+  // eslint-disable-next-line max-len
+  const handleChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: e.target.value,
+    }));
+  };
 
   return (
     <Dialog open={open} onClose={onClose}>

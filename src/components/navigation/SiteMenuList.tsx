@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Box, Button, Card, CardContent, Typography, Skeleton } from '@mui/material';
 import { useMutation } from '@apollo/client';
+import { DELETE_SITE_MENU } from '@/graphql/SiteMenu';
 import { ISiteMenu } from '../entities/ISiteMenu';
 import SiteMenuItems from './SiteMenuItems';
 import CreateMenuItemDialog from './CreateMenuItemDialog';
 import EditMenuDialog from './EditMenuDialog';
-import { DELETE_SITE_MENU } from '@/graphql/SiteMenu';
 import { SiteMenuListProps } from './types/types';
 
 export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: SiteMenuListProps) {
