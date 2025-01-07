@@ -27,6 +27,7 @@ import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 import { useTableByDbName } from './use-table';
 import { UserContextData } from './UserContext';
+import { FormWidget, PageWidget } from './ParseWidgets';
 
 export function parseReact(
   code: string,
@@ -62,6 +63,8 @@ export function parseReact(
       ruLocale,
       dayjs,
       useRouter,
+      FormWidget,
+      PageWidget,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
