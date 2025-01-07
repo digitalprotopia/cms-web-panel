@@ -128,7 +128,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
     if (selectedPage) {
       setSelectedPageId(pageId);
       setFormData({
-        title: selectedPage.title,
+        ...formData,
         url: selectedPage.url,
       });
     }
@@ -342,6 +342,14 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             </Box>
           )}
 
+          <TextField
+            label="Название"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+
           {itemType === 'page' && !editingItem ? (
             <FormControl fullWidth margin="normal">
               <InputLabel>Выберите страницу</InputLabel>
@@ -358,22 +366,13 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
               </Select>
             </FormControl>
           ) : (
-            <>
-              <TextField
-                label="Название"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                fullWidth
-                margin="normal"
-              />
-              <TextField
-                label="URL"
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                fullWidth
-                margin="normal"
-              />
-            </>
+            <TextField
+              label="URL"
+              value={formData.url}
+              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+              fullWidth
+              margin="normal"
+            />
           )}
         </DialogContent>
         <DialogActions>
