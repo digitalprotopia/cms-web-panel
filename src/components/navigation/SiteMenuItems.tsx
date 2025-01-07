@@ -105,7 +105,6 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
 
   const handleDelete = async (itemId: string) => {
     if (window.confirm('Вы уверены, что хотите удалить этот пункт меню и все его подпункты?')) {
-      // Get all descendant items
       const getDescendantIds = (id: string): string[] => {
         const children = items.filter((item) => item.parentId === id);
         return [id, ...children.flatMap((child) => getDescendantIds(child.id))];
@@ -113,7 +112,6 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
 
       const idsToDelete = getDescendantIds(itemId);
 
-      // Delete all items in sequence
       for (const id of idsToDelete) {
         await deleteMenuItem({
           variables: { id },
@@ -143,7 +141,6 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
   };
 
   const renderMenuItems = (nodes: MenuItemNode[], level: number = 0) => {
-    // Generate a unique droppableId for each level
     const droppableId = level === 0 ? 'droppable-root' : `droppable-${level}-${nodes[0]?.parentId}`;
 
     return (
@@ -163,12 +160,7 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
             }}
           >
             {nodes.map((item, index) => (
-              <Draggable
-                key={item.id}
-                draggableId={item.id}
-                index={index}
-                isDragDisabled={level === 0 && item.children.length > 0}
-              >
+              <Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={false}>
                 {(provided, snapshot) => (
                   <>
                     <ListItem
@@ -189,7 +181,6 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
                             size="small"
                             onClick={() => {
                               setParentId(item.id);
-                              console.log(item.id);
                               setIsCreateDialogOpen(true);
                             }}
                             sx={{ mr: 1 }}
@@ -235,61 +226,143 @@ export default function SiteMenuItems({ items, menuId, onUpdate }: SiteMenuItems
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
-    // Special handling for root level
-    const isRoot = result.source.droppableId === 'droppable-root';
-    const sourceParentId = isRoot
-      ? undefined
-      : result.source.droppableId.split('-').slice(2).join('-');
-    const destinationParentId = isRoot
-      ? undefined
-      : result.destination.droppableId.split('-').slice(2).join('-');
+    const sourceParentId =
+      result.source.droppableId === 'droppable-root'
+        ? undefined
+        : result.source.droppableId.split('-').slice(2).join('-');
 
-    // Only allow reordering within the same parent
-    if (sourceParentId !== destinationParentId) {
+    const destinationParentId =
+      result.destination.droppableId === 'droppable-root'
+        ? undefined
+        : result.destination.droppableId.split('-').slice(2).join('-');
+
+    let itemsWithSameSourceParent;
+    if (sourceParentId) {
+      itemsWithSameSourceParent = items
+        .filter((item) => item.parentId === sourceParentId)
+        .sort((a, b) => a.order - b.order);
+    } else {
+      itemsWithSameSourceParent = items
+        .filter((item) => !item.parentId)
+        .sort((a, b) => a.order - b.order);
+    }
+    const draggedItem = itemsWithSameSourceParent[result.source.index];
+
+    const isValidMove = !isMovingToChild(draggedItem.id, destinationParentId, items);
+    if (!isValidMove) {
       return;
     }
 
-    // Get items to reorder based on whether we're handling root or nested items
-    let itemsToReorder;
-    if (isRoot) {
-      // For root items, get all items without parentId
-      itemsToReorder = items.filter((item) => !item.parentId).sort((a, b) => a.order - b.order);
-    } else {
-      // For nested items, get all items with the same parentId
-      itemsToReorder = items
-        .filter((item) => item.parentId === sourceParentId)
-        .sort((a, b) => a.order - b.order);
-    }
-
-    // Create a new array with the current order
-    const reorderedItems = Array.from(itemsToReorder);
-
-    // Remove the item from its current position and insert it at the new position
-    const [movedItem] = reorderedItems.splice(result.source.index, 1);
-    reorderedItems.splice(result.destination.index, 0, movedItem);
-
     try {
-      // Update orders for all items in the reordered array
-      const updatePromises = reorderedItems.map((item, index) =>
-        updateMenuItem({
+      if (sourceParentId === destinationParentId) {
+        const reorderedItems = Array.from(itemsWithSameSourceParent);
+        const [movedItem] = reorderedItems.splice(result.source.index, 1);
+        reorderedItems.splice(result.destination.index, 0, movedItem);
+
+        const updatePromises = reorderedItems.map((item, index) =>
+          updateMenuItem({
+            variables: {
+              id: item.id,
+              input: {
+                title: item.title,
+                url: item.url,
+                menuId,
+                parentId: sourceParentId,
+                order: index,
+              },
+            },
+          }),
+        );
+
+        await Promise.all(updatePromises);
+      } else {
+        let itemsWithSameDestParent;
+        if (destinationParentId) {
+          itemsWithSameDestParent = items
+            .filter((item) => item.parentId === destinationParentId)
+            .sort((a, b) => a.order - b.order);
+        } else {
+          itemsWithSameDestParent = items
+            .filter((item) => !item.parentId)
+            .sort((a, b) => a.order - b.order);
+        }
+
+        await updateMenuItem({
           variables: {
-            id: item.id,
+            id: draggedItem.id,
             input: {
-              title: item.title,
-              url: item.url,
+              title: draggedItem.title,
+              url: draggedItem.url,
               menuId,
-              parentId: sourceParentId, // undefined for root items, parentId for nested
-              order: index,
+              parentId: destinationParentId,
+              order: result.destination.index,
             },
           },
-        }),
-      );
+        });
 
-      await Promise.all(updatePromises);
+        const updatePromises = itemsWithSameDestParent.map((item, index) => {
+          let newIndex = index;
+          if (index >= result.destination!.index) {
+            newIndex = index + 1;
+          }
+
+          return updateMenuItem({
+            variables: {
+              id: item.id,
+              input: {
+                title: item.title,
+                url: item.url,
+                menuId,
+                parentId: destinationParentId,
+                order: newIndex,
+              },
+            },
+          });
+        });
+
+        const remainingSourceItems = itemsWithSameSourceParent.filter(
+          (item) => item.id !== draggedItem.id,
+        );
+
+        const sourceUpdatePromises = remainingSourceItems.map((item, index) =>
+          updateMenuItem({
+            variables: {
+              id: item.id,
+              input: {
+                title: item.title,
+                url: item.url,
+                menuId,
+                parentId: sourceParentId,
+                order: index,
+              },
+            },
+          }),
+        );
+
+        await Promise.all([...updatePromises, ...sourceUpdatePromises]);
+      }
+
       onUpdate();
     } catch (error) {
-      console.error('Failed to update menu items order:', error);
+      console.error('Failed to update menu items:', error);
     }
+  };
+
+  const isMovingToChild = (
+    draggedId: string,
+    targetParentId: string | undefined,
+    allItems: ISiteMenuItem[],
+  ): boolean => {
+    if (!targetParentId) return false;
+
+    let currentParent = allItems.find((item) => item.id === targetParentId);
+    while (currentParent) {
+      if (currentParent.id === draggedId) {
+        return true;
+      }
+      currentParent = allItems.find((item) => item.id === currentParent?.parentId);
+    }
+    return false;
   };
 
   return (
