@@ -21,12 +21,13 @@ export default function CreateMenuDialog({ open, onClose, onSubmit }: CreateMenu
     onClose();
   };
 
-  const handleChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
-  };
+  const handleChange =
+    (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: e.target.value,
+      }));
+    };
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -35,19 +36,19 @@ export default function CreateMenuDialog({ open, onClose, onSubmit }: CreateMenu
       <DialogContent>
         <TextField
           label="Название"
-          value={formData.title}
-          onChange={handleChange('title')}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Техническое название"
           value={formData.name}
           onChange={handleChange('name')}
           fullWidth
           margin="normal"
         />
 
+        <TextField
+          label="Заголовок"
+          value={formData.title}
+          onChange={handleChange('title')}
+          fullWidth
+          margin="normal"
+        />
       </DialogContent>
 
       <DialogActions>

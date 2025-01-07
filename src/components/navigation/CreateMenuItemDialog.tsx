@@ -83,7 +83,7 @@ export default function CreateMenuItemDialog({
           title: title || selectedPage?.title,
           url: url || selectedPage?.url,
           menuId,
-          position: existingItems.length,
+          order: existingItems.length,
           name: (title || selectedPage?.title || '').toLowerCase().replace(/\s+/g, '-'),
         },
       },

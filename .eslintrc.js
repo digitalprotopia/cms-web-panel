@@ -6,9 +6,9 @@ module.exports = {
     'next/typescript',
     'airbnb',
     'airbnb-typescript',
-    // 'prettier',
+    'prettier',
   ],
-  // plugins: ['prettier'],
+  plugins: ['prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json',

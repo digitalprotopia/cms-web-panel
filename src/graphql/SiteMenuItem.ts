@@ -7,7 +7,7 @@ export const CREATE_MENU_ITEM = gql`
       title
       url
       parentId
-      position
+      order
       createdAt
     }
   }
@@ -20,7 +20,7 @@ export const UPDATE_MENU_ITEM = gql`
       title
       url
       parentId
-      position
+      order
     }
   }
 `;
