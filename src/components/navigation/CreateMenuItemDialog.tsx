@@ -85,6 +85,7 @@ export default function CreateMenuItemDialog({
           menuId,
           position: existingItems.length,
           name: (title || selectedPage?.title || '').toLowerCase().replace(/\s+/g, '-'),
+          siteItemId: selectedPage?.id,
         },
       },
     });

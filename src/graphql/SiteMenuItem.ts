@@ -7,6 +7,7 @@ export const CREATE_MENU_ITEM = gql`
       title
       url
       parentId
+      siteItemId
       position
       createdAt
     }

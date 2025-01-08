@@ -1,5 +1,6 @@
 import { IEntity } from './IEntity';
 import { ISite } from './ISite';
+import { ISiteItem } from './ISiteItem';
 // eslint-disable-next-line import/no-cycle
 import { ISiteMenu } from './ISiteMenu';
 
@@ -15,5 +16,6 @@ export interface ISiteMenuItem extends IEntity {
   siteId?: ISite['id'];
   menuId: ISiteMenu['id'];
   parentId?: ISiteMenuItem['id'];
+  siteItemId?: ISiteItem['id'];
   type: ISiteMenuItemType;
 }

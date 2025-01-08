@@ -12,6 +12,7 @@ export const GET_SITE_MENUS = gql`
         url
         position
         parentId
+        siteItemId
         createdAt
       }
       createdAt

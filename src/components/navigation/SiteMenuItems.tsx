@@ -141,6 +141,7 @@ export default function SiteMenuItems({
             menuId,
             parentId,
             position: items.filter((item) => item.parentId === parentId).length,
+            siteItemId: selectedPageId,
           },
         },
       });
