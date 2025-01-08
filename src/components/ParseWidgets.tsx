@@ -1,6 +1,6 @@
 import { gql, useQuery } from '@apollo/client';
-import { useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import React, { useContext, useEffect, useState } from 'react';
+import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { Button, IconButton, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
@@ -8,12 +8,80 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
 import { Close } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import UserContext from './UserContext';
-import DynamicParse, { parseReact } from './DynamicParse';
-import { TemplateLanguage } from './entities/ITemplate';
-import useTable, { TableField, useAddRow } from './use-table';
-import FormField from './form';
+
+import * as Mui from '@mui/material';
+
+import * as babel from '@babel/standalone';
+
+import Head from 'next/head';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import listPlugin from '@fullcalendar/list';
+import ruLocale from '@fullcalendar/core/locales/ru';
+import Link from 'next/link';
 import { FieldType } from './entities/IField';
+import FormField from './form';
+import useTable, { TableField, useAddRow, useTableByDbName } from './use-table';
+import { TemplateLanguage } from './entities/ITemplate';
+import DynamicParse from './DynamicParse';
+import UserContext, { UserContextData } from './UserContext';
+
+import { ISiteItem } from './entities/ISiteItem';
+import { getReactTemplateDefinition } from './reactTemplates';
+
+export function parseReact(
+  code: string,
+  context: UserContextData,
+  pages: ISiteItem[],
+  router: NextRouter,
+):
+  {
+    Component: React.ComponentType<any>,
+    filter?: (data: any[]) => any[],
+    search?: any,
+    ListComponent?: React.ComponentType<any>,
+  } {
+  try {
+    const babelCode = babel.transform(code, {
+      presets: ['react', 'es2017'],
+    }).code;
+
+    const resultCode = babelCode!.replace('"use strict";', '').trim();
+    const data = {
+      React,
+      Mui,
+      Link,
+      context,
+      user: context.user,
+      pages,
+      useTableByDbName,
+      router,
+      Head,
+      FullCalendar,
+      dayGridPlugin,
+      listPlugin,
+      ruLocale,
+      dayjs,
+      useRouter,
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      FormWidget,
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      PageWidget,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
+    return func(data);
+  } catch (e) {
+    return {
+      Component: () => (
+        <div>
+          Ошибка разбора:
+          <pre>{e?.toString()}</pre>
+        </div>
+      ),
+    };
+  }
+}
 
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
