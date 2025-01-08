@@ -1,7 +1,6 @@
 const reactTemplates: Record<string, { definition: string, type: string }> = {
   list: {
     definition: `
-        const { React, Mui, Link, user, pages, context, useTableByDbName, router, Head } = data;
       let filter = null;
       const result = { 
       }
@@ -71,6 +70,12 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
   },
 };
 
-export const getReactTemplateDefinition = (template: string, code: string) => reactTemplates[template].definition.replace('{resultCode}', code);
+export const getReactTemplateDefinition = (template: string, code: string, data: any) => {
+  let result = '';
+  Object.keys(data).forEach((i) => {
+    result += `const ${i} = data.${i};\n`;
+  });
+  return result + reactTemplates[template].definition.replace('{resultCode}', code);
+};
 
 export const getReactTemplateType = (template: string) => reactTemplates[template].type;

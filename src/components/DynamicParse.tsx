@@ -13,51 +13,6 @@ import reactStringReplace from 'react-string-replace';
 import { ErrorBoundary } from 'react-error-boundary';
 import Link from 'next/link';
 
-import * as Mui from '@mui/material';
-
-import * as babel from '@babel/standalone';
-import { NextRouter } from 'next/router';
-import Head from 'next/head';
-import { ISiteItem } from './entities/ISiteItem';
-import { getReactTemplateDefinition } from './reactTemplates';
-import { useTableByDbName } from './use-table';
-import { UserContextData } from './UserContext';
-
-export function parseReact(
-  code: string,
-  context: UserContextData,
-  pages: ISiteItem[],
-  router: NextRouter,
-):
-  {
-    Component: React.ComponentType<any>,
-    filter?: (data: any[]) => any[],
-    search?: any,
-    ListComponent?: React.ComponentType<any>,
-  } {
-  try {
-    const babelCode = babel.transform(code, {
-      presets: ['react', 'es2017'],
-    }).code;
-
-    const resultCode = babelCode!.replace('"use strict";', '').trim();
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('data', getReactTemplateDefinition('list', resultCode));
-    return func({
-      React, Mui, Link, context, user: context.user, pages, useTableByDbName, router, Head,
-    });
-  } catch (e) {
-    return {
-      Component: () => (
-        <div>
-          Ошибка разбора:
-          <pre>{e?.toString()}</pre>
-        </div>
-      ),
-    };
-  }
-}
-
 const ReplaceContext = createContext<Record<string, string | React.JSX.Element>>({});
 
 function DynamicParse(props: {
