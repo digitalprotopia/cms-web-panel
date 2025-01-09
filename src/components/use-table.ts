@@ -408,6 +408,116 @@ export const useDeleteField = () => {
   });
 };
 
+export const usePosts = () => {
+  const result = useQuery(gql`
+    query GetPosts {
+      getPosts {
+        id
+        title
+        content
+        blockContent
+        createdAt
+        categories {
+          id
+          title
+        }
+        tags {
+          id
+          title
+        }
+      }
+    }
+  `);
+
+  return result;
+};
+
+export const usePostsByTagSlug = (slug: string) => {
+  const result = useQuery(gql`
+    query GetPostsByTagSlug($slug: String!) {
+      getPostsByTagSlug(slug: $slug) {
+        id
+        title
+        content
+        blockContent
+        createdAt
+        categories {
+          id
+          title
+        }
+        tags {
+          id
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      slug,
+    },
+  });
+
+  return result;
+};
+
+export const usePostsByCategorySlug = (slug: string) => {
+  const result = useQuery(gql`
+    query GetPostsByCategorySlug($slug: String!) {
+      getPostsByCategorySlug(slug: $slug) {
+        id
+        title
+        content
+        blockContent
+        createdAt
+        categories {
+          id
+          title
+        }
+        tags {
+          id
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      slug,
+    },
+  });
+
+  return result;
+};
+
+export const useTags = () => {
+  const result = useQuery(gql`
+    query GetTags {
+      getTags {
+        id
+        title
+        slug
+        createdAt
+      }
+    }
+  `);
+
+  return result;
+};
+
+export const useCategories = () => {
+  const result = useQuery(gql`
+    query GetCategories {
+      getCategories {
+        id
+        title
+        slug
+        createdAt
+      }
+    }
+  `);
+
+  return result;
+};
+
 export type {
   TableMeta, TableField, TableData, UseTableOptions,
 };

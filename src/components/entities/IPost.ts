@@ -4,4 +4,6 @@ export interface IPost extends IEntity {
   title: string;
   content: string;
   blockContent: any;
+  tags?: string[];
+  categoryIds?: string[];
 }

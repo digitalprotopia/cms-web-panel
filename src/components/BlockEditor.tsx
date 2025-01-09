@@ -28,6 +28,7 @@ import {
   DashboardOutlined, North, South, WidgetsOutlined,
 } from '@mui/icons-material';
 import { IWidget } from './entities/IWidget';
+// eslint-disable-next-line import/no-cycle
 import { FormWidget, PageWidget } from './ParseWidgets';
 
 import '@blocknote/core/fonts/inter.css';
@@ -95,7 +96,11 @@ export const BlockEditorWidget = createReactBlockSpec(
               </Menu>
             )
             : null}
-          <div style={{ flex: 1 }}>
+          <div style={{
+            flex: 1,
+            pointerEvents: props.editor.isEditable ? 'none' : undefined,
+          }}
+          >
             {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
           </div>
         </div>
@@ -220,7 +225,13 @@ export const BlockEditorPosts = createReactBlockSpec(
   {
     render: (props) => (
       <div data-widget-type="posts">
-        {props.editor.isEditable ? 'Посты' : <Posts />}
+        {props.editor.isEditable
+          ? (
+            <div style={{ pointerEvents: 'none' }}>
+              <Posts />
+            </div>
+          )
+          : <Posts />}
       </div>
     ),
   },
@@ -405,47 +416,65 @@ function BlockEditor({
         }
       `}
       </style>
-      <BlockNoteView
-        slashMenu={false}
-        sideMenu={false}
-        editor={editor}
-        editable={isEditable}
-        onChange={() => {
-          onChange(editor.document);
-        // editor.blocksToFullHTML(editor.document).then((html) => {
-        //   setFormData({ ...formData, html });
-        // });
-        }}
+      <div style={isEditable ? {
+        borderColor: 'lightgray',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderRadius: 4,
+      } : undefined}
       >
-        <SideMenuController
-          sideMenu={(props) => (
-            <SideMenu {...props}>
-              {/* Button which removes the hovered block. */}
-              <AddBlockButton {...props} />
-              <AddUpButton {...props} />
-              <AddBottomButton {...props} />
-              <DragHandleButton {...props} />
-            </SideMenu>
-          )}
-        />
-        <SuggestionMenuController
-          triggerCharacter="/"
-          getItems={async (query) => (
-          // Gets all default slash menu items and `insertAlert` item.
-            filterSuggestionItems(
-              [...combineByGroup(
-                getDefaultReactSlashMenuItems(editor),
-                getMultiColumnSlashMenuItems(editor),
-              ),
-              ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
-              ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
-              insertBlockEditorPosts(editor as any),
-              ],
-              query,
-            ))}
-        />
-      </BlockNoteView>
+        <BlockNoteView
+          slashMenu={false}
+          sideMenu={false}
+          editor={editor}
+          editable={isEditable}
+          onChange={() => {
+            onChange(editor.document);
+            // editor.blocksToFullHTML(editor.document).then((html) => {
+            //   setFormData({ ...formData, html });
+            // });
+          }}
+        >
+          <SideMenuController
+            sideMenu={(props) => (
+              <SideMenu {...props}>
+                {/* Button which removes the hovered block. */}
+                <AddBlockButton {...props} />
+                <AddUpButton {...props} />
+                <AddBottomButton {...props} />
+                <DragHandleButton {...props} />
+              </SideMenu>
+            )}
+          />
+          <SuggestionMenuController
+            triggerCharacter="/"
+            getItems={async (query) => (
+              // Gets all default slash menu items and `insertAlert` item.
+              filterSuggestionItems(
+                [...combineByGroup(
+                  getDefaultReactSlashMenuItems(editor),
+                  getMultiColumnSlashMenuItems(editor),
+                ),
+                ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
+                ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
+                insertBlockEditorPosts(editor as any),
+                ],
+                query,
+              ))}
+          />
+        </BlockNoteView>
+      </div>
     </>
+  );
+}
+
+export function BlockView(props: { blockContent: any }) {
+  return (
+    <BlockEditor
+      initialData={props.blockContent}
+      onChange={() => {}}
+      isEditable={false}
+    />
   );
 }
 
