@@ -28,6 +28,7 @@ import {
   DashboardOutlined, North, South, WidgetsOutlined,
 } from '@mui/icons-material';
 import { IWidget } from './entities/IWidget';
+// eslint-disable-next-line import/no-cycle
 import { FormWidget, PageWidget } from './ParseWidgets';
 
 import '@blocknote/core/fonts/inter.css';

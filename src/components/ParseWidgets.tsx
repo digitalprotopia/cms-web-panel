@@ -19,15 +19,21 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
 import ruLocale from '@fullcalendar/core/locales/ru';
 import Link from 'next/link';
+import { Register } from '@/pages/auth/register';
+import { Login } from '@/pages/auth/login';
 import { FieldType } from './entities/IField';
 import FormField from './form';
-import useTable, { TableField, useAddRow, useCategories, usePosts, usePostsByCategorySlug, usePostsByTagSlug, useTableByDbName, useTags } from './use-table';
+import useTable, {
+  TableField, useAddRow, useCategories, usePosts,
+  usePostsByCategorySlug, usePostsByTagSlug, useTableByDbName, useTags,
+} from './use-table';
 import { TemplateLanguage } from './entities/ITemplate';
 import DynamicParse from './DynamicParse';
 import UserContext, { UserContextData } from './UserContext';
 
 import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
+// eslint-disable-next-line import/no-cycle
 import { BlockView } from './BlockEditor';
 
 export function parseReact(
@@ -74,6 +80,8 @@ export function parseReact(
       useTags,
       useCategories,
       BlockView,
+      Register,
+      Login,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));

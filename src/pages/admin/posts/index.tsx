@@ -85,7 +85,7 @@ const DELETE_POST = gql`
 
 function PostForm({
   initialData = {},
-  tags,
+  // tags,
   categories,
   onSubmit,
   onCancel,
