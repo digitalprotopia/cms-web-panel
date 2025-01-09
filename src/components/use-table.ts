@@ -408,6 +408,68 @@ export const useDeleteField = () => {
   });
 };
 
+export const usePosts = () => {
+  const result = useQuery(gql`
+    query GetPosts {
+      getPosts {
+        id
+        title
+        content
+        blockContent
+        createdAt
+        categories {
+          id
+          title
+        }
+        tags {
+          id
+          title
+        }
+      }
+      getTags {
+        id
+        title
+      }
+      getCategories {
+        id
+        title
+      }
+    }
+  `);
+
+  return result;
+};
+
+export const useTags = () => {
+  const result = useQuery(gql`
+    query GetTags {
+      getTags {
+        id
+        title
+        slug
+        createdAt
+      }
+    }
+  `);
+
+  return result;
+};
+
+export const useCategories = () => {
+  const result = useQuery(gql`
+    query GetCategories {
+      getCategories {
+        id
+        title
+        slug
+        createdAt
+      }
+    }
+  `);
+
+  return result;
+};
+
 export type {
   TableMeta, TableField, TableData, UseTableOptions,
 };

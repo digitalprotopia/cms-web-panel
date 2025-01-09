@@ -21,13 +21,14 @@ import ruLocale from '@fullcalendar/core/locales/ru';
 import Link from 'next/link';
 import { FieldType } from './entities/IField';
 import FormField from './form';
-import useTable, { TableField, useAddRow, useTableByDbName } from './use-table';
+import useTable, { TableField, useAddRow, useCategories, usePosts, useTableByDbName, useTags } from './use-table';
 import { TemplateLanguage } from './entities/ITemplate';
 import DynamicParse from './DynamicParse';
 import UserContext, { UserContextData } from './UserContext';
 
 import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
+import { BlockView } from './BlockEditor';
 
 export function parseReact(
   code: string,
@@ -67,6 +68,10 @@ export function parseReact(
       FormWidget,
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       PageWidget,
+      usePosts,
+      useTags,
+      useCategories,
+      BlockView,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
