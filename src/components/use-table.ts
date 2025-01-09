@@ -426,16 +426,64 @@ export const usePosts = () => {
           title
         }
       }
-      getTags {
-        id
-        title
-      }
-      getCategories {
-        id
-        title
-      }
     }
   `);
+
+  return result;
+};
+
+export const usePostsByTagSlug = (slug: string) => {
+  const result = useQuery(gql`
+    query GetPostsByTagSlug($slug: String!) {
+      getPostsByTagSlug(slug: $slug) {
+        id
+        title
+        content
+        blockContent
+        createdAt
+        categories {
+          id
+          title
+        }
+        tags {
+          id
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      slug,
+    },
+  });
+
+  return result;
+};
+
+export const usePostsByCategorySlug = (slug: string) => {
+  const result = useQuery(gql`
+    query GetPostsByCategorySlug($slug: String!) {
+      getPostsByCategorySlug(slug: $slug) {
+        id
+        title
+        content
+        blockContent
+        createdAt
+        categories {
+          id
+          title
+        }
+        tags {
+          id
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      slug,
+    },
+  });
 
   return result;
 };

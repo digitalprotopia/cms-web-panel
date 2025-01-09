@@ -95,7 +95,11 @@ export const BlockEditorWidget = createReactBlockSpec(
               </Menu>
             )
             : null}
-          <div style={{ flex: 1 }}>
+          <div style={{
+            flex: 1,
+            pointerEvents: props.editor.isEditable ? 'none' : undefined,
+          }}
+          >
             {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
           </div>
         </div>
@@ -220,7 +224,13 @@ export const BlockEditorPosts = createReactBlockSpec(
   {
     render: (props) => (
       <div data-widget-type="posts">
-        {props.editor.isEditable ? <Posts /> : <Posts />}
+        {props.editor.isEditable
+          ? (
+            <div style={{ pointerEvents: 'none' }}>
+              <Posts />
+            </div>
+          )
+          : <Posts />}
       </div>
     ),
   },
@@ -410,9 +420,7 @@ function BlockEditor({
         borderWidth: 1,
         borderStyle: 'solid',
         borderRadius: 4,
-      } : {
-        pointerEvents: 'none',
-      }}
+      } : undefined}
       >
         <BlockNoteView
           slashMenu={false}

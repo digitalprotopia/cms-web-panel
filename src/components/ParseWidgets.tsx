@@ -21,7 +21,7 @@ import ruLocale from '@fullcalendar/core/locales/ru';
 import Link from 'next/link';
 import { FieldType } from './entities/IField';
 import FormField from './form';
-import useTable, { TableField, useAddRow, useCategories, usePosts, useTableByDbName, useTags } from './use-table';
+import useTable, { TableField, useAddRow, useCategories, usePosts, usePostsByCategorySlug, usePostsByTagSlug, useTableByDbName, useTags } from './use-table';
 import { TemplateLanguage } from './entities/ITemplate';
 import DynamicParse from './DynamicParse';
 import UserContext, { UserContextData } from './UserContext';
@@ -69,6 +69,8 @@ export function parseReact(
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       PageWidget,
       usePosts,
+      usePostsByTagSlug,
+      usePostsByCategorySlug,
       useTags,
       useCategories,
       BlockView,
