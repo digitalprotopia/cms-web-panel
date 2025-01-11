@@ -386,7 +386,8 @@ function BlockEditor({
   });
 
   const editor = useCreateBlockNote({
-    initialContent: initialData,
+    // eslint-disable-next-line no-nested-ternary
+    initialContent: initialData ? (initialData.length ? initialData : null) : null,
     schema: withMultiColumn(schema),
     // The default drop cursor only shows up above and below blocks - we replace
     // it with the multi-column one that also shows up on the sides of blocks.

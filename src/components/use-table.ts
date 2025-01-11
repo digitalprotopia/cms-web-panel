@@ -137,6 +137,15 @@ export const generateGetTableDataQuery = (
           getAll${tableName} (search: $search) {
           id
           createdAt
+          updatedAt
+          createdBy {
+            id
+            name
+          }
+          updatedBy {
+            id
+            name
+          }
           _cms_title
           ${fields.map((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
@@ -417,6 +426,15 @@ export const usePosts = () => {
         content
         blockContent
         createdAt
+        updatedAt
+        createdBy {
+          id
+          name
+        }
+        updatedBy {
+          id
+          name
+        }
         categories {
           id
           title

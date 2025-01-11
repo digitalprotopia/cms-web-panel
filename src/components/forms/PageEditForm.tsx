@@ -158,15 +158,15 @@ export default function PageForm({
           </MenuItem>
         ))}
       </TextField>
-      <h4>Контент</h4>
-      <DefaultEditor
-        value={formData.html}
-        onChange={(e) => setFormData({ ...formData, html: e.target.value })}
-      />
       <h4>Блочный редактор</h4>
       <BlockEditor
         initialData={initialData.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+      />
+      <h4>Контент</h4>
+      <DefaultEditor
+        value={formData.html}
+        onChange={(e) => setFormData({ ...formData, html: e.target.value })}
       />
       <h4>Добавить виджеты</h4>
       <div>

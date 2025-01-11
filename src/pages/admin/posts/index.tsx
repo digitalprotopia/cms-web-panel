@@ -166,15 +166,15 @@ function PostForm({
         />
       </div>
 
-      <h4>Контент</h4>
-      <DefaultEditor
-        value={formData.content}
-        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-      />
       <h4>Блочный редактор</h4>
       <BlockEditor
         initialData={initialData.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+      />
+      <h4>Контент</h4>
+      <DefaultEditor
+        value={formData.content}
+        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
       />
 
       <div className="flex justify-end gap-2 mt-5">

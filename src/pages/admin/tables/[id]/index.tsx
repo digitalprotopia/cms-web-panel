@@ -450,7 +450,46 @@ function TablePage() {
   const columns = useMemo(() => {
     // if (!meta?.fields) return [];
 
-    const result = fields.map(
+    let result: MRT_ColumnDef<MRT_RowData>[] = [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        Header: 'ID',
+        Cell: ({ cell }) => <>{cell.getValue()}</>,
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Создан',
+        Header: 'Создан',
+        Cell: ({ cell }) => (
+          cell.getValue()
+            ? dayjs(cell.getValue() as any).format('YYYY-MM-DD HH:mm') : null
+        ),
+      },
+      {
+        accessorKey: 'updatedAt',
+        header: 'Обновлен',
+        Header: 'Обновлен',
+        Cell: ({ cell }) => (
+          cell.getValue()
+            ? dayjs(cell.getValue() as any).format('YYYY-MM-DD HH:mm') : null
+        ),
+      },
+      {
+        accessorKey: 'createdBy',
+        header: 'Создал',
+        Header: 'Создал',
+        Cell: ({ cell }) => (cell.getValue() as any)?.name,
+      },
+      {
+        accessorKey: 'updatedBy',
+        header: 'Обновил',
+        Header: 'Обновил',
+        Cell: ({ cell }) => (cell.getValue() as any)?.name,
+      },
+    ];
+
+    result = [...result, ...fields.map(
       (field: IField): MRT_ColumnDef<MRT_RowData> => ({
         accessorKey: field.dbName,
         header: field.name,
@@ -461,6 +500,7 @@ function TablePage() {
           const editField = useEditField();
           const [editForm, setEditForm] = useState<Partial<IField>>({
             name: field.name,
+            dbName: field.dbName,
           });
           return (
             <div
@@ -495,17 +535,28 @@ function TablePage() {
                     {' '}
                     {field.dbName}
                   </div>
+                  <div className="text-sm">
+                    Тип:
+                    {' '}
+                    {field.type}
+                  </div>
                   <h4>Редактировать поле</h4>
                   <TextField
                     label="Название"
                     value={editForm.name}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
                   />
+                  <TextField
+                    label="Техническое название"
+                    value={editForm.dbName}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, dbName: e.target.value }))}
+                  />
                   <Button
                     variant="contained"
                     onClick={async () => {
                       await editField(field.id, {
                         name: editForm.name,
+                        dbName: editForm.dbName,
                       });
                       setDropDownOpen(false);
                       setTimeout(() => handleRefetch(), 2000);
@@ -610,7 +661,7 @@ function TablePage() {
               </div>
             ) : null;
           }
-          if (cellValue === '' || cellValue === null) {
+          if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;
           }
           return (
@@ -620,7 +671,7 @@ function TablePage() {
           );
         },
       }),
-    );
+    )];
     result.push({
       enableColumnOrdering: false,
       header: '+',
@@ -765,7 +816,18 @@ function TablePage() {
         )}
         state={{
           isLoading: loading,
-          columnOrder: ['mrt-row-actions', ...fields.map((field) => field.dbName), '+'],
+          columnOrder: ['mrt-row-actions',
+            'id', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy',
+            ...fields.map((field) => field.dbName), '+'],
+        }}
+        initialState={{
+          columnVisibility: {
+            id: false,
+            createdAt: false,
+            updatedAt: false,
+            createdBy: false,
+            updatedBy: false,
+          },
         }}
         muiTablePaperProps={{
           elevation: 0,

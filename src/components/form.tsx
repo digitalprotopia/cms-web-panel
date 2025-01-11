@@ -224,6 +224,7 @@ function FormFieldOneToManyOne(props: FormFieldProps) {
       value={props.value || ''}
       onChange={(e) => props.onChange(e.target.value)}
     >
+      <MenuItem value={null as any}>Не выбрано</MenuItem>
       {table.data?.map((row: any) => (
         <MenuItem key={row.id} value={row.id}>
           {row._cms_title}
