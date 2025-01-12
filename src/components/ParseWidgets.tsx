@@ -395,7 +395,17 @@ export function PageWidget(props: {
   const table = useTable(data?.getWidgetByName?.tableView.tableId, { search });
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
-    return null;
+    return (
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          justifyContent: 'center',
+        }}
+      >
+        <Mui.CircularProgress />
+      </div>
+    );
   }
 
   let resultData = table.data ? [...table.data] : [];
