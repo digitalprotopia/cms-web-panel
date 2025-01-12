@@ -1,7 +1,4 @@
-import {
-  useQuery, gql, useMutation, useApolloClient,
-} from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { useQuery, gql, useMutation } from '@apollo/client';
 import {
   FieldType, IField, IFieldOptions,
 } from './entities/IField';
@@ -136,19 +133,17 @@ export const generateGetTableDataQuery = (
   });
   return gql`
       query GetTableData($search: ${tableName}Search) {
+        getUsers {
+          id
+          name
+        }
         ${tables.map((table) => `getAll${table} { id _cms_title }`).join('\n')}
           getAll${tableName} (search: $search) {
           id
           createdAt
           updatedAt
-          createdBy {
-            id
-            name
-          }
-          updatedBy {
-            id
-            name
-          }
+          createdById
+          updatedById
           _cms_title
           ${fields.map((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
@@ -158,72 +153,6 @@ export const generateGetTableDataQuery = (
       || field.type === FieldType.MANY_TO_MANY_FIRST
       || field.type === FieldType.MANY_TO_MANY_SECOND) {
       return `${field.dbName}Ids`;
-    }
-    if (field.type === FieldType.USER_CREATOR) {
-      return `${field.dbName} { id name }`;
-    }
-    if (field.type === FieldType.USER) {
-      return `${field.dbName} { id name }`;
-    }
-    if (field.type === FieldType.FILE) {
-      return `${field.dbName} { id name extension }`;
-    }
-    return field.dbName;
-  }).join('\n        ')}
-      }
-      }
-  `;
-// if (field.type === 'geo') {
-//   return `${field.dbName} { lat lon }`;
-// }
-};
-
-export const generateGetByIdsDataQuery = (
-  tableName: string,
-  fields: TableField[],
-) => {
-  const tables: string[] = [];
-  fields.forEach((field) => {
-    if (field.type === FieldType.ONE_TO_MANY_ONE
-      && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
-      tables.push(field.oneToManyLinkManyTable!.dbName);
-    }
-    if (field.type === FieldType.ONE_TO_MANY_MANY
-      && !tables.includes(field.oneToManyLinkOneTable!.dbName)) {
-      tables.push(field.oneToManyLinkOneTable!.dbName);
-    }
-    if (field.type === FieldType.MANY_TO_MANY_FIRST
-      && !tables.includes(field.manyToManyLinkSecondTable!.dbName)) {
-      tables.push(field.manyToManyLinkSecondTable!.dbName);
-    }
-    if (field.type === FieldType.MANY_TO_MANY_SECOND
-      && !tables.includes(field.manyToManyLinkFirstTable!.dbName)) {
-      tables.push(field.manyToManyLinkFirstTable!.dbName);
-    }
-  });
-  return gql`
-      query GetTableRows($ids: [String]) {
-          getByIds${tableName} (ids: $ids) {
-          id
-          createdAt
-          updatedAt
-          createdBy {
-            id
-            name
-          }
-          updatedBy {
-            id
-            name
-          }
-          _cms_title
-          ${fields.map((field) => {
-    if (field.type === FieldType.ONE_TO_MANY_ONE) {
-      return `${field.dbName} {id _cms_title}`;
-    }
-    if (field.type === FieldType.ONE_TO_MANY_MANY
-      || field.type === FieldType.MANY_TO_MANY_FIRST
-      || field.type === FieldType.MANY_TO_MANY_SECOND) {
-      return `${field.dbName} {id _cms_title}`;
     }
     if (field.type === FieldType.USER_CREATOR) {
       return `${field.dbName} { id name }`;
@@ -266,19 +195,13 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
 
   const tableMeta = tableMetaData?.getTable || tableMetaData?.getTableByDbName;
 
-  const [rows, setRows] = useState<any[]>([]);
-
   const {
     data: tableData,
     loading: dataLoading,
     error: dataError,
     refetch: refetchData,
   } = useQuery(
-    gql`query GetTableData($search: ${tableMeta?.dbName}Search) {
-        getAll${tableMeta?.dbName} (search: $search) {
-          id
-        }
-    }`,
+    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
     {
       skip: !tableMeta?.dbName || !tableMeta?.fields,
       onCompleted: (data) => {
@@ -289,30 +212,6 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
       },
     },
   );
-
-  const apollo = useApolloClient();
-
-  useEffect(() => {
-    if (tableData) {
-      (async () => {
-        const _rows: any[] = [];
-        let ids = tableData[`getAll${tableMeta!.dbName}`].map((row: any) => row.id);
-        const length = 0;
-        while (ids.length) {
-          const partIds = ids.slice(0, 10);
-          const _rows = await apollo.query({
-            query: generateGetByIdsDataQuery(tableMeta!.dbName, tableMeta!.fields),
-            variables: {
-              ids: partIds,
-            },
-          });
-          setRows((oldRows) => [...oldRows, ..._rows.data[`getByIds${tableMeta!.dbName}`]]);
-          ids = ids.slice(10);
-        }
-      }
-      )();
-    }
-  }, [tableData]);
 
   const processData = (data: any) => {
     const tables: string[] = [];
@@ -355,6 +254,11 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
       }
     });
 
+    data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+      row.createdBy = data.getUsers.find((user: any) => user.id === row.createdById);
+      row.updatedBy = data.getUsers.find((user: any) => user.id === row.updatedById);
+    });
+
     return data[`getAll${tableMeta!.dbName}`];
   };
 
@@ -379,11 +283,9 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
     }
   };
 
-  console.log(rows);
-
   return {
     meta: tableMeta,
-    data: tableData ? rows : null,
+    data: tableData ? processData(tableData) : null,
     loading,
     error,
     refetch,
