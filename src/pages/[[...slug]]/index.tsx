@@ -9,6 +9,7 @@ import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 import { ITemplate } from '@/components/entities/ITemplate';
 import Head from 'next/head';
 import BlockEditor from '@/components/BlockEditor';
+import { CircularProgress } from '@mui/material';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -18,16 +19,6 @@ const GET_SITEITEM = gql`
       html
       blockContent
       id
-    }
-    getAllSites {
-      templateGroup {
-        templates {
-          id
-          name
-          html
-          createdAt
-        }
-      }
     }
   }
 `;
@@ -95,9 +86,10 @@ function DynamicPage() {
     },
   );
 
-  if (siteItemLoading) return <span>Loading...</span>;
+  const { site } = user;
 
-  const site = siteItem?.getAllSites?.[0];
+  if (!site) return <span>Loading...</span>;
+
   const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
   let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
   <div>{menu}</div>
@@ -110,6 +102,31 @@ function DynamicPage() {
       {blockContent}
     </div>
   </div>`);
+
+  let blockContent:React.JSX.Element = <div />;
+
+  if (siteItemLoading) {
+    blockContent = (
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress />
+      </div>
+    );
+  }
+  if (siteItem) {
+    blockContent = (
+      <BlockEditor
+        initialData={siteItem?.getSiteItem.blockContent}
+        onChange={() => {}}
+        isEditable={false}
+      />
+    );
+  }
 
   const args = {
     menu: user.pages?.map((item) => {
@@ -127,11 +144,7 @@ function DynamicPage() {
       );
     }) || [],
     title: siteItem?.getSiteItem?.title || '',
-    blockContent: <BlockEditor
-      initialData={siteItem?.getSiteItem.blockContent}
-      onChange={() => {}}
-      isEditable={false}
-    />,
+    blockContent,
   };
 
   return (

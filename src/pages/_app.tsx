@@ -104,6 +104,16 @@ function CMSLayout({
           type
           createdAt
         }
+        getAllSites {
+          templateGroup {
+            templates {
+              id
+              name
+              html
+              createdAt
+            }
+          }
+        }
     }
     `);
 
@@ -133,6 +143,7 @@ function CMSLayout({
                   await pages.refetch();
                 },
                 pages: pages.data?.getAllSiteItems as ISiteItem[],
+                site: pages.data?.getAllSites?.[0],
                 currentPage,
                 setCurrentPage,
               }}
