@@ -5,7 +5,7 @@ import { useSnackbar } from 'notistack';
 import { Button, IconButton, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
+import { Clusterer, Map, Placemark, YMaps } from "@pbe/react-yandex-maps";
 import { Close } from '@mui/icons-material';
 import dayjs from 'dayjs';
 
@@ -254,22 +254,24 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
             }
           }}
         >
-          {props.data.map((row: any) => {
-            const field = props.fields.find((f) => f.type === FieldType.GEO);
-            if (!field || !row[field.dbName]) {
-              return null;
-            }
-            return (
-              <Placemark
-                geometry={[row[field.dbName].lat, row[field.dbName].lng]}
-                properties={{
-                  balloonContent: `<div id="${row.id}${field.dbName}" style="position: fixed;"></div>`,
-                  elementId: `${row.id}${field.dbName}`,
-                  rowId: row.id,
-                }}
-              />
-            );
-          })}
+          <Clusterer>
+            {props.data.map((row: any) => {
+              const field = props.fields.find((f) => f.type === FieldType.GEO);
+              if (!field || !row[field.dbName]) {
+                return null;
+              }
+              return (
+                <Placemark
+                  geometry={[row[field.dbName].lat, row[field.dbName].lng]}
+                  properties={{
+                    balloonContent: `<div id="${row.id}${field.dbName}" style="position: fixed;"></div>`,
+                    elementId: `${row.id}${field.dbName}`,
+                    rowId: row.id,
+                  }}
+                />
+              );
+            })}
+          </Clusterer>
         </Map>
       </YMaps>
       {portal.open && (
