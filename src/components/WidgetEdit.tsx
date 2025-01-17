@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   TextField,
@@ -7,6 +7,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
@@ -17,6 +19,7 @@ import { RenderWidget } from './ParseWidgets';
 import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
+import FramePreview from './FramePreview';
 
 interface WidgetEditProps {
   id?: string;
@@ -41,6 +44,7 @@ const GET_WIDGET = gql`
       id
       name
       title
+      cssClass
       createdAt
       widgetViewType
       tableView {
@@ -102,7 +106,26 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
     templateHtml: '',
     widgetViewType: 'list',
     language: TemplateLanguage.SIMPLE,
+    cssClass: '',
   });
+
+  const cachedHtmlRef = useRef<string>('');
+  const [cachedHtml, setCachedHtml] = useState<string>('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (cachedHtmlRef.current !== cachedHtml) {
+        setCachedHtml(cachedHtmlRef.current);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    cachedHtmlRef.current = form.templateHtml;
+  }, [form.templateHtml]);
+
+  const [previewMode, setPreviewMode] = useState<'widget' | 'iframe'>('widget');
 
   const isEditMode = !!id;
 
@@ -117,6 +140,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         templateHtml: data.getWidget.template.html,
         widgetViewType: data.getWidget.widgetViewType,
         language: data.getWidget.template.language,
+        cssClass: data.getWidget.cssClass,
       });
     },
   });
@@ -156,6 +180,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         name: form.name,
         title: form.title,
         widgetViewType: form.widgetViewType,
+        cssClass: form.cssClass,
       },
       tableView: {
         title: form.title,
@@ -206,6 +231,14 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         fullWidth
         value={form.name}
         onChange={(e) => setForm({ ...form, name: e.target.value })}
+      />
+
+      <TextField
+        label="CSS class"
+        variant="outlined"
+        fullWidth
+        value={form.cssClass}
+        onChange={(e) => setForm({ ...form, cssClass: e.target.value })}
       />
 
       {form.widgetViewType !== WidgetViewType.STATIC && (
@@ -292,13 +325,37 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         padding: 8,
       }}
       >
-        <RenderWidget
-          widgetViewType={form.widgetViewType}
-          html={form.templateHtml}
-          fields={widgetTable.meta?.fields as TableField[]}
-          data={widgetTable.meta ? [row] : []}
-          language={form.language}
-        />
+        <div>
+          <ToggleButtonGroup
+            value={previewMode}
+            exclusive
+            onChange={(_, value) => setPreviewMode(value)}
+          >
+            <ToggleButton value="widget">Widget</ToggleButton>
+            <ToggleButton value="iframe">Iframe</ToggleButton>
+          </ToggleButtonGroup>
+        </div>
+        {previewMode === 'iframe' ? (
+          <FramePreview>
+            <RenderWidget
+              widgetViewType={form.widgetViewType}
+              html={cachedHtml}
+              fields={widgetTable.meta?.fields as TableField[]}
+              data={widgetTable.meta ? [row] : []}
+              language={form.language}
+              cssClass={form.cssClass}
+            />
+          </FramePreview>
+        ) : (
+          <RenderWidget
+            widgetViewType={form.widgetViewType}
+            html={cachedHtml}
+            fields={widgetTable.meta?.fields as TableField[]}
+            data={widgetTable.meta ? [row] : []}
+            language={form.language}
+            cssClass={form.cssClass}
+          />
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">

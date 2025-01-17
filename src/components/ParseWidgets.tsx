@@ -308,6 +308,7 @@ export function RenderWidget(
     fields: TableField[],
     data: any,
     language: TemplateLanguage,
+    cssClass: string,
   },
 ) {
   const {
@@ -317,12 +318,14 @@ export function RenderWidget(
   const router = useRouter();
   if (widgetViewType === 'map') {
     return (
-      <WidgetMap
-        data={data}
-        fields={fields}
-        html={html}
-        language={language}
-      />
+      <div className={props.cssClass || undefined}>
+        <WidgetMap
+          data={data}
+          fields={fields}
+          html={html}
+          language={language}
+        />
+      </div>
     );
   }
   if (language === TemplateLanguage.REACT) {
@@ -339,18 +342,22 @@ export function RenderWidget(
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
-          <template.ListComponent data={data} Component={template.Component} />
+          <div className={props.cssClass || undefined}>
+            <template.ListComponent data={data} Component={template.Component} />
+          </div>
         </ErrorBoundary>
       );
     }
   }
   return (
-    <WidgetList
-      data={data}
-      fields={fields}
-      html={html}
-      language={language}
-    />
+    <div className={props.cssClass || undefined}>
+      <WidgetList
+        data={data}
+        fields={fields}
+        html={html}
+        language={language}
+      />
+    </div>
   );
 }
 
@@ -363,6 +370,7 @@ export function PageWidget(props: {
                   id
                   name
                   widgetViewType
+                  cssClass
                   template {
                       html
                       language
@@ -425,6 +433,7 @@ export function PageWidget(props: {
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
+      cssClass={data.getWidgetByName.cssClass || ''}
     />
   );
 }
@@ -439,6 +448,7 @@ export function FormWidget(props: {
                       id
                       name
                       title
+                      cssClass
                       createdAt
                       fields {
                           id
@@ -447,6 +457,7 @@ export function FormWidget(props: {
                           position
                           tableFieldId
                           formFieldType
+                          cssClass
                           createdAt
                           field {
                               id
@@ -509,7 +520,7 @@ export function FormWidget(props: {
   fields.sort((a: any, b: any) => a.position - b.position);
 
   return (
-    <div>
+    <div className={data.getFormByName.cssClass || undefined}>
       <Typography variant="h4">{data.getFormByName.title}</Typography>
       <div>
         {data.getFormByName.fields.map((field: any) => {
@@ -523,7 +534,7 @@ export function FormWidget(props: {
           );
 
           return (
-            <div key={field.id}>
+            <div key={field.id} className={field.cssClass || undefined}>
               {fieldComponent}
             </div>
           );

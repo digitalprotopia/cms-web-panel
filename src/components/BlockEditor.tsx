@@ -5,17 +5,22 @@ import {
   locales,
   combineByGroup,
   Block,
+  CustomBlockConfig,
+  InlineContentSchema,
+  StyleSchema,
 } from '@blocknote/core';
 import {
   createReactBlockSpec, getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
 
-  SideMenuProps,
   useBlockNoteEditor,
   useComponentsContext,
   SideMenuController,
   SideMenu,
-  DragHandleButton,
-  AddBlockButton,
+  DragHandleMenu,
+  RemoveBlockItem,
+  BlockColorsItem,
+  DragHandleMenuProps,
+  ReactCustomBlockRenderProps,
 } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import {
@@ -25,8 +30,12 @@ import {
 // import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
-  DashboardOutlined, North, South, WidgetsOutlined,
+  DashboardOutlined, MoreVert, WidgetsOutlined,
 } from '@mui/icons-material';
+import {
+  Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField,
+} from '@mui/material';
+import { useState } from 'react';
 import { IWidget } from './entities/IWidget';
 // eslint-disable-next-line import/no-cycle
 import { FormWidget, PageWidget } from './ParseWidgets';
@@ -35,6 +44,44 @@ import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { IForm } from './entities/IForm';
 
+function BlockSettings(
+  props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
+) {
+  const [dialog, setDialog] = useState(false);
+
+  return (
+    <>
+      <IconButton
+        size="small"
+        onClick={() => {
+          setDialog(true);
+        }}
+      >
+        <MoreVert />
+      </IconButton>
+      <Dialog open={dialog} onClose={() => setDialog(false)}>
+        <DialogTitle>Настройки блока</DialogTitle>
+        <DialogContent>
+          <TextField
+            title="CSS class"
+            label="CSS class"
+            value={props.block.props.cssClass}
+            onChange={(e) => {
+              props.editor.updateBlock(props.block, {
+                props: { cssClass: e.target.value },
+              });
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialog(false)}>Закрыть</Button>
+        </DialogActions>
+
+      </Dialog>
+    </>
+  );
+}
+
 export const BlockEditorWidget = createReactBlockSpec(
   {
     type: 'widget',
@@ -42,6 +89,10 @@ export const BlockEditorWidget = createReactBlockSpec(
       textAlignment: defaultProps.textAlignment,
       textColor: defaultProps.textColor,
       type: {
+        type: 'string',
+        default: '',
+      },
+      cssClass: {
         type: 'string',
         default: '',
       },
@@ -69,37 +120,42 @@ export const BlockEditorWidget = createReactBlockSpec(
           {/* Icon which opens a menu to choose the Widget type */}
           {props.editor.isEditable
             ? (
-              <Menu withinPortal={false}>
-                <Menu.Target>
-                  <div contentEditable={false}>
-                    <Menu.Item>
-                      {snippets.data?.getAllWidgets?.find((w: IWidget) => w.name === props.block.props.type)?.title || 'Выберете виджет'}
-                    </Menu.Item>
-                  </div>
-                </Menu.Target>
-                {/* Dropdown to change the Widget type */}
-                <Menu.Dropdown>
-                  <Menu.Label>Виджет</Menu.Label>
-                  <Menu.Divider />
-                  {(snippets.data?.getAllWidgets || []).map((widget: IWidget) => (
-                    <Menu.Item
-                      key={widget.name}
-                      onClick={() => props.editor.updateBlock(props.block, {
-                        type: 'widget',
-                        props: { type: widget.name },
-                      })}
-                    >
-                      {widget.title}
-                    </Menu.Item>
-                  ))}
-                </Menu.Dropdown>
-              </Menu>
+              <>
+                <Menu withinPortal={false}>
+                  <Menu.Target>
+                    <div contentEditable={false}>
+                      <Menu.Item>
+                        {snippets.data?.getAllWidgets?.find((w: IWidget) => w.name === props.block.props.type)?.title || 'Выберете виджет'}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Target>
+                  {/* Dropdown to change the Widget type */}
+                  <Menu.Dropdown>
+                    <Menu.Label>Виджет</Menu.Label>
+                    <Menu.Divider />
+                    {(snippets.data?.getAllWidgets || []).map((widget: IWidget) => (
+                      <Menu.Item
+                        key={widget.name}
+                        onClick={() => props.editor.updateBlock(props.block, {
+                          type: 'widget',
+                          props: { type: widget.name },
+                        })}
+                      >
+                        {widget.title}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Dropdown>
+                </Menu>
+                <BlockSettings {...props} />
+              </>
             )
             : null}
-          <div style={{
-            flex: 1,
-            pointerEvents: props.editor.isEditable ? 'none' : undefined,
-          }}
+          <div
+            style={{
+              flex: 1,
+              pointerEvents: props.editor.isEditable ? 'none' : undefined,
+            }}
+            className={props.block.props.cssClass || undefined}
           >
             {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
           </div>
@@ -116,6 +172,10 @@ export const BlockEditorForm = createReactBlockSpec(
       textAlignment: defaultProps.textAlignment,
       textColor: defaultProps.textColor,
       type: {
+        type: 'string',
+        default: '',
+      },
+      cssClass: {
         type: 'string',
         default: '',
       },
@@ -143,34 +203,37 @@ export const BlockEditorForm = createReactBlockSpec(
           {/* Icon which opens a menu to choose the Widget type */}
           {props.editor.isEditable
             ? (
-              <Menu withinPortal={false}>
-                <Menu.Target>
-                  <div contentEditable={false}>
-                    <Menu.Item>
-                      {snippets.data?.getAllForms?.find((f: IForm) => f.name === props.block.props.type)?.title || 'Выберете форму'}
-                    </Menu.Item>
-                  </div>
-                </Menu.Target>
-                {/* Dropdown to change the Widget type */}
-                <Menu.Dropdown>
-                  <Menu.Label>Виджет</Menu.Label>
-                  <Menu.Divider />
-                  {(snippets.data?.getAllForms || []).map((form: IForm) => (
-                    <Menu.Item
-                      key={form.name}
-                      onClick={() => props.editor.updateBlock(props.block, {
-                        type: 'form',
-                        props: { type: form.name },
-                      })}
-                    >
-                      {form.title}
-                    </Menu.Item>
-                  ))}
-                </Menu.Dropdown>
-              </Menu>
+              <>
+                <Menu withinPortal={false}>
+                  <Menu.Target>
+                    <div contentEditable={false}>
+                      <Menu.Item>
+                        {snippets.data?.getAllForms?.find((f: IForm) => f.name === props.block.props.type)?.title || 'Выберете форму'}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Target>
+                  {/* Dropdown to change the Widget type */}
+                  <Menu.Dropdown>
+                    <Menu.Label>Виджет</Menu.Label>
+                    <Menu.Divider />
+                    {(snippets.data?.getAllForms || []).map((form: IForm) => (
+                      <Menu.Item
+                        key={form.name}
+                        onClick={() => props.editor.updateBlock(props.block, {
+                          type: 'form',
+                          props: { type: form.name },
+                        })}
+                      >
+                        {form.title}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Dropdown>
+                </Menu>
+                <BlockSettings {...props} />
+              </>
             )
             : null}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1 }} className={props.block.props.cssClass || undefined}>
             {props.block.props.type ? <FormWidget formName={props.block.props.type} /> : null}
           </div>
         </div>
@@ -297,59 +360,46 @@ interface BlockEditorProps {
   isEditable?: boolean;
 }
 
-export function AddBottomButton(props: SideMenuProps) {
+export function AddBlocksItem(props: DragHandleMenuProps) {
   const editor = useBlockNoteEditor();
 
   const Components = useComponentsContext()!;
 
   return (
-    <Components.SideMenu.Button
-      label="Добавить снизу"
-      icon={(
-        <South
-          onClick={() => {
-            let { block } = props;
-            while (editor.getParentBlock(block)) {
-              block = editor.getParentBlock(block) as Block;
-              console.log(block);
-            }
+    <>
+      <Components.Generic.Menu.Item
+        onClick={() => {
+          let { block } = props;
+          while (editor.getParentBlock(block)) {
+            block = editor.getParentBlock(block) as Block;
+            console.log(block);
+          }
 
-            editor.insertBlocks([{
-              type: 'paragraph',
-              props: {},
-            }], block, 'after');
-          }}
-        />
-      )}
-    />
-  );
-}
+          editor.insertBlocks([{
+            type: 'paragraph',
+            props: {},
+          }], block, 'before');
+        }}
+      >
+        Добавить сверху
+      </Components.Generic.Menu.Item>
+      <Components.Generic.Menu.Item
+        onClick={() => {
+          let { block } = props;
+          while (editor.getParentBlock(block)) {
+            block = editor.getParentBlock(block) as Block;
+            console.log(block);
+          }
 
-export function AddUpButton(props: SideMenuProps) {
-  const editor = useBlockNoteEditor();
-
-  const Components = useComponentsContext()!;
-
-  return (
-    <Components.SideMenu.Button
-      label="Добавить сверху"
-      icon={(
-        <North
-          onClick={() => {
-            let { block } = props;
-            while (editor.getParentBlock(block)) {
-              block = editor.getParentBlock(block) as Block;
-              console.log(block);
-            }
-
-            editor.insertBlocks([{
-              type: 'paragraph',
-              props: {},
-            }], block, 'after');
-          }}
-        />
-      )}
-    />
+          editor.insertBlocks([{
+            type: 'paragraph',
+            props: {},
+          }], block, 'after');
+        }}
+      >
+        Добавить снизу
+      </Components.Generic.Menu.Item>
+    </>
   );
 }
 
@@ -412,8 +462,8 @@ function BlockEditor({
     <>
       <style>
         {`
-        .bn-editor {
-          ${isEditable ? null : 'padding-inline: 0px;'}
+        .bn-container[data-theming-css-view] .bn-editor {
+          padding-inline: 0px;
         }
       `}
       </style>
@@ -435,16 +485,22 @@ function BlockEditor({
             //   setFormData({ ...formData, html });
             // });
           }}
+          {...(isEditable ? {} : {
+            'data-theming-css-view': true,
+          })}
         >
           <SideMenuController
             sideMenu={(props) => (
-              <SideMenu {...props}>
-                {/* Button which removes the hovered block. */}
-                <AddBlockButton {...props} />
-                <AddUpButton {...props} />
-                <AddBottomButton {...props} />
-                <DragHandleButton {...props} />
-              </SideMenu>
+              <SideMenu
+                {...props}
+                dragHandleMenu={(_props) => (
+                  <DragHandleMenu {..._props}>
+                    <RemoveBlockItem {..._props}>Удалить</RemoveBlockItem>
+                    <BlockColorsItem {..._props}>Цвета</BlockColorsItem>
+                    <AddBlocksItem {..._props}>Добавить строки</AddBlocksItem>
+                  </DragHandleMenu>
+                )}
+              />
             )}
           />
           <SuggestionMenuController

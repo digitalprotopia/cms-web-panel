@@ -3,13 +3,16 @@ import { gql, useQuery } from '@apollo/client';
 import ParsePage from '@/components/ParsePage';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useContext, useEffect, useState } from 'react';
+import {
+  Fragment, useContext, useEffect, useState,
+} from 'react';
 import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 import { ITemplate } from '@/components/entities/ITemplate';
 import Head from 'next/head';
 import BlockEditor from '@/components/BlockEditor';
 import { CircularProgress } from '@mui/material';
+import parse from 'html-react-parser';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -96,8 +99,11 @@ function DynamicPage() {
   <div>{content}</div>
   </div>`;
 
+  const headTemplate = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'head');
+  const head = headTemplate ? renderTemplate(headTemplate, site?.templateGroup?.templates) : '';
+
   html = html.replace('{content}', `  <div className="page">
-    <div>
+    <div id="page-content">
       ${siteItem?.getSiteItem?.html || ''}
       {blockContent}
     </div>
@@ -154,7 +160,10 @@ function DynamicPage() {
           text-decoration: underline;
         }`}
       </style>
-      <Head><title>{siteItem?.getSiteItem?.title || ''}</title></Head>
+      <Head>
+        <title>{siteItem?.getSiteItem?.title || ''}</title>
+        {parse(head)}
+      </Head>
       <ParsePage html={html} args={args} />
     </>
   );
