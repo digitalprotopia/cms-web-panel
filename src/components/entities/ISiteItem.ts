@@ -6,6 +6,11 @@ export enum SiteItemType {
   DYNAMIC = 'dynamic',
 }
 
+export const siteItemTypeNames = {
+  static: 'Статическая',
+  dynamic: 'Динамическая',
+};
+
 export interface ISiteItem extends IEntity {
   name: string;
   title: string;

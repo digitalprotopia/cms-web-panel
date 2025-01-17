@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
 import DefaultEditor from 'react-simple-wysiwyg';
-import { ISiteItem, SiteItemType } from '../entities/ISiteItem';
+import { ISiteItem, SiteItemType, siteItemTypeNames } from '../entities/ISiteItem';
 import { IForm } from '../entities/IForm';
 import { IWidget } from '../entities/IWidget';
 import { IRole } from '../entities/IRole';
@@ -94,71 +94,80 @@ export default function PageForm({
 
   return (
     <form onSubmit={handleSubmit} className="p-4">
-      <div className="grid p-2 grid-cols-2 gap-4">
-        <TextField
-          label="Заголовок"
-          fullWidth
-          value={formData.title}
-          onChange={(e) => setFormData({
-            ...formData,
-            title: e.target.value,
-          })}
-          required
-        />
-        <TextField
-          label="SEO Тег"
-          fullWidth
-          value={formData.seotag}
-          onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
-        />
-      </div>
+      <div>
+        <div className="grid p-2 grid-cols-2 gap-4">
 
-      <div className="grid p-2 grid-cols-2 gap-4">
-        <TextField
-          label="URL"
-          fullWidth
-          value={formData.url}
-          onChange={(e) => setFormData({
-            ...formData,
-            url:
+          <TextField
+            label="Заголовок"
+            fullWidth
+            value={formData.title}
+            onChange={(e) => setFormData({
+              ...formData,
+              title: e.target.value,
+            })}
+            required
+          />
+          <TextField
+            label="SEO Тег"
+            fullWidth
+            value={formData.seotag}
+            onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
+          />
+        </div>
+
+        <div className="grid p-2 grid-cols-2 gap-4">
+          <TextField
+            label="URL"
+            fullWidth
+            value={formData.url}
+            onChange={(e) => setFormData({
+              ...formData,
+              url:
                     e.target.value,
-          })}
-        />
+            })}
+          />
 
-        <S3Autocomplete
-          label="Родитель"
-          variant="outlined"
-          value={formData.parentId}
-          options={pagesData.getAllSiteItems}
-          getOptionLabelFromKey="title"
-          onChange={(e) => setFormData({ ...formData, parentId: e as string })}
-        />
+          <S3Autocomplete
+            label="Родитель"
+            variant="outlined"
+            value={formData.parentId}
+            options={pagesData.getAllSiteItems}
+            getOptionLabelFromKey="title"
+            onChange={(e) => setFormData({ ...formData, parentId: e as string })}
+          />
+
+          <S3Autocomplete
+            value={formData.roleIds!}
+            onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
+            options={roles.map((role) => ({
+              id: role.id!,
+              name: role.name!,
+            })) || []}
+            multiple
+            label="Роли"
+          />
+          <TextField
+            label="Тип"
+            fullWidth
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value as SiteItemType })}
+            select
+            variant="standard"
+          >
+            {Object.values(SiteItemType).map((type) => (
+              <MenuItem key={type} value={type}>
+                {siteItemTypeNames[type]}
+              </MenuItem>
+            ))}
+          </TextField>
+        </div>
       </div>
-      <S3Autocomplete
-        value={formData.roleIds!}
-        onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
-        options={roles.map((role) => ({
-          id: role.id!,
-          name: role.name!,
-        })) || []}
-        multiple
-        label="Роли"
+      <hr style={{
+        margin: '16px 0px',
+        borderTopWidth: 4,
+      }}
       />
-      <TextField
-        label="Тип"
-        fullWidth
-        value={formData.type}
-        onChange={(e) => setFormData({ ...formData, type: e.target.value as SiteItemType })}
-        select
-        variant="standard"
-      >
-        {Object.values(SiteItemType).map((type) => (
-          <MenuItem key={type} value={type}>
-            {type}
-          </MenuItem>
-        ))}
-      </TextField>
-      <h4>Блочный редактор</h4>
+      <h4>Содержимое страницы</h4>
       <BlockEditor
         initialData={initialData.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
