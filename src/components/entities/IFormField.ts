@@ -14,6 +14,7 @@ export interface IFormField extends IEntity {
   tableFieldId: string;
   formId: string;
   formFieldType: FieldType;
+  cssClass: string;
   // templateId: string;
   // TODO: Доступы
 }
