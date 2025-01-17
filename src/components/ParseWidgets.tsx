@@ -5,7 +5,9 @@ import { useSnackbar } from 'notistack';
 import { Button, IconButton, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Clusterer, Map, Placemark, YMaps } from "@pbe/react-yandex-maps";
+import {
+  Clusterer, Map, Placemark, YMaps,
+} from '@pbe/react-yandex-maps';
 import { Close } from '@mui/icons-material';
 import dayjs from 'dayjs';
 
@@ -216,6 +218,10 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     rowId: '',
   });
 
+  const placemarkColors = [
+    '#DB425A', '#4C4DA2', '#00DEAD', '#D73AD2',
+    '#F8CC4D', '#F88D00', '#AC646C', '#548FB7',
+  ];
   return (
     <div style={{ minHeight: 400 }}>
       <style>
@@ -227,6 +233,7 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
       </style>
       <YMaps query={{
         apikey: window.config.yandexKey,
+        load: 'package.full',
       }}
       >
         <Map
@@ -254,7 +261,14 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
             }
           }}
         >
-          <Clusterer>
+          <Clusterer options={{
+            clusterIconLayout: 'default#pieChart',
+            clusterIconPieChartRadius: 25,
+            clusterIconPieChartCoreRadius: 15,
+            clusterIconPieChartStrokeWidth: 3,
+            hasBalloon: false,
+          }}
+          >
             {props.data.map((row: any) => {
               const field = props.fields.find((f) => f.type === FieldType.GEO);
               if (!field || !row[field.dbName]) {
@@ -267,6 +281,9 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
                     balloonContent: `<div id="${row.id}${field.dbName}" style="position: fixed;"></div>`,
                     elementId: `${row.id}${field.dbName}`,
                     rowId: row.id,
+                  }}
+                  options={{
+                    iconColor: placemarkColors[Math.floor(Math.random() * placemarkColors.length)],
                   }}
                 />
               );
