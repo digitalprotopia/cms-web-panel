@@ -58,8 +58,8 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         Component: React.ComponentType<any>,
         WidgetMap: React.ComponentType<any>,
         MapComponent: React.ComponentType<any>,
+        mapProps: any,
         }) => React.ReactNode) => void;
-        setGetColor: (c: (row: any) => string) => void;
         setSearch: (s: any) => void;
         user: {
           id: string;
