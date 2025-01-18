@@ -2,13 +2,12 @@ import { gql, useMutation, useQuery } from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import { Button, IconButton, Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
-  Clusterer, Map, Placemark, useYMaps, YMaps,
+  Map, useYMaps,
 } from '@pbe/react-yandex-maps';
-import { Close } from '@mui/icons-material';
 import dayjs from 'dayjs';
 
 import * as Mui from '@mui/material';
@@ -49,6 +48,7 @@ export function parseReact(
     filter?: (data: any[]) => any[],
     search?: any,
     ListComponent?: React.ComponentType<any>,
+    getColor?: (row: any) => string,
   } {
   try {
     const babelCode = babel.transform(code, {
@@ -209,209 +209,140 @@ const WidgetList:React.FC<{ data: any, fields: TableField[], html: string,
 const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
   language?: TemplateLanguage
 }> = function (props) {
-  const [portal, setPortal] = useState<{
-    open: boolean,
-    portalId: string,
-    rowId: string,
-    balloon?: ymaps.geoObject.Balloon,
-  }>({
-    open: false,
-    portalId: '',
-    rowId: '',
-  });
-
-  const placemarkColors = [
-    '#DB425A', '#4C4DA2', '#00DEAD', '#D73AD2',
-    '#F8CC4D', '#F88D00', '#AC646C', '#548FB7',
-  ];
-  const ymapsRef = useYMaps();
-  if (!ymapsRef) {
-    return null;
-  }
-  const customItemContentLayout = ymapsRef!.templateLayoutFactory.createClass(
-    // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
-    '<h2 class=ballon_header>{{ properties.balloonContentHeader|raw }}</h2>'
-        + '<div class=ballon_body>{{ properties.balloonContentBody|raw }}</div>'
-        + '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }}</div>',
-  );
-
   // console.log(customItemContentLayout.events);
 
-  return (
-    <div
-      style={{ minHeight: 400 }}
-      ref={(target) => {
-        if (!target) {
-          return;
-        }
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-              if (node.textContent) {
-                // console.log(node.nodeName);
-                // console.log(node.textContent);
-              }
-            });
-          });
-        });
-        observer.observe(target, { childList: true, subtree: true });
-      }}
-    >
-      <style>
-        {`
-            .ymaps-2-1-79-balloon__layout {
-              #width: 0px;
-            }
-          `}
-      </style>
-      <Map
-        defaultState={{
-          center: [55.751574, 37.573856],
-          zoom: 5,
-        }}
-        height={400}
-        width="100%"
-        modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
-        instanceRef={(ref) => {
-          if (ref) {
-            // console.log(ref);
-            // ref.balloon.events.add()
-            const objectManager = new ymapsRef.ObjectManager({
+  function MapComponent(mapProps: {
+    data: any[],
+    getColor?: (row: any) => string,
+  }) {
+    const [portal, setPortal] = useState<{
+      open: boolean,
+      portalId: string,
+      rowId: string,
+      balloon?: ymaps.geoObject.Balloon,
+    }>({
+      open: false,
+      portalId: '',
+      rowId: '',
+    });
 
-              clusterize: true,
-              clusterIconLayout: 'default#pieChart',
-              clusterIconPieChartRadius: 25,
-              clusterIconPieChartCoreRadius: 15,
-              clusterIconPieChartStrokeWidth: 3,
-              // hasBalloon: false,
-              clusterDisableClickZoom: true,
-              clusterOpenBalloonOnClick: true,
-              clusterBalloonContentLayout: 'cluster#balloonCarousel',
-              // clusterBalloonItemContentLayout: customItemContentLayout,
-              // Устанавливаем режим открытия балуна.
-              // В данном примере балун никогда не будет открываться в режиме панели.
-              clusterBalloonPanelMaxMapArea: 0,
-              // Устанавливаем размеры макета контента балуна (в пикселях).
-              clusterBalloonContentLayoutWidth: 400,
-              clusterBalloonContentLayoutHeight: 130,
-              // Устанавливаем максимальное количество элементов в нижней панели на одной странице
-              clusterBalloonPagerSize: 5,
+    const placemarkColors = [
+      '#DB425A', '#4C4DA2', '#00DEAD', '#D73AD2',
+      '#F8CC4D', '#F88D00', '#AC646C', '#548FB7',
+    ];
+    const ymapsRef = useYMaps();
+    const [mapCreate, setMapCreate] = useState(false);
+    if (!ymapsRef) {
+      return null;
+    }
 
-            });
+    return (
+      <div
+        style={{ minHeight: 400 }}
+      >
+        <Map
+          defaultState={{
+            center: [55.751574, 37.573856],
+            zoom: 5,
+          }}
+          height={400}
+          width="100%"
+          modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
+          instanceRef={(ref) => {
+            if (ymapsRef && props.data && props.data.length && ref && !mapCreate) {
+              console.log('ref fired');
+              setMapCreate(true);
+              // ref.balloon.events.add()
+              const objectManager = new ymapsRef.ObjectManager({
 
-            const placemarks = props.data.map((row: any) => {
-              const field = props.fields.find((f) => f.type === FieldType.GEO);
-              if (!field || !row[field.dbName]) {
-                return null;
-              }
-              return {
-                id: row.id,
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates:
+                clusterize: true,
+                clusterIconLayout: 'default#pieChart',
+                // @ts-expect-error types
+                clusterIconPieChartRadius: 25,
+                clusterIconPieChartCoreRadius: 15,
+                clusterIconPieChartStrokeWidth: 3,
+                clusterHideIconOnBalloonOpen: false,
+                // hasBalloon: false,
+                clusterDisableClickZoom: true,
+                clusterOpenBalloonOnClick: true,
+                clusterBalloonContentLayout: 'cluster#balloonCarousel',
+                // clusterBalloonItemContentLayout: customItemContentLayout,
+                // Устанавливаем режим открытия балуна.
+                // В данном примере балун никогда не будет открываться в режиме панели.
+                clusterBalloonPanelMaxMapArea: 0,
+                // Устанавливаем размеры макета контента балуна (в пикселях).
+                clusterBalloonContentLayoutWidth: 400,
+                clusterBalloonContentLayoutHeight: 200,
+                // Устанавливаем максимальное количество элементов в нижней панели на одной странице
+                // clusterBalloonPagerSize: 5,
+
+              });
+
+              const placemarks = mapProps.data.map((row: any) => {
+                const field = props.fields.find((f) => f.type === FieldType.GEO);
+                if (!field || !row[field.dbName]) {
+                  return null;
+                }
+                return {
+                  id: row.id,
+                  type: 'Feature',
+                  geometry: {
+                    type: 'Point',
+                    coordinates:
                 [row[field.dbName].lat, row[field.dbName].lng],
-                },
-                properties:
+                  },
+                  properties:
                 {
                   balloonContent: `<div id="${row.id}${field.dbName}" style="width: 400px; height: 200px; overflow: auto;">
                     </div>`,
                   elementId: `${row.id}${field.dbName}`,
                   rowId: row.id,
                 },
-                options:
+                  options:
                 {
-                  iconColor: placemarkColors[Math.floor(Math.random() * placemarkColors.length)],
+                  iconColor: mapProps.getColor
+                    ? mapProps.getColor(row)
+                    : placemarkColors[Math.floor(Math.random() * placemarkColors.length)],
                 },
-              };
-              // ref.geoObjects.add(placemark);
-            }).filter((p) => p !== null);
-            objectManager.add({ type: 'FeatureCollection', features: placemarks });
-            objectManager.clusters.state.events.add('change', () => {
-              const newActiveObjects = objectManager.clusters.state.get('activeObject');
-              // console.log(newActiveObjects);
-              if (!newActiveObjects) {
-                return;
-              }
-              setPortal({
-                open: true,
-                portalId: newActiveObjects.properties.elementId,
-                rowId: newActiveObjects.properties.rowId,
-                // balloon: e.get('target').balloon,
-              });
-            });
-            ref.geoObjects.add(objectManager);
-            // ref.geoObjects.add(placemarks);
-            ref.geoObjects.events.add('balloonopen', (e) => {
-              if (e.get('target').getData().properties.rowId) {
+                };
+                // ref.geoObjects.add(placemark);
+              }).filter((p: any) => p !== null);
+              objectManager.add({ type: 'FeatureCollection', features: placemarks });
+              objectManager.clusters.state.events.add('change', () => {
+                // @ts-expect-error types
+                const newActiveObjects = objectManager.clusters.state.get('activeObject');
+                // console.log(newActiveObjects);
+                if (!newActiveObjects) {
+                  return;
+                }
                 setPortal({
                   open: true,
-                  portalId: e.get('target').getData().properties.elementId,
-                  rowId: e.get('target').getData().properties.rowId,
+                  // @ts-expect-error types
+                  portalId: newActiveObjects.properties.elementId,
+                  // @ts-expect-error types
+                  rowId: newActiveObjects.properties.rowId,
                   // balloon: e.get('target').balloon,
                 });
-              }
-            });
-            ref.geoObjects.events.add('balloonclose', () => {
-              // setPortal({ ...portal, open: false });
-            });
-          }
-        }}
-      >
-        {/* <Clusterer
-          options={{
-            clusterIconLayout: 'default#pieChart',
-            clusterIconPieChartRadius: 25,
-            clusterIconPieChartCoreRadius: 15,
-            clusterIconPieChartStrokeWidth: 3,
-            // hasBalloon: false,
-            clusterDisableClickZoom: true,
-            clusterOpenBalloonOnClick: true,
-            clusterBalloonContentLayout: 'cluster#balloonCarousel',
-            // clusterBalloonItemContentLayout: customItemContentLayout,
-            // Устанавливаем режим открытия балуна.
-            // В данном примере балун никогда не будет открываться в режиме панели.
-            clusterBalloonPanelMaxMapArea: 0,
-            // Устанавливаем размеры макета контента балуна (в пикселях).
-            clusterBalloonContentLayoutWidth: 200,
-            clusterBalloonContentLayoutHeight: 130,
-            // Устанавливаем максимальное количество элементов в нижней панели на одной странице
-            clusterBalloonPagerSize: 5,
-          }}
-          instanceRef={(ref) => {
-            if (ref) {
-              // console.log(ref);
-              ref.events.add(['click', 'change'], (e) => {
-                // console.log(e)
+              });
+              ref.geoObjects.add(objectManager);
+              // ref.geoObjects.add(placemarks);
+              ref.geoObjects.events.add('balloonopen', (e) => {
+                if (e.get('target').getData().properties.rowId) {
+                  setPortal({
+                    open: true,
+                    portalId: e.get('target').getData().properties.elementId,
+                    rowId: e.get('target').getData().properties.rowId,
+                    // balloon: e.get('target').balloon,
+                  });
+                }
+              });
+              ref.geoObjects.events.add('balloonclose', () => {
+                setPortal({ ...portal, open: false });
               });
             }
           }}
-        >
-          {props.data.map((row: any) => {
-            const field = props.fields.find((f) => f.type === FieldType.GEO);
-            if (!field || !row[field.dbName]) {
-              return null;
-            }
-            return (
-              <Placemark
-                geometry={[row[field.dbName].lat, row[field.dbName].lng]}
-                properties={{
-                  balloonContent: `<div class="id-${row.id}${field.dbName}" style="position: fixed;">
-                  id-${row.id}${field.dbName}
-                  <script>console.log('${row.id}${field.dbName}')</script>
-                  </div>`,
-                  elementId: `${row.id}${field.dbName}`,
-                  rowId: row.id,
-                }}
-                options={{
-                  iconColor: placemarkColors[Math.floor(Math.random() * placemarkColors.length)],
-                }}
-              />
-            );
-          })}
-        </Clusterer> */}
-      </Map>
-      {portal.open && (
+        />
+        {portal.open && (
         <Portal elementId={portal.portalId}>
           <div style={{
             overflow: 'auto',
@@ -419,15 +350,42 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
           >
             <ParseRow
               html={props.html}
-              row={props.data.find((row: any) => row.id === portal.rowId)}
+              row={mapProps.data.find((row: any) => row.id === portal.rowId)}
               fields={props.fields}
               language={props.language || TemplateLanguage.SIMPLE}
             />
           </div>
         </Portal>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
+  }
+
+  const user = useContext(UserContext);
+  const router = useRouter();
+
+  if (props.language === TemplateLanguage.REACT) {
+    const { ListComponent, getColor } = parseReact(props.html, user, user.pages!, router);
+    if (ListComponent) {
+      return (
+        <ErrorBoundary
+          fallbackRender={({ error }) => (
+            <div>
+              Ошибка разбора:
+              <pre>{error?.message}</pre>
+            </div>
+          )}
+          resetKeys={[props.html]}
+          onError={(err) => { console.log(err); }}
+        >
+          {/* eslint-disable-next-line react/jsx-no-bind */}
+          <ListComponent MapComponent={MapComponent} getColor={getColor} data={props.data} />
+        </ErrorBoundary>
+      );
+    }
+  }
+
+  return <MapComponent data={props.data} />;
 };
 
 export function RenderWidget(

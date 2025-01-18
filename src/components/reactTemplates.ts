@@ -17,6 +17,9 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         setListComponent: (c) => {
           result.ListComponent = c;
         },
+        setGetColor: (c) => {
+          result.getColor = c;
+        },
         user: data.user,
         pages: data.pages,
         Link: data.Link,
@@ -54,7 +57,9 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         data: any[], children: React.ReactNode, 
         Component: React.ComponentType<any>,
         WidgetMap: React.ComponentType<any>,
+        MapComponent: React.ComponentType<any>,
         }) => React.ReactNode) => void;
+        setGetColor: (c: (row: any) => string) => void;
         setSearch: (s: any) => void;
         user: {
           id: string;
