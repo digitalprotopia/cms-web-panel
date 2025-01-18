@@ -17,6 +17,9 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         setListComponent: (c) => {
           result.ListComponent = c;
         },
+        setGetColor: (c) => {
+          result.getColor = c;
+        },
         user: data.user,
         pages: data.pages,
         Link: data.Link,
@@ -50,7 +53,13 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
       declare const MMCMS: {
         setFilter: (f: (row: any) => boolean) => void;
         setComponent: (c: (props: {row: any}) => React.ReactNode) => void;
-        setListComponent: (c: (props: {data: any[], children: React.ReactNode, Component: React.ComponentType<any>}) => React.ReactNode) => void;
+        setListComponent: (c: (props: {
+        data: any[], children: React.ReactNode, 
+        Component: React.ComponentType<any>,
+        WidgetMap: React.ComponentType<any>,
+        MapComponent: React.ComponentType<any>,
+        mapProps: any,
+        }) => React.ReactNode) => void;
         setSearch: (s: any) => void;
         user: {
           id: string;

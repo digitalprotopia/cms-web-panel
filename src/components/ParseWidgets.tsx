@@ -1,12 +1,13 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import { Button, IconButton, Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Map, Placemark, YMaps } from '@pbe/react-yandex-maps';
-import { Close } from '@mui/icons-material';
+import {
+  Map, useYMaps,
+} from '@pbe/react-yandex-maps';
 import dayjs from 'dayjs';
 
 import * as Mui from '@mui/material';
@@ -47,6 +48,7 @@ export function parseReact(
     filter?: (data: any[]) => any[],
     search?: any,
     ListComponent?: React.ComponentType<any>,
+    getColor?: (row: any) => string,
   } {
   try {
     const babelCode = babel.transform(code, {
@@ -82,6 +84,9 @@ export function parseReact(
       BlockView,
       Register,
       Login,
+      useQuery,
+      useMutation,
+      gql,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
@@ -202,9 +207,15 @@ const WidgetList:React.FC<{ data: any, fields: TableField[], html: string,
   ));
 };
 
-const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
-  language?: TemplateLanguage
-}> = function (props) {
+function MapComponent(props: {
+  data: any[],
+  getColor?: (row: any) => string,
+  getCoords: (row: any) => { lat: number, lng: number } | null,
+  id: string,
+  fields: TableField[],
+  html: string,
+  language: TemplateLanguage,
+}) {
   const [portal, setPortal] = useState<{
     open: boolean,
     portalId: string,
@@ -216,89 +227,183 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     rowId: '',
   });
 
+  const ymapsRef = useYMaps();
+  const [mapCreate, setMapCreate] = useState(false);
+  if (!ymapsRef) {
+    return null;
+  }
+
   return (
-    <div style={{ minHeight: 400 }}>
-      <style>
-        {`
-            .ymaps-2-1-79-balloon__layout {
-              width: 0px;
-            }
-          `}
-      </style>
-      <YMaps query={{
-        apikey: window.config.yandexKey,
-      }}
-      >
-        <Map
-          defaultState={{
-            center: [55.751574, 37.573856],
-            zoom: 5,
-          }}
-          height={400}
-          width="100%"
-          modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
-          instanceRef={(ref) => {
-            if (ref) {
-              console.log(ref);
-              ref.geoObjects.events.add('balloonopen', (e) => {
+    <div
+      style={{ minHeight: 400 }}
+    >
+      <Map
+        defaultState={{
+          center: [55.751574, 37.573856],
+          zoom: 5,
+        }}
+        height={400}
+        width="100%"
+        modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
+        instanceRef={(ref) => {
+          if (ymapsRef && props.data && props.data.length && ref && !mapCreate) {
+            console.log('ref fired');
+            setMapCreate(true);
+            // ref.balloon.events.add()
+            const objectManager = new ymapsRef.ObjectManager({
+
+              clusterize: true,
+              clusterIconLayout: 'default#pieChart',
+              // @ts-expect-error types
+              clusterIconPieChartRadius: 25,
+              clusterIconPieChartCoreRadius: 15,
+              clusterIconPieChartStrokeWidth: 3,
+              clusterHideIconOnBalloonOpen: false,
+              // hasBalloon: false,
+              clusterDisableClickZoom: true,
+              clusterOpenBalloonOnClick: true,
+              clusterBalloonContentLayout: 'cluster#balloonCarousel',
+              // clusterBalloonItemContentLayout: customItemContentLayout,
+              // Устанавливаем режим открытия балуна.
+              // В данном примере балун никогда не будет открываться в режиме панели.
+              clusterBalloonPanelMaxMapArea: 0,
+              // Устанавливаем размеры макета контента балуна (в пикселях).
+              clusterBalloonContentLayoutWidth: 420,
+              clusterBalloonContentLayoutHeight: 200,
+              // Устанавливаем максимальное количество элементов в нижней панели на одной странице
+              // clusterBalloonPagerSize: 5,
+
+            });
+
+            const placemarks = props.data.map((row: any) => {
+              const coords = props.getCoords(row);
+              if (!coords) {
+                return null;
+              }
+              return {
+                id: row.id,
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates:
+              [coords.lat, coords.lng],
+                },
+                properties:
+              {
+                balloonContent: `<div id="${row.id}${props.id}" style="width: 400px; height: 200px; overflow: auto;">
+                  </div>`,
+                elementId: `${row.id}${props.id}`,
+                rowId: row.id,
+              },
+                options:
+              {
+                iconColor: props.getColor
+                  ? props.getColor(row)
+                  : 'green',
+              },
+              };
+              // ref.geoObjects.add(placemark);
+            }).filter((p: any) => p !== null);
+            objectManager.add({ type: 'FeatureCollection', features: placemarks });
+            objectManager.clusters.state.events.add('change', () => {
+              // @ts-expect-error types
+              const newActiveObjects = objectManager.clusters.state.get('activeObject');
+              // console.log(newActiveObjects);
+              if (!newActiveObjects) {
+                return;
+              }
+              setPortal({
+                open: true,
+                // @ts-expect-error types
+                portalId: newActiveObjects.properties.elementId,
+                // @ts-expect-error types
+                rowId: newActiveObjects.properties.rowId,
+                // balloon: e.get('target').balloon,
+              });
+            });
+            ref.geoObjects.add(objectManager);
+            // ref.geoObjects.add(placemarks);
+            ref.geoObjects.events.add('balloonopen', (e) => {
+              if (e.get('target').getData().properties.rowId) {
                 setPortal({
                   open: true,
-                  portalId: e.get('target').properties.get('elementId'),
-                  rowId: e.get('target').properties.get('rowId'),
-                  balloon: e.get('target').balloon,
+                  portalId: e.get('target').getData().properties.elementId,
+                  rowId: e.get('target').getData().properties.rowId,
+                  // balloon: e.get('target').balloon,
                 });
-              });
-              ref.geoObjects.events.add('balloonclose', () => {
-                setPortal({ ...portal, open: false });
-              });
-            }
-          }}
-        >
-          {props.data.map((row: any) => {
-            const field = props.fields.find((f) => f.type === FieldType.GEO);
-            if (!field || !row[field.dbName]) {
-              return null;
-            }
-            return (
-              <Placemark
-                geometry={[row[field.dbName].lat, row[field.dbName].lng]}
-                properties={{
-                  balloonContent: `<div id="${row.id}${field.dbName}" style="position: fixed;"></div>`,
-                  elementId: `${row.id}${field.dbName}`,
-                  rowId: row.id,
-                }}
-              />
-            );
-          })}
-        </Map>
-      </YMaps>
+              }
+            });
+            ref.geoObjects.events.add('balloonclose', () => {
+              setPortal({ ...portal, open: false });
+            });
+          }
+        }}
+      />
       {portal.open && (
-        <Portal elementId={portal.portalId}>
-          <div style={{
-            position: 'relative',
-            left: -20,
-            top: -20,
-            backgroundColor: 'white',
-            width: 200,
-            minHeight: 200,
-          }}
-          >
-            <div style={{ float: 'right' }}>
-              <IconButton onClick={() => portal.balloon?.close()}>
-                <Close />
-              </IconButton>
-            </div>
-            <ParseRow
-              html={props.html}
-              row={props.data.find((row: any) => row.id === portal.rowId)}
-              fields={props.fields}
-              language={props.language || TemplateLanguage.SIMPLE}
-            />
-          </div>
-        </Portal>
+      <Portal elementId={portal.portalId}>
+        <div style={{
+          overflow: 'auto',
+        }}
+        >
+          <ParseRow
+            html={props.html}
+            row={props.data.find((row: any) => row.id === portal.rowId)}
+            fields={props.fields}
+            language={props.language || TemplateLanguage.SIMPLE}
+          />
+        </div>
+      </Portal>
       )}
     </div>
   );
+}
+
+const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
+  language?: TemplateLanguage
+}> = function (props) {
+  // console.log(customItemContentLayout.events);
+
+  const user = useContext(UserContext);
+  const router = useRouter();
+
+  const field = props.fields?.find((f) => f.type === FieldType.GEO);
+
+  const mapProps = {
+    getCoords: (row: any) => {
+      if (!field || !row[field.dbName]) {
+        return null;
+      }
+      return row[field.dbName];
+    },
+    id: field?.dbName || '',
+    data: props.data,
+    fields: props.fields,
+    html: props.html,
+    language: props.language || TemplateLanguage.SIMPLE,
+  };
+
+  if (props.language === TemplateLanguage.REACT) {
+    const { ListComponent } = parseReact(props.html, user, user.pages!, router);
+    if (ListComponent) {
+      return (
+        <ErrorBoundary
+          fallbackRender={({ error }) => (
+            <div>
+              Ошибка разбора:
+              <pre>{error?.message}</pre>
+            </div>
+          )}
+          resetKeys={[props.html]}
+          onError={(err) => { console.log(err); }}
+        >
+          {/* eslint-disable-next-line react/jsx-no-bind */}
+          <ListComponent MapComponent={MapComponent} mapProps={mapProps} data={props.data} />
+        </ErrorBoundary>
+      );
+    }
+  }
+
+  return <MapComponent {...mapProps} />;
 };
 
 export function RenderWidget(
