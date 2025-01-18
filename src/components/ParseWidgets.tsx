@@ -1,4 +1,4 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
@@ -6,7 +6,7 @@ import { Button, IconButton, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
-  Clusterer, Map, Placemark, YMaps,
+  Clusterer, Map, Placemark, useYMaps, YMaps,
 } from '@pbe/react-yandex-maps';
 import { Close } from '@mui/icons-material';
 import dayjs from 'dayjs';
@@ -84,6 +84,8 @@ export function parseReact(
       BlockView,
       Register,
       Login,
+      useQuery,
+      useMutation,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
@@ -222,91 +224,199 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     '#DB425A', '#4C4DA2', '#00DEAD', '#D73AD2',
     '#F8CC4D', '#F88D00', '#AC646C', '#548FB7',
   ];
+  const ymapsRef = useYMaps();
+  if (!ymapsRef) {
+    return null;
+  }
+  const customItemContentLayout = ymapsRef!.templateLayoutFactory.createClass(
+    // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
+    '<h2 class=ballon_header>{{ properties.balloonContentHeader|raw }}</h2>'
+        + '<div class=ballon_body>{{ properties.balloonContentBody|raw }}</div>'
+        + '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }}</div>',
+  );
+
+  // console.log(customItemContentLayout.events);
+
   return (
-    <div style={{ minHeight: 400 }}>
+    <div
+      style={{ minHeight: 400 }}
+      ref={(target) => {
+        if (!target) {
+          return;
+        }
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node.textContent) {
+                // console.log(node.nodeName);
+                // console.log(node.textContent);
+              }
+            });
+          });
+        });
+        observer.observe(target, { childList: true, subtree: true });
+      }}
+    >
       <style>
         {`
             .ymaps-2-1-79-balloon__layout {
-              width: 0px;
+              #width: 0px;
             }
           `}
       </style>
-      <YMaps query={{
-        apikey: window.config.yandexKey,
-        load: 'package.full',
-      }}
-      >
-        <Map
-          defaultState={{
-            center: [55.751574, 37.573856],
-            zoom: 5,
-          }}
-          height={400}
-          width="100%"
-          modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
-          instanceRef={(ref) => {
-            if (ref) {
-              console.log(ref);
-              ref.geoObjects.events.add('balloonopen', (e) => {
-                setPortal({
-                  open: true,
-                  portalId: e.get('target').properties.get('elementId'),
-                  rowId: e.get('target').properties.get('rowId'),
-                  balloon: e.get('target').balloon,
-                });
-              });
-              ref.geoObjects.events.add('balloonclose', () => {
-                setPortal({ ...portal, open: false });
-              });
-            }
-          }}
-        >
-          <Clusterer options={{
-            clusterIconLayout: 'default#pieChart',
-            clusterIconPieChartRadius: 25,
-            clusterIconPieChartCoreRadius: 15,
-            clusterIconPieChartStrokeWidth: 3,
-            hasBalloon: false,
-          }}
-          >
-            {props.data.map((row: any) => {
+      <Map
+        defaultState={{
+          center: [55.751574, 37.573856],
+          zoom: 5,
+        }}
+        height={400}
+        width="100%"
+        modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
+        instanceRef={(ref) => {
+          if (ref) {
+            // console.log(ref);
+            // ref.balloon.events.add()
+            const objectManager = new ymapsRef.ObjectManager({
+
+              clusterize: true,
+              clusterIconLayout: 'default#pieChart',
+              clusterIconPieChartRadius: 25,
+              clusterIconPieChartCoreRadius: 15,
+              clusterIconPieChartStrokeWidth: 3,
+              // hasBalloon: false,
+              clusterDisableClickZoom: true,
+              clusterOpenBalloonOnClick: true,
+              clusterBalloonContentLayout: 'cluster#balloonCarousel',
+              // clusterBalloonItemContentLayout: customItemContentLayout,
+              // Устанавливаем режим открытия балуна.
+              // В данном примере балун никогда не будет открываться в режиме панели.
+              clusterBalloonPanelMaxMapArea: 0,
+              // Устанавливаем размеры макета контента балуна (в пикселях).
+              clusterBalloonContentLayoutWidth: 400,
+              clusterBalloonContentLayoutHeight: 130,
+              // Устанавливаем максимальное количество элементов в нижней панели на одной странице
+              clusterBalloonPagerSize: 5,
+
+            });
+
+            const placemarks = props.data.map((row: any) => {
               const field = props.fields.find((f) => f.type === FieldType.GEO);
               if (!field || !row[field.dbName]) {
                 return null;
               }
-              return (
-                <Placemark
-                  geometry={[row[field.dbName].lat, row[field.dbName].lng]}
-                  properties={{
-                    balloonContent: `<div id="${row.id}${field.dbName}" style="position: fixed;"></div>`,
-                    elementId: `${row.id}${field.dbName}`,
-                    rowId: row.id,
-                  }}
-                  options={{
-                    iconColor: placemarkColors[Math.floor(Math.random() * placemarkColors.length)],
-                  }}
-                />
-              );
-            })}
-          </Clusterer>
-        </Map>
-      </YMaps>
+              return {
+                id: row.id,
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates:
+                [row[field.dbName].lat, row[field.dbName].lng],
+                },
+                properties:
+                {
+                  balloonContent: `<div id="${row.id}${field.dbName}" style="width: 400px; height: 200px; overflow: auto;">
+                    </div>`,
+                  elementId: `${row.id}${field.dbName}`,
+                  rowId: row.id,
+                },
+                options:
+                {
+                  iconColor: placemarkColors[Math.floor(Math.random() * placemarkColors.length)],
+                },
+              };
+              // ref.geoObjects.add(placemark);
+            }).filter((p) => p !== null);
+            objectManager.add({ type: 'FeatureCollection', features: placemarks });
+            objectManager.clusters.state.events.add('change', () => {
+              const newActiveObjects = objectManager.clusters.state.get('activeObject');
+              // console.log(newActiveObjects);
+              if (!newActiveObjects) {
+                return;
+              }
+              setPortal({
+                open: true,
+                portalId: newActiveObjects.properties.elementId,
+                rowId: newActiveObjects.properties.rowId,
+                // balloon: e.get('target').balloon,
+              });
+            });
+            ref.geoObjects.add(objectManager);
+            // ref.geoObjects.add(placemarks);
+            ref.geoObjects.events.add('balloonopen', (e) => {
+              if (e.get('target').getData().properties.rowId) {
+                setPortal({
+                  open: true,
+                  portalId: e.get('target').getData().properties.elementId,
+                  rowId: e.get('target').getData().properties.rowId,
+                  // balloon: e.get('target').balloon,
+                });
+              }
+            });
+            ref.geoObjects.events.add('balloonclose', () => {
+              // setPortal({ ...portal, open: false });
+            });
+          }
+        }}
+      >
+        {/* <Clusterer
+          options={{
+            clusterIconLayout: 'default#pieChart',
+            clusterIconPieChartRadius: 25,
+            clusterIconPieChartCoreRadius: 15,
+            clusterIconPieChartStrokeWidth: 3,
+            // hasBalloon: false,
+            clusterDisableClickZoom: true,
+            clusterOpenBalloonOnClick: true,
+            clusterBalloonContentLayout: 'cluster#balloonCarousel',
+            // clusterBalloonItemContentLayout: customItemContentLayout,
+            // Устанавливаем режим открытия балуна.
+            // В данном примере балун никогда не будет открываться в режиме панели.
+            clusterBalloonPanelMaxMapArea: 0,
+            // Устанавливаем размеры макета контента балуна (в пикселях).
+            clusterBalloonContentLayoutWidth: 200,
+            clusterBalloonContentLayoutHeight: 130,
+            // Устанавливаем максимальное количество элементов в нижней панели на одной странице
+            clusterBalloonPagerSize: 5,
+          }}
+          instanceRef={(ref) => {
+            if (ref) {
+              // console.log(ref);
+              ref.events.add(['click', 'change'], (e) => {
+                // console.log(e)
+              });
+            }
+          }}
+        >
+          {props.data.map((row: any) => {
+            const field = props.fields.find((f) => f.type === FieldType.GEO);
+            if (!field || !row[field.dbName]) {
+              return null;
+            }
+            return (
+              <Placemark
+                geometry={[row[field.dbName].lat, row[field.dbName].lng]}
+                properties={{
+                  balloonContent: `<div class="id-${row.id}${field.dbName}" style="position: fixed;">
+                  id-${row.id}${field.dbName}
+                  <script>console.log('${row.id}${field.dbName}')</script>
+                  </div>`,
+                  elementId: `${row.id}${field.dbName}`,
+                  rowId: row.id,
+                }}
+                options={{
+                  iconColor: placemarkColors[Math.floor(Math.random() * placemarkColors.length)],
+                }}
+              />
+            );
+          })}
+        </Clusterer> */}
+      </Map>
       {portal.open && (
         <Portal elementId={portal.portalId}>
           <div style={{
-            position: 'relative',
-            left: -20,
-            top: -20,
-            backgroundColor: 'white',
-            width: 200,
-            minHeight: 200,
+            overflow: 'auto',
           }}
           >
-            <div style={{ float: 'right' }}>
-              <IconButton onClick={() => portal.balloon?.close()}>
-                <Close />
-              </IconButton>
-            </div>
             <ParseRow
               html={props.html}
               row={props.data.find((row: any) => row.id === portal.rowId)}

@@ -50,7 +50,11 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
       declare const MMCMS: {
         setFilter: (f: (row: any) => boolean) => void;
         setComponent: (c: (props: {row: any}) => React.ReactNode) => void;
-        setListComponent: (c: (props: {data: any[], children: React.ReactNode, Component: React.ComponentType<any>}) => React.ReactNode) => void;
+        setListComponent: (c: (props: {
+        data: any[], children: React.ReactNode, 
+        Component: React.ComponentType<any>,
+        WidgetMap: React.ComponentType<any>,
+        }) => React.ReactNode) => void;
         setSearch: (s: any) => void;
         user: {
           id: string;

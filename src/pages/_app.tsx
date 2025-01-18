@@ -27,6 +27,7 @@ import { Config } from '@/config/config.sample';
 import { IUser } from '@/components/entities/IUser';
 import UserContext from '@/components/UserContext';
 import { ISiteItem } from '@/components/entities/ISiteItem';
+import { YMaps } from '@pbe/react-yandex-maps';
 
 declare global {
   interface Window {
@@ -131,30 +132,36 @@ function CMSLayout({
   }
 
   return (
-    <div className={`${inter.variable} antialiased h-full`}>
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={theme}>
-          <SnackbarProvider maxSnack={3}>
-            <div className="size-full flex flex-col text-base">
-              <UserContext.Provider value={{
-                user: error ? null : data?.me as IUser,
-                refetch: async () => {
-                  await refetch();
-                  await pages.refetch();
-                },
-                pages: pages.data?.getAllSiteItems as ISiteItem[],
-                site: pages.data?.getAllSites?.[0],
-                currentPage,
-                setCurrentPage,
-              }}
-              >
-                {result}
-              </UserContext.Provider>
-            </div>
-          </SnackbarProvider>
-        </ThemeProvider>
-      </StyledEngineProvider>
-    </div>
+    <YMaps query={{
+      apikey: window.config.yandexKey,
+      load: 'package.full',
+    }}
+    >
+      <div className={`${inter.variable} antialiased h-full`}>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={theme}>
+            <SnackbarProvider maxSnack={3}>
+              <div className="size-full flex flex-col text-base">
+                <UserContext.Provider value={{
+                  user: error ? null : data?.me as IUser,
+                  refetch: async () => {
+                    await refetch();
+                    await pages.refetch();
+                  },
+                  pages: pages.data?.getAllSiteItems as ISiteItem[],
+                  site: pages.data?.getAllSites?.[0],
+                  currentPage,
+                  setCurrentPage,
+                }}
+                >
+                  {result}
+                </UserContext.Provider>
+              </div>
+            </SnackbarProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
+      </div>
+    </YMaps>
   );
 }
 
