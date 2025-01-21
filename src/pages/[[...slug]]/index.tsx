@@ -36,8 +36,8 @@ const renderTemplate = (
   }
   templatesHistory.push(template.id);
 
-  return template.html.replace(/\{include:([a-zA-Z0-9_]+)\}/g, (match) => {
-    const name = match.replace(/\{include:([a-zA-Z0-9_]+)\}/, '$1');
+  return template.html.replace(/\{include:([a-zA-Z0-9_./]+)\}/g, (match) => {
+    const name = match.replace(/\{include:([a-zA-Z0-9_./]+)\}/, '$1');
     const nextTemplate = templates.find((t) => t.name === name);
     if (nextTemplate) {
       return renderTemplate(nextTemplate, templates, templatesHistory);
