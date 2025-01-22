@@ -434,8 +434,10 @@ export const usePosts = (params?: ListParams<IEntity>) => {
       getPosts(params: $params) {
         id
         title
+        slug
         content
         blockContent
+        preview
         createdAt
         updatedAt
         createdBy {
@@ -473,8 +475,10 @@ export const usePostsByTagSlug = (slug: string, params?: ListParams<IEntity>) =>
       getPostsByTagSlug(slug: $slug params: $params) {
         id
         title
+        slug
         content
         blockContent
+        preview
         createdAt
         updatedAt
         createdBy {
@@ -513,8 +517,10 @@ export const usePostsByCategorySlug = (slug: string, params?: ListParams<IEntity
       getPostsByCategorySlug(slug: $slug params: $params) {
         id
         title
+        slug
         content
         blockContent
+        preview
         createdAt
         updatedAt
         createdBy {

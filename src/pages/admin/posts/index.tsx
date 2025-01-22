@@ -32,6 +32,7 @@ const GET_POSTS = gql`
       title
       content
       blockContent
+      preview
       createdAt
       categories {
         id
@@ -60,6 +61,7 @@ const CREATE_POST = gql`
       title
       content
       blockContent
+      preview
       createdAt
     }
   }
@@ -71,6 +73,7 @@ const UPDATE_POST = gql`
       id
       title
       content
+      preview
       blockContent
       createdAt
     }
@@ -100,6 +103,7 @@ function PostForm({
     title: initialData.title || '',
     content: initialData.content || '',
     blockContent: initialData.blockContent || [],
+    preview: initialData.preview || '',
     tags: (initialData as any).tags?.map((tag: ITag) => tag.title) || [],
     categoryIds: (initialData as any).categories?.map((category: ICategory) => category.id) || [],
   });
@@ -175,6 +179,11 @@ function PostForm({
       <DefaultEditor
         value={formData.content}
         onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+      />
+      <h4>Превью</h4>
+      <DefaultEditor
+        value={formData.preview}
+        onChange={(e) => setFormData({ ...formData, preview: e.target.value })}
       />
 
       <div className="flex justify-end gap-2 mt-5">
