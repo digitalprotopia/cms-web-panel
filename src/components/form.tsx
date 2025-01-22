@@ -19,6 +19,10 @@ import {
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { MaterialReactTable } from 'material-react-table';
+import {
+  YMaps, Map, FullscreenControl, Placemark, SearchControl,
+} from '@pbe/react-yandex-maps';
+import { MuiColorInput } from 'mui-color-input';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
@@ -221,6 +225,7 @@ function FormFieldOneToManyOne(props: FormFieldProps) {
       value={props.value || ''}
       onChange={(e) => props.onChange(e.target.value)}
     >
+      <MenuItem value={null as any}>Не выбрано</MenuItem>
       {table.data?.map((row: any) => (
         <MenuItem key={row.id} value={row.id}>
           {row._cms_title}
@@ -288,7 +293,8 @@ export default function FormField(props: FormFieldProps) {
   if (props.field.type === FieldType.STRING
       || props.field.type === FieldType.EMAIL
       || props.field.type === FieldType.PHONE
-      || props.field.type === FieldType.URL) {
+      || props.field.type === FieldType.URL
+  ) {
     return (
       <TextField
         label={props.title}
@@ -307,22 +313,46 @@ export default function FormField(props: FormFieldProps) {
       />
     );
   }
+  if (props.field.type === FieldType.COLOR) {
+    return (
+      <MuiColorInput
+        label={props.title}
+        value={props.value || ''}
+        onChange={(value) => props.onChange(value)}
+      />
+    );
+  }
   if (props.field.type === FieldType.GEO) {
     return (
-      <>
-        <TextField
-          label={`${props.title} lat`}
-          value={props.value?.lat || 0}
-          type="number"
-          onChange={(e) => props.onChange({ ...props.value, lat: parseFloat(e.target.value) })}
-        />
-        <TextField
-          label={`${props.title} lng`}
-          value={props.value?.lng || 0}
-          type="number"
-          onChange={(e) => props.onChange({ ...props.value, lng: parseFloat(e.target.value) })}
-        />
-      </>
+      <div>
+        <div>{props.field.name}</div>
+        <YMaps query={{ apikey: window.config.yandexKey }}>
+          <Map
+            defaultState={{
+              center: [props.value?.lat || 55.751574, props.value?.lng || 37.573856],
+              zoom: 9,
+              controls: [],
+
+            }}
+            onClick={(e: any) => {
+              const coords = e.get('coords');
+              props.onChange({ lat: coords[0], lng: coords[1] });
+            }}
+          >
+            <Placemark options={{ iconColor: 'red' }} geometry={[props.value?.lat || 0, props.value?.lng || 0]} />
+            <SearchControl
+              options={{ float: 'right', noPlacemark: true }}
+              onResultSelect={(e: any) => {
+                const data = e.originalEvent.target.state._data;
+                const coords = data.results[data.currentIndex].geometry._coordinates;
+                props.onChange({ lat: coords[0], lng: coords[1] });
+                e.preventDefault();
+              }}
+            />
+            <FullscreenControl />
+          </Map>
+        </YMaps>
+      </div>
     );
   }
   if (props.field.type === FieldType.NUMBER) {

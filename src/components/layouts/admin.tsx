@@ -59,6 +59,16 @@ const menuItems: ISidebarItem[] = [
     href: '/admin/posts',
   },
   {
+    icon: ArticleOutlined,
+    label: 'Категории',
+    href: '/admin/categories',
+  },
+  {
+    icon: ArticleOutlined,
+    label: 'Теги',
+    href: '/admin/tags',
+  },
+  {
     icon: TableChartOutlined,
     label: 'Таблицы данных',
     href: '/admin/tables',

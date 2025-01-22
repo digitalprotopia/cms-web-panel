@@ -31,12 +31,14 @@ function FormEdit({ id, onClose, tables }: {
     title: string;
     tableId: string;
     fields: any[];
+    cssClass: string;
   }
   >({
     name: '',
     title: '',
     tableId: '',
     fields: [],
+    cssClass: '',
   });
 
   const [createForm] = useMutation(gql`
@@ -63,6 +65,7 @@ function FormEdit({ id, onClose, tables }: {
           fields: meta.fields.map((field) => ({
             name: field.name,
             title: field.name,
+            сssClass: '',
             formFieldType: 'string',
             tableFieldId: field.id,
             position: field.position,
@@ -79,6 +82,7 @@ function FormEdit({ id, onClose, tables }: {
           id
           name
           title
+          cssClass
           createdAt
           table {
             id
@@ -88,6 +92,7 @@ function FormEdit({ id, onClose, tables }: {
           fields {
             name
             title
+            cssClass
             position
             formFieldType
             tableFieldId
@@ -103,6 +108,7 @@ function FormEdit({ id, onClose, tables }: {
         setForm({
           name: formData.name,
           title: formData.title,
+          cssClass: formData.cssClass,
           tableId: formData.table.id,
           fields: formData.fields.map((field: any) => ({
             name: field.name,
@@ -110,6 +116,7 @@ function FormEdit({ id, onClose, tables }: {
             formFieldType: field.formFieldType,
             tableFieldId: field.tableFieldId,
             position: field.position,
+            cssClass: field.cssClass,
           })),
         });
       },
@@ -122,6 +129,7 @@ function FormEdit({ id, onClose, tables }: {
         name: form.name,
         title: form.title,
         tableId: form.tableId,
+        cssClass: form.cssClass,
       },
       fields: form.fields,
     };
@@ -156,6 +164,13 @@ function FormEdit({ id, onClose, tables }: {
           label="Код"
           value={form.name}
           onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+          fullWidth
+        />
+
+        <TextField
+          label="CSS class"
+          value={form.cssClass}
+          onChange={(e) => setForm((prev) => ({ ...prev, cssClass: e.target.value }))}
           fullWidth
         />
       </div>
@@ -201,6 +216,16 @@ function FormEdit({ id, onClose, tables }: {
                         onChange={(e) => {
                           const newFields = [...fields];
                           newFields[index] = { ...field, title: e.target.value };
+                          setForm((prev) => ({ ...prev, fields: newFields }));
+                        }}
+                        fullWidth
+                      />
+                      <TextField
+                        label="CSS class"
+                        value={field.cssClass}
+                        onChange={(e) => {
+                          const newFields = [...fields];
+                          newFields[index] = { ...field, cssClass: e.target.value };
                           setForm((prev) => ({ ...prev, fields: newFields }));
                         }}
                         fullWidth

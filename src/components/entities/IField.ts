@@ -7,6 +7,7 @@ export enum FieldType {
   BOOLEAN = 'boolean',
   DATE = 'date',
   GEO = 'geo',
+  COLOR = 'color',
   ONE_TO_MANY_ONE = 'oneToManyOne',
   ONE_TO_MANY_MANY = 'oneToManyMany',
   MANY_TO_MANY_FIRST = 'manyToManyFirst',

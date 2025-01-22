@@ -3,11 +3,16 @@ import { gql, useQuery } from '@apollo/client';
 import ParsePage from '@/components/ParsePage';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useContext, useEffect, useState } from 'react';
+import {
+  Fragment, useContext, useEffect, useState,
+} from 'react';
 import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 import { ITemplate } from '@/components/entities/ITemplate';
 import Head from 'next/head';
+import BlockEditor from '@/components/BlockEditor';
+import { CircularProgress } from '@mui/material';
+import parse from 'html-react-parser';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -15,17 +20,8 @@ const GET_SITEITEM = gql`
       url
       title
       html
+      blockContent
       id
-    }
-    getAllSites {
-      templateGroup {
-        templates {
-          id
-          name
-          html
-          createdAt
-        }
-      }
     }
   }
 `;
@@ -40,8 +36,8 @@ const renderTemplate = (
   }
   templatesHistory.push(template.id);
 
-  return template.html.replace(/\{include:([a-zA-Z0-9_]+)\}/g, (match) => {
-    const name = match.replace(/\{include:([a-zA-Z0-9_]+)\}/, '$1');
+  return template.html.replace(/\{include:([a-zA-Z0-9_./]+)\}/g, (match) => {
+    const name = match.replace(/\{include:([a-zA-Z0-9_./]+)\}/, '$1');
     const nextTemplate = templates.find((t) => t.name === name);
     if (nextTemplate) {
       return renderTemplate(nextTemplate, templates, templatesHistory);
@@ -93,20 +89,50 @@ function DynamicPage() {
     },
   );
 
-  if (siteItemLoading) return <span>Loading...</span>;
+  const { site } = user;
 
-  const site = siteItem?.getAllSites?.[0];
+  if (!site) return <span>Loading...</span>;
+
   const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
   let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
   <div>{menu}</div>
   <div>{content}</div>
   </div>`;
 
+  const headTemplate = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'head');
+  const head = headTemplate ? renderTemplate(headTemplate, site?.templateGroup?.templates) : '';
+
   html = html.replace('{content}', `  <div className="page">
-    <div>
+    <div id="page-content">
       ${siteItem?.getSiteItem?.html || ''}
+      {blockContent}
     </div>
   </div>`);
+
+  let blockContent:React.JSX.Element = <div />;
+
+  if (siteItemLoading) {
+    blockContent = (
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress />
+      </div>
+    );
+  }
+  if (siteItem) {
+    blockContent = (
+      <BlockEditor
+        initialData={siteItem?.getSiteItem.blockContent}
+        onChange={() => {}}
+        isEditable={false}
+      />
+    );
+  }
 
   const args = {
     menu: user.pages?.map((item) => {
@@ -124,6 +150,7 @@ function DynamicPage() {
       );
     }) || [],
     title: siteItem?.getSiteItem?.title || '',
+    blockContent,
   };
 
   return (
@@ -133,7 +160,10 @@ function DynamicPage() {
           text-decoration: underline;
         }`}
       </style>
-      <Head><title>{siteItem?.getSiteItem?.title || ''}</title></Head>
+      <Head>
+        <title>{siteItem?.getSiteItem?.title || ''}</title>
+        {parse(head)}
+      </Head>
       <ParsePage html={html} args={args} />
     </>
   );

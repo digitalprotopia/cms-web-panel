@@ -18,7 +18,7 @@ interface LoginFormData {
   password: string;
 }
 
-export default function LoginPage() {
+export function Login() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -53,47 +53,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="size-full flex items-center justify-center p-4">
-      <div className="flex flex-col justify-between items-center bg-white rounded p-5 shadow-lg w-full max-w-md mx-auto">
-        <span className="text-2xl font-medium">Вход</span>
-        <form onSubmit={handleSubmit} className="flex flex-col mt-2 w-full">
-          <TextField
-            margin="normal"
-            label="E-Mail"
-            type="email"
-            required
-            value={loginForm.email}
-            onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-          />
-          <TextField
-            margin="normal"
-            label="Пароль"
-            type="password"
-            required
-            value={loginForm.password}
-            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-          />
-          <Button
-            variant="contained"
-            className="mt-2"
-            type="submit"
-            disabled={!loginForm.email || !loginForm.password}
+    <div className="flex flex-col justify-between items-center bg-white rounded p-5 shadow-lg w-full max-w-md">
+      <span className="text-2xl font-medium">Вход</span>
+      <form onSubmit={handleSubmit} className="flex flex-col mt-2 w-full">
+        <TextField
+          margin="normal"
+          label="E-Mail"
+          type="email"
+          required
+          value={loginForm.email}
+          onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+        />
+        <TextField
+          margin="normal"
+          label="Пароль"
+          type="password"
+          required
+          value={loginForm.password}
+          onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+        />
+        <Button
+          variant="contained"
+          className="mt-2"
+          type="submit"
+          disabled={!loginForm.email || !loginForm.password}
+        >
+          Войти
+        </Button>
+        <div className="flex justify-between items-center text-base pt-3.5">
+          <Link
+            href="restore-password/request"
+            className="text-black/60 no-underline"
           >
-            Войти
-          </Button>
-          <div className="flex justify-between items-center text-base pt-3.5">
-            <Link
-              href="restore-password/request"
-              className="text-black/60 no-underline"
-            >
-              Забыли пароль?
-            </Link>
-            <Link href="register" className="no-underline">
-              Зарегистрироваться
-            </Link>
-          </div>
-        </form>
-      </div>
+            Забыли пароль?
+          </Link>
+          <Link href="register" className="no-underline">
+            Зарегистрироваться
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="size-full flex items-center justify-center p-4 mx-auto">
+      <Login />
     </div>
   );
 }

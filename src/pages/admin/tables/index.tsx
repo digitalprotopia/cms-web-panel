@@ -1,13 +1,19 @@
 import {
-  gql, useQuery,
+  gql, useMutation, useQuery,
 } from '@apollo/client';
 import {
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
 import { MaterialReactTable } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
+import { ITable } from '@/components/entities/ITable';
 
 function TablesPage() {
   const router = useRouter();
@@ -18,6 +24,21 @@ function TablesPage() {
         name
         dbName
         createdAt
+      }
+    }
+  `);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState<false | string>(false);
+  const [editForm, setEditForm] = useState<Partial<ITable>>({
+    name: '',
+    dbName: '',
+  });
+  const [editTable] = useMutation(gql`
+    mutation ($id: ID!, $input: TableInput!) {
+      updateTable(id: $id, input: $input) {
+        id
+        name
       }
     }
   `);
@@ -50,14 +71,23 @@ function TablesPage() {
             >
               Просмотр
             </Button>
+            {/* <Button
+              onClick={() => {
+                setEditDialogOpen(row.original.id);
+                setEditForm({
+                  name: row.original.name,
+                  dbName: row.original.dbName,
+                });
+              }}
+            >
+              Редактировать
+            </Button> */}
           </div>
         ),
       },
     ],
     [router],
   );
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -105,6 +135,45 @@ function TablesPage() {
           </div>
         )}
       />
+
+      <Dialog open={!!editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+        <DialogTitle>
+          Редактирование таблицы
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Имя"
+            value={editForm.name}
+            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+          />
+          <TextField
+            label="DB Name"
+            value={editForm.dbName}
+            onChange={(e) => setEditForm({ ...editForm, dbName: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+          >
+            Отмена
+          </Button>
+          <Button
+            onClick={async () => {
+              await editTable({
+                variables: {
+                  id: editDialogOpen,
+                  input: editForm,
+                },
+              });
+              refetch();
+              setEditDialogOpen(false);
+            }}
+          >
+            Сохранить
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

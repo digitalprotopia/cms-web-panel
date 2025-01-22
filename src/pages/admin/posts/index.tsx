@@ -18,7 +18,12 @@ import {
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import DefaultEditor from 'react-simple-wysiwyg';
+import { MuiChipsInput } from 'mui-chips-input';
 import { IPost } from '@/components/entities/IPost';
+import BlockEditor from '@/components/BlockEditor';
+import { ITag } from '@/components/entities/ITag';
+import { ICategory } from '@/components/entities/ICategory';
+import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 
 const GET_POSTS = gql`
   query GetPosts {
@@ -26,7 +31,25 @@ const GET_POSTS = gql`
       id
       title
       content
+      blockContent
+      preview
       createdAt
+      categories {
+        id
+        title
+      }
+      tags {
+        id
+        title
+      }
+    }
+    getTags {
+      id
+      title
+    }
+    getCategories {
+      id
+      title
     }
   }
 `;
@@ -37,6 +60,8 @@ const CREATE_POST = gql`
       id
       title
       content
+      blockContent
+      preview
       createdAt
     }
   }
@@ -48,6 +73,8 @@ const UPDATE_POST = gql`
       id
       title
       content
+      preview
+      blockContent
       createdAt
     }
   }
@@ -59,24 +86,26 @@ const DELETE_POST = gql`
   }
 `;
 
-interface PostFormData {
-  id?: string;
-  title: string;
-  content: string;
-}
-
 function PostForm({
   initialData = {},
+  // tags,
+  categories,
   onSubmit,
   onCancel,
 }: {
-  initialData: Partial<PostFormData>;
-  onSubmit: (data: PostFormData) => void;
+  initialData: Partial<IPost>;
+  tags: ITag[];
+  categories: ICategory[];
+  onSubmit: (data: Partial<IPost>) => void;
   onCancel: () => void;
 }) {
-  const [formData, setFormData] = useState<PostFormData>({
+  const [formData, setFormData] = useState<Partial<IPost>>({
     title: initialData.title || '',
     content: initialData.content || '',
+    blockContent: initialData.blockContent || [],
+    preview: initialData.preview || '',
+    tags: (initialData as any).tags?.map((tag: ITag) => tag.title) || [],
+    categoryIds: (initialData as any).categories?.map((category: ICategory) => category.id) || [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -118,11 +147,43 @@ function PostForm({
           required
         />
       </div>
+      <div>
+        <MuiChipsInput
+          label="Теги"
+          value={formData.tags}
+          onChange={(_tags) => setFormData({ ...formData, tags: _tags })}
+        />
+      </div>
+      <div>
+        <S3Autocomplete
+          multiple
+          label="Категории"
+          value={formData.categoryIds}
+          options={categories.map((category) => ({
+            id: category.id,
+            name: category.title,
+          }))}
+          onChange={(categoryIds) => setFormData({
+            ...formData,
+            categoryIds: categoryIds as string[],
+          })}
+        />
+      </div>
 
+      <h4>Блочный редактор</h4>
+      <BlockEditor
+        initialData={initialData.blockContent}
+        onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+      />
       <h4>Контент</h4>
       <DefaultEditor
         value={formData.content}
         onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+      />
+      <h4>Превью</h4>
+      <DefaultEditor
+        value={formData.preview}
+        onChange={(e) => setFormData({ ...formData, preview: e.target.value })}
       />
 
       <div className="flex justify-end gap-2 mt-5">
@@ -224,11 +285,11 @@ function PostsPost() {
     },
   });
 
-  const handleCreate = (formData: PostFormData) => {
+  const handleCreate = (formData: Partial<IPost>) => {
     createPost({ variables: { input: formData } });
   };
 
-  const handleUpdate = (formData: PostFormData) => {
+  const handleUpdate = (formData: Partial<IPost>) => {
     if (!selectedPost) return;
     updatePost({
       variables: {
@@ -301,6 +362,8 @@ function PostsPost() {
               setIsFormOpen(false);
               setSelectedPost(null);
             }}
+            tags={data.getTags || []}
+            categories={data.getCategories || []}
           />
         </DialogContent>
       </Dialog>

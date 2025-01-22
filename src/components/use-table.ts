@@ -2,6 +2,7 @@ import { useQuery, gql, useMutation } from '@apollo/client';
 import {
   FieldType, IField, IFieldOptions,
 } from './entities/IField';
+import { IEntity } from './entities/IEntity';
 
 type TableField = IField & {
   id: string;
@@ -133,10 +134,17 @@ export const generateGetTableDataQuery = (
   });
   return gql`
       query GetTableData($search: ${tableName}Search) {
+        getUsers {
+          id
+          name
+        }
         ${tables.map((table) => `getAll${table} { id _cms_title }`).join('\n')}
           getAll${tableName} (search: $search) {
           id
           createdAt
+          updatedAt
+          createdById
+          updatedById
           _cms_title
           ${fields.map((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
@@ -245,6 +253,11 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
           row[field.dbName] = row[`${field.dbName}Ids`].map((id: string) => objects[id]);
         });
       }
+    });
+
+    data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+      row.createdBy = data.getUsers.find((user: any) => user.id === row.createdById);
+      row.updatedBy = data.getUsers.find((user: any) => user.id === row.updatedById);
     });
 
     return data[`getAll${tableMeta!.dbName}`];
@@ -406,6 +419,168 @@ export const useDeleteField = () => {
       id,
     },
   });
+};
+
+export interface ListParams<T> {
+  count?: number,
+  offset?: number,
+  orderBy?: keyof T,
+  orderDirection?: 'asc' | 'desc',
+}
+
+export const usePosts = (params?: ListParams<IEntity>) => {
+  const result = useQuery(gql`
+    query GetPosts($params: ListParamsInput) {
+      getPosts(params: $params) {
+        id
+        title
+        slug
+        content
+        blockContent
+        preview
+        createdAt
+        updatedAt
+        createdBy {
+          id
+          name
+        }
+        updatedBy {
+          id
+          name
+        }
+        categories {
+          id
+          slug
+          title
+        }
+        tags {
+          id
+          slug
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      params,
+    },
+  });
+
+  return result;
+};
+
+export const usePostsByTagSlug = (slug: string, params?: ListParams<IEntity>) => {
+  const result = useQuery(gql`
+    query GetPostsByTagSlug($slug: String! $params: ListParamsInput) {
+      getPostsByTagSlug(slug: $slug params: $params) {
+        id
+        title
+        slug
+        content
+        blockContent
+        preview
+        createdAt
+        updatedAt
+        createdBy {
+          id
+          name
+        }
+        updatedBy {
+          id
+          name
+        }
+        categories {
+          id
+          slug
+          title
+        }
+        tags {
+          id
+          slug
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      slug,
+      params,
+    },
+  });
+
+  return result;
+};
+
+export const usePostsByCategorySlug = (slug: string, params?: ListParams<IEntity>) => {
+  const result = useQuery(gql`
+    query GetPostsByCategorySlug($slug: String! $params: ListParamsInput) {
+      getPostsByCategorySlug(slug: $slug params: $params) {
+        id
+        title
+        slug
+        content
+        blockContent
+        preview
+        createdAt
+        updatedAt
+        createdBy {
+          id
+          name
+        }
+        updatedBy {
+          id
+          name
+        }
+        categories {
+          id
+          slug
+          title
+        }
+        tags {
+          id
+          slug
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      slug,
+      params,
+    },
+  });
+
+  return result;
+};
+
+export const useTags = () => {
+  const result = useQuery(gql`
+    query GetTags {
+      getTags {
+        id
+        title
+        slug
+        createdAt
+      }
+    }
+  `);
+
+  return result;
+};
+
+export const useCategories = () => {
+  const result = useQuery(gql`
+    query GetCategories {
+      getCategories {
+        id
+        title
+        slug
+        createdAt
+      }
+    }
+  `);
+
+  return result;
 };
 
 export type {

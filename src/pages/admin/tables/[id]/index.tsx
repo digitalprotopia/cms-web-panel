@@ -20,7 +20,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Download, Save,
+  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, Save,
 } from '@mui/icons-material';
 import {
   gql, useApolloClient, useMutation, useQuery,
@@ -450,7 +450,46 @@ function TablePage() {
   const columns = useMemo(() => {
     // if (!meta?.fields) return [];
 
-    const result = fields.map(
+    let result: MRT_ColumnDef<MRT_RowData>[] = [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        Header: 'ID',
+        Cell: ({ cell }) => <>{cell.getValue()}</>,
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Создан',
+        Header: 'Создан',
+        Cell: ({ cell }) => (
+          cell.getValue()
+            ? dayjs(cell.getValue() as any).format('YYYY-MM-DD HH:mm') : null
+        ),
+      },
+      {
+        accessorKey: 'updatedAt',
+        header: 'Обновлен',
+        Header: 'Обновлен',
+        Cell: ({ cell }) => (
+          cell.getValue()
+            ? dayjs(cell.getValue() as any).format('YYYY-MM-DD HH:mm') : null
+        ),
+      },
+      {
+        accessorKey: 'createdBy',
+        header: 'Создал',
+        Header: 'Создал',
+        Cell: ({ cell }) => (cell.getValue() as any)?.name,
+      },
+      {
+        accessorKey: 'updatedBy',
+        header: 'Обновил',
+        Header: 'Обновил',
+        Cell: ({ cell }) => (cell.getValue() as any)?.name,
+      },
+    ];
+
+    result = [...result, ...fields.map(
       (field: IField): MRT_ColumnDef<MRT_RowData> => ({
         accessorKey: field.dbName,
         header: field.name,
@@ -461,6 +500,7 @@ function TablePage() {
           const editField = useEditField();
           const [editForm, setEditForm] = useState<Partial<IField>>({
             name: field.name,
+            dbName: field.dbName,
           });
           return (
             <div
@@ -495,17 +535,28 @@ function TablePage() {
                     {' '}
                     {field.dbName}
                   </div>
+                  <div className="text-sm">
+                    Тип:
+                    {' '}
+                    {field.type}
+                  </div>
                   <h4>Редактировать поле</h4>
                   <TextField
                     label="Название"
                     value={editForm.name}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
                   />
+                  <TextField
+                    label="Техническое название"
+                    value={editForm.dbName}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, dbName: e.target.value }))}
+                  />
                   <Button
                     variant="contained"
                     onClick={async () => {
                       await editField(field.id, {
                         name: editForm.name,
+                        dbName: editForm.dbName,
                       });
                       setDropDownOpen(false);
                       setTimeout(() => handleRefetch(), 2000);
@@ -553,8 +604,38 @@ function TablePage() {
           if (field.type === FieldType.TEXT) {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
           }
+          if (field.type === FieldType.COLOR) {
+            cellValue = (
+              <div style={{
+                height: '20px',
+                backgroundColor: cellValue || 'transparent',
+                padding: 4,
+                margin: 4,
+                borderRadius: 4,
+                boxSizing: 'content-box',
+              }}
+              >
+                {cellValue || 'Нет значения'}
+              </div>
+            );
+          }
           if (field.type === FieldType.GEO) {
-            cellValue = `${cellValue?.lat}, ${cellValue?.lng}`;
+            return (
+              <div className="flex items-center">
+                {cellValue?.lat && cellValue?.lng ? (
+                  <span>
+                    {`${cellValue.lat}, ${cellValue.lng}`}
+                  </span>
+                ) : (
+                  <i>
+                    Нет значения
+                  </i>
+                )}
+                <IconButton onClick={() => setEditMode(true)} color="primary">
+                  <MapOutlined />
+                </IconButton>
+              </div>
+            );
           }
           if (field.type === FieldType.ONE_TO_MANY_ONE) {
             cellValue = cellValue?._cms_title;
@@ -595,7 +676,7 @@ function TablePage() {
               </div>
             ) : null;
           }
-          if (cellValue === '' || cellValue === null) {
+          if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;
           }
           return (
@@ -605,7 +686,7 @@ function TablePage() {
           );
         },
       }),
-    );
+    )];
     result.push({
       enableColumnOrdering: false,
       header: '+',
@@ -750,7 +831,18 @@ function TablePage() {
         )}
         state={{
           isLoading: loading,
-          columnOrder: ['mrt-row-actions', ...fields.map((field) => field.dbName), '+'],
+          columnOrder: ['mrt-row-actions',
+            'id', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy',
+            ...fields.map((field) => field.dbName), '+'],
+        }}
+        initialState={{
+          columnVisibility: {
+            id: false,
+            createdAt: false,
+            updatedAt: false,
+            createdBy: false,
+            updatedBy: false,
+          },
         }}
         muiTablePaperProps={{
           elevation: 0,

@@ -1,7 +1,6 @@
 const reactTemplates: Record<string, { definition: string, type: string }> = {
   list: {
     definition: `
-        const { React, Mui, Link, user, pages, context, useTableByDbName, router, Head } = data;
       let filter = null;
       const result = { 
       }
@@ -17,6 +16,9 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         },
         setListComponent: (c) => {
           result.ListComponent = c;
+        },
+        setGetColor: (c) => {
+          result.getColor = c;
         },
         user: data.user,
         pages: data.pages,
@@ -51,7 +53,13 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
       declare const MMCMS: {
         setFilter: (f: (row: any) => boolean) => void;
         setComponent: (c: (props: {row: any}) => React.ReactNode) => void;
-        setListComponent: (c: (props: {data: any[], children: React.ReactNode, Component: React.ComponentType<any>}) => React.ReactNode) => void;
+        setListComponent: (c: (props: {
+        data: any[], children: React.ReactNode, 
+        Component: React.ComponentType<any>,
+        WidgetMap: React.ComponentType<any>,
+        MapComponent: React.ComponentType<any>,
+        mapProps: any,
+        }) => React.ReactNode) => void;
         setSearch: (s: any) => void;
         user: {
           id: string;
@@ -71,6 +79,12 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
   },
 };
 
-export const getReactTemplateDefinition = (template: string, code: string) => reactTemplates[template].definition.replace('{resultCode}', code);
+export const getReactTemplateDefinition = (template: string, code: string, data: any) => {
+  let result = '';
+  Object.keys(data).forEach((i) => {
+    result += `const ${i} = data.${i};\n`;
+  });
+  return result + reactTemplates[template].definition.replace('{resultCode}', code);
+};
 
 export const getReactTemplateType = (template: string) => reactTemplates[template].type;
