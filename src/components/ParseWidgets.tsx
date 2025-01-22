@@ -1,4 +1,6 @@
-import { gql, useMutation, useQuery } from '@apollo/client';
+import {
+  gql, useApolloClient, useLazyQuery, useMutation, useQuery,
+} from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
@@ -87,6 +89,8 @@ export function parseReact(
       useQuery,
       useMutation,
       gql,
+      useLazyQuery,
+      useApolloClient,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
@@ -215,6 +219,10 @@ function MapComponent(props: {
   fields: TableField[],
   html: string,
   language: TemplateLanguage,
+  mapCenter?: { lat: number, lng: number },
+  zoom?: number,
+  width?: any,
+  height?: any,
 }) {
   const [portal, setPortal] = useState<{
     open: boolean,
@@ -235,15 +243,17 @@ function MapComponent(props: {
 
   return (
     <div
-      style={{ minHeight: 400 }}
+      style={{ minHeight: props.height || 400 }}
     >
       <Map
         defaultState={{
-          center: [55.751574, 37.573856],
-          zoom: 5,
+          center: props.mapCenter
+            ? [props.mapCenter.lat, props.mapCenter.lng]
+            : [55.751574, 37.573856],
+          zoom: props.zoom || 10,
         }}
-        height={400}
-        width="100%"
+        height={props.height || 400}
+        width={props.width || '100%'}
         modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
         instanceRef={(ref) => {
           if (ymapsRef && props.data && props.data.length && ref && !mapCreate) {
