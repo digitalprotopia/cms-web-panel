@@ -604,6 +604,21 @@ function TablePage() {
           if (field.type === FieldType.TEXT) {
             cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
           }
+          if (field.type === FieldType.COLOR) {
+            cellValue = (
+              <div style={{
+                height: '20px',
+                backgroundColor: cellValue || 'transparent',
+                padding: 4,
+                margin: 4,
+                borderRadius: 4,
+                boxSizing: 'content-box',
+              }}
+              >
+                {cellValue || 'Нет значения'}
+              </div>
+            );
+          }
           if (field.type === FieldType.GEO) {
             return (
               <div className="flex items-center">

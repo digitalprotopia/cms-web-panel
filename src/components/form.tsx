@@ -22,6 +22,7 @@ import { MaterialReactTable } from 'material-react-table';
 import {
   YMaps, Map, FullscreenControl, Placemark, SearchControl,
 } from '@pbe/react-yandex-maps';
+import { MuiColorInput } from 'mui-color-input';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
@@ -292,7 +293,8 @@ export default function FormField(props: FormFieldProps) {
   if (props.field.type === FieldType.STRING
       || props.field.type === FieldType.EMAIL
       || props.field.type === FieldType.PHONE
-      || props.field.type === FieldType.URL) {
+      || props.field.type === FieldType.URL
+  ) {
     return (
       <TextField
         label={props.title}
@@ -308,6 +310,15 @@ export default function FormField(props: FormFieldProps) {
         value={props.value || ''}
         onChange={(e) => props.onChange(e.target.value)}
         multiline
+      />
+    );
+  }
+  if (props.field.type === FieldType.COLOR) {
+    return (
+      <MuiColorInput
+        label={props.title}
+        value={props.value || ''}
+        onChange={(value) => props.onChange(value)}
       />
     );
   }

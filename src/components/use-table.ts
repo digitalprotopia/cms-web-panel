@@ -2,6 +2,7 @@ import { useQuery, gql, useMutation } from '@apollo/client';
 import {
   FieldType, IField, IFieldOptions,
 } from './entities/IField';
+import { IEntity } from './entities/IEntity';
 
 type TableField = IField & {
   id: string;
@@ -420,14 +421,23 @@ export const useDeleteField = () => {
   });
 };
 
-export const usePosts = () => {
+export interface ListParams<T> {
+  count?: number,
+  offset?: number,
+  orderBy?: keyof T,
+  orderDirection?: 'asc' | 'desc',
+}
+
+export const usePosts = (params?: ListParams<IEntity>) => {
   const result = useQuery(gql`
-    query GetPosts {
-      getPosts {
+    query GetPosts($params: ListParamsInput) {
+      getPosts(params: $params) {
         id
         title
+        slug
         content
         blockContent
+        preview
         createdAt
         updatedAt
         createdBy {
@@ -440,62 +450,53 @@ export const usePosts = () => {
         }
         categories {
           id
+          slug
           title
         }
         tags {
           id
-          title
-        }
-      }
-    }
-  `);
-
-  return result;
-};
-
-export const usePostsByTagSlug = (slug: string) => {
-  const result = useQuery(gql`
-    query GetPostsByTagSlug($slug: String!) {
-      getPostsByTagSlug(slug: $slug) {
-        id
-        title
-        content
-        blockContent
-        createdAt
-        categories {
-          id
-          title
-        }
-        tags {
-          id
+          slug
           title
         }
       }
     }
   `, {
     variables: {
-      slug,
+      params,
     },
   });
 
   return result;
 };
 
-export const usePostsByCategorySlug = (slug: string) => {
+export const usePostsByTagSlug = (slug: string, params?: ListParams<IEntity>) => {
   const result = useQuery(gql`
-    query GetPostsByCategorySlug($slug: String!) {
-      getPostsByCategorySlug(slug: $slug) {
+    query GetPostsByTagSlug($slug: String! $params: ListParamsInput) {
+      getPostsByTagSlug(slug: $slug params: $params) {
         id
         title
+        slug
         content
         blockContent
+        preview
         createdAt
+        updatedAt
+        createdBy {
+          id
+          name
+        }
+        updatedBy {
+          id
+          name
+        }
         categories {
           id
+          slug
           title
         }
         tags {
           id
+          slug
           title
         }
       }
@@ -503,6 +504,49 @@ export const usePostsByCategorySlug = (slug: string) => {
   `, {
     variables: {
       slug,
+      params,
+    },
+  });
+
+  return result;
+};
+
+export const usePostsByCategorySlug = (slug: string, params?: ListParams<IEntity>) => {
+  const result = useQuery(gql`
+    query GetPostsByCategorySlug($slug: String! $params: ListParamsInput) {
+      getPostsByCategorySlug(slug: $slug params: $params) {
+        id
+        title
+        slug
+        content
+        blockContent
+        preview
+        createdAt
+        updatedAt
+        createdBy {
+          id
+          name
+        }
+        updatedBy {
+          id
+          name
+        }
+        categories {
+          id
+          slug
+          title
+        }
+        tags {
+          id
+          slug
+          title
+        }
+      }
+    }
+  `, {
+    variables: {
+      slug,
+      params,
     },
   });
 

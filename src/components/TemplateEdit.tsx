@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { gql, useQuery } from '@apollo/client';
 import { Button, MenuItem, TextField } from '@mui/material';
+import { Editor } from '@monaco-editor/react';
 import { ITemplate, ITemplateFormData } from './entities/ITemplate';
 
 export default function TemplateEdit({
@@ -46,7 +47,7 @@ export default function TemplateEdit({
       <form onSubmit={handleSubmit} className="p-4">
         <div className="grid grid-cols-2 gap-4">
           <TextField
-            label="Код"
+            label="Имя файла"
             fullWidth
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -62,11 +63,11 @@ export default function TemplateEdit({
         </div>
 
         <h4>HTML</h4>
-        <TextField
-          multiline
-          fullWidth
+        <Editor
           value={formData.html}
-          onChange={(e) => setFormData({ ...formData, html: e.target.value })}
+          height={400}
+          onChange={(value) => setFormData({ ...formData, html: value! })}
+          language={formData.name.endsWith('.css') ? 'css' : 'html'}
         />
 
         <div className="flex flex-wrap gap-2">
@@ -89,29 +90,37 @@ export default function TemplateEdit({
             ))}
         </div>
 
-        <h4>Добавить виджеты</h4>
-        <div>
-          {snippets.data?.getAllWidgets?.map((widget: any) => (
-            <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
-              {widget.title}
-            </MenuItem>
-          ))}
+        <div style={{ display: 'flex', width: '100%' }}>
+          <div>
+            <h4>Добавить виджеты</h4>
+            <div style={{ height: 160, overflow: 'auto' }}>
+              {snippets.data?.getAllWidgets?.map((widget: any) => (
+                <MenuItem key={widget.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[widget:${widget.name}]` })}>
+                  {widget.title}
+                </MenuItem>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4>Добавить формы</h4>
+            <div style={{ height: 160, overflow: 'auto' }}>
+              {snippets.data?.getAllForms?.map((form: any) => (
+                <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
+                  {form.title}
+                </MenuItem>
+              ))}
+            </div>
+          </div>
         </div>
-        <h4>Добавить формы</h4>
         <div>
-          {snippets.data?.getAllForms?.map((form: any) => (
-            <MenuItem key={form.id} onClick={() => setFormData({ ...formData, html: `${formData.html}[form:${form.name}]` })}>
-              {form.title}
-            </MenuItem>
-          ))}
-        </div>
-        <h4>Добавить шаблоны</h4>
-        <div>
-          {templates.map((template) => (
-            <MenuItem key={template.name} onClick={() => setFormData({ ...formData, html: `${formData.html}{include:${template.name}}` })}>
-              {template.title}
-            </MenuItem>
-          ))}
+          <h4>Добавить шаблоны</h4>
+          <div style={{ height: 160, overflow: 'auto' }}>
+            {templates.map((template) => (
+              <MenuItem key={template.name} onClick={() => setFormData({ ...formData, html: `${formData.html}{include:${template.name}}` })}>
+                {template.title}
+              </MenuItem>
+            ))}
+          </div>
         </div>
         <div className="flex justify-end gap-2 mt-5">
           <Button variant="contained" type="submit">

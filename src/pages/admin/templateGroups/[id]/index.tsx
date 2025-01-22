@@ -22,6 +22,7 @@ import TemplateEdit from '@/components/TemplateEdit';
 import clsx from 'clsx';
 import { useSearchParams } from 'next/navigation';
 import { Add, Delete } from '@mui/icons-material';
+import { useSnackbar } from 'notistack';
 
 const GET_TEMPLATES = gql`
   query GetTemplateGroup($id: ID!) {
@@ -161,7 +162,7 @@ function CreateTemplate(props: {
           onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
         <TextField
-          label="Код"
+          label="Имя файла"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
@@ -245,6 +246,8 @@ function TemplatesPage() {
     },
   });
 
+  const { enqueueSnackbar } = useSnackbar();
+
   const handleCreate = (formData: ITemplateFormData) => {
     createTemplate({
       variables: {
@@ -256,14 +259,15 @@ function TemplatesPage() {
     });
   };
 
-  const handleUpdate = (formData: ITemplateFormData) => {
+  const handleUpdate = async (formData: ITemplateFormData) => {
     if (!selectedTemplate) return;
-    updateTemplate({
+    await updateTemplate({
       variables: {
         id: selectedTemplate.id,
         input: formData,
       },
     });
+    enqueueSnackbar('Шаблон обновлен', { variant: 'success' });
   };
 
   if (loading || tLoading) {
