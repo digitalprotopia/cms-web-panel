@@ -268,35 +268,39 @@ function CellEdit({
           >
             <Close />
           </IconButton>
-          <IconButton
-            onClick={() => setDialogOpen(true)}
-          >
-            <OpenInFull />
-          </IconButton>
+          {field.type === 'text' && (
+            <>
+              <IconButton
+                onClick={() => setDialogOpen(true)}
+              >
+                <OpenInFull />
+              </IconButton>
+              <Dialog open={isDialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="xl">
+                <DialogTitle>Редактирование текста</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    className="mt-0.5"
+                    fullWidth
+                    multiline
+                    rows={10}
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setDialogOpen(false)}>
+                    Отмена
+                  </Button>
+                  <Button onClick={handleSave}>
+                    Сохранить
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </>
+          )}
         </>
       )}
 
-      <Dialog open={isDialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="xl">
-        <DialogTitle>Редактирование текста</DialogTitle>
-        <DialogContent>
-          <TextField
-            className="mt-0.5"
-            fullWidth
-            multiline
-            rows={10}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>
-            Отмена
-          </Button>
-          <Button onClick={handleSave}>
-            Сохранить
-          </Button>
-        </DialogActions>
-      </Dialog>
     </div>
   );
 }

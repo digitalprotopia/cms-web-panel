@@ -308,7 +308,7 @@ export default function FormField(props: FormFieldProps) {
         value={props.value || ''}
         onChange={(e) => props.onChange(e.target.value)}
         multiline
-        rows={4}
+        rows={1}
       />
     );
   }
