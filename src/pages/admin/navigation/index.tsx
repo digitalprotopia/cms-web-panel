@@ -5,9 +5,8 @@ import { useQuery, useMutation } from '@apollo/client';
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import { useState } from 'react';
 import CreateMenuDialog from '@/components/navigation/CreateMenuDialog';
-import { CREATE_SITE_MENU } from '@/graphql/SiteMenu';
+import { CREATE_SITE_MENU, GET_SITE_MENUS } from '@/graphql/SiteMenu';
 import { GET_ALL_SITES } from '@/graphql/Site';
-import { GET_SITE_MENUS } from '@/graphql/SiteMenu';
 
 export default function NavigationPage() {
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');

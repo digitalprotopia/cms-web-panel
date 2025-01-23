@@ -41,7 +41,6 @@ import { ISiteMenuItem, ISiteMenuItemType } from '../entities/ISiteMenuItem';
 import { ISiteItem } from '../entities/ISiteItem';
 import {
   SiteMenuItemsProps,
-  MenuItemFormData,
   MenuItemNode,
 } from './types/types';
 import buildMenuTree from './utils/buildMenuTree';
@@ -72,16 +71,11 @@ export default function SiteMenuItems({
   onUpdate,
 }: SiteMenuItemsProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<ISiteMenuItem | null>(null);
-  const [formData, setFormData] = useState<MenuItemFormData>({
+  const [formData, setFormData] = useState<Partial<ISiteMenuItem> | null>({
+    type: ISiteMenuItemType.URL,
     title: '',
     url: '',
   });
-  const [itemType, setItemType] = useState<ISiteMenuItemType>(
-    ISiteMenuItemType.URL,
-  );
-  const [selectedPageId, setSelectedPageId] = useState<string>('');
-  const [parentId, setParentId] = useState<string | undefined>(undefined);
 
   const { data: pagesData } = useQuery<{ getAllSiteItems: ISiteItem[] }>(
     GET_SITE_PAGES,
@@ -91,10 +85,7 @@ export default function SiteMenuItems({
 
   const handleCloseDialog = () => {
     setIsCreateDialogOpen(false);
-    setEditingItem(null);
-    setFormData({ title: '', url: '' });
-    setItemType(ISiteMenuItemType.URL);
-    setSelectedPageId('');
+    setFormData({ title: '', url: '', type: ISiteMenuItemType.URL });
   };
 
   const [createMenuItem] = useMutation(CREATE_MENU_ITEM, {
@@ -116,20 +107,26 @@ export default function SiteMenuItems({
   });
 
   const handleEditClick = (item: ISiteMenuItem) => {
-    setEditingItem(item);
-    setFormData({ title: item.title, url: item.url });
+    setFormData({
+      id: item.id,
+      title: item.title,
+      url: item.url,
+      parentId: item.parentId,
+      siteItemId: item.siteItemId,
+      position: item.position,
+      type: item.type,
+    });
   };
 
   const handleSubmit = async () => {
-    if (editingItem) {
+    if (formData?.id) {
       await updateMenuItem({
         variables: {
-          id: editingItem.id,
+          id: formData.id,
           input: {
             ...formData,
             menuId,
-            position: editingItem.position,
-            parentId: editingItem.parentId,
+            id: undefined,
           },
         },
       });
@@ -139,9 +136,8 @@ export default function SiteMenuItems({
           input: {
             ...formData,
             menuId,
-            parentId,
-            position: items.filter((item) => item.parentId === parentId).length,
-            siteItemId: selectedPageId,
+            position: items.filter((item) => item.parentId === formData?.parentId).length,
+            id: undefined,
           },
         },
       });
@@ -177,10 +173,9 @@ export default function SiteMenuItems({
       (page) => page.id === pageId,
     );
     if (selectedPage) {
-      setSelectedPageId(pageId);
       setFormData({
         ...formData,
-        url: selectedPage.url,
+        siteItemId: pageId,
       });
     }
   };
@@ -190,9 +185,7 @@ export default function SiteMenuItems({
     newType: ISiteMenuItemType,
   ) => {
     if (newType !== null) {
-      setItemType(newType);
-      setFormData({ title: '', url: '' });
-      setSelectedPageId('');
+      setFormData({ ...formData, type: newType });
     }
   };
 
@@ -243,7 +236,7 @@ export default function SiteMenuItems({
                           <Button
                             size="small"
                             onClick={() => {
-                              setParentId(item.id);
+                              setFormData({ ...formData, parentId: item.id });
                               setIsCreateDialogOpen(true);
                             }}
                             sx={{ mr: 1 }}
@@ -281,7 +274,8 @@ export default function SiteMenuItems({
                       </Box>
                       <ListItemText
                         primary={item.title}
-                        secondary={item.url}
+                        secondary={item.type === ISiteMenuItemType.URL ? item.url
+                          : (item as any).siteItem?.title}
                         sx={{ mr: 6 }}
                       />
                     </ListItem>
@@ -340,9 +334,6 @@ export default function SiteMenuItems({
           variables: {
             id: item.id,
             input: {
-              title: item.title,
-              url: item.url,
-              menuId,
               parentId: sourceParentId,
               position: index,
             },
@@ -366,9 +357,6 @@ export default function SiteMenuItems({
           variables: {
             id: draggedItem.id,
             input: {
-              title: draggedItem.title,
-              url: draggedItem.url,
-              menuId,
               parentId: destinationParentId,
               position: result.destination.index,
             },
@@ -385,9 +373,6 @@ export default function SiteMenuItems({
             variables: {
               id: item.id,
               input: {
-                title: item.title,
-                url: item.url,
-                menuId,
                 parentId: destinationParentId,
                 position: newIndex,
               },
@@ -403,9 +388,6 @@ export default function SiteMenuItems({
           variables: {
             id: item.id,
             input: {
-              title: item.title,
-              url: item.url,
-              menuId,
               parentId: sourceParentId,
               position: index,
             },
@@ -428,7 +410,7 @@ export default function SiteMenuItems({
           variant="outlined"
           size="small"
           onClick={() => {
-            setParentId(undefined);
+            setFormData({ title: '', url: '', type: ISiteMenuItemType.URL });
             setIsCreateDialogOpen(true);
           }}
         >
@@ -447,47 +429,45 @@ export default function SiteMenuItems({
       </DragDropContext>
 
       <Dialog
-        open={isCreateDialogOpen || !!editingItem}
+        open={isCreateDialogOpen || !!formData?.id}
         onClose={handleCloseDialog}
         maxWidth="sm"
         fullWidth
       >
         <DialogTitle>
-          {editingItem ? 'Редактировать пункт меню' : 'Добавить пункт меню'}
+          {formData?.id ? 'Редактировать пункт меню' : 'Добавить пункт меню'}
         </DialogTitle>
         <DialogContent>
-          {!editingItem && (
-            <Box sx={{ mb: 2, mt: 1 }}>
-              <ToggleButtonGroup
-                value={itemType}
-                exclusive
-                onChange={handleItemTypeChange}
-                fullWidth
-                size="small"
-              >
-                <ToggleButton value={ISiteMenuItemType.URL}>
-                  Произвольная ссылка
-                </ToggleButton>
-                <ToggleButton value={ISiteMenuItemType.SiteItem}>
-                  Страница сайта
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          )}
+          <Box sx={{ mb: 2, mt: 1 }}>
+            <ToggleButtonGroup
+              value={formData?.type}
+              exclusive
+              onChange={handleItemTypeChange}
+              fullWidth
+              size="small"
+            >
+              <ToggleButton value={ISiteMenuItemType.URL}>
+                Произвольная ссылка
+              </ToggleButton>
+              <ToggleButton value={ISiteMenuItemType.SiteItem}>
+                Страница сайта
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
 
           <TextField
             label="Название"
-            value={formData.title}
+            value={formData?.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             fullWidth
             margin="normal"
           />
 
-          {itemType === ISiteMenuItemType.SiteItem && !editingItem ? (
+          {formData?.type === ISiteMenuItemType.SiteItem ? (
             <FormControl fullWidth margin="normal">
               <InputLabel>Выберите страницу</InputLabel>
               <Select
-                value={selectedPageId}
+                value={formData?.siteItemId}
                 label="Выберите страницу"
                 onChange={(e) => handlePageSelect(e.target.value)}
               >
@@ -501,7 +481,7 @@ export default function SiteMenuItems({
           ) : (
             <TextField
               label="URL"
-              value={formData.url}
+              value={formData?.url}
               onChange={(e) => setFormData({ ...formData, url: e.target.value })}
               fullWidth
               margin="normal"
@@ -513,9 +493,9 @@ export default function SiteMenuItems({
           <Button
             onClick={handleSubmit}
             variant="contained"
-            disabled={!formData.title || !formData.url}
+            disabled={!formData?.title || (!formData?.url && !formData.siteItemId)}
           >
-            {editingItem ? 'Сохранить' : 'Добавить'}
+            {formData?.id ? 'Сохранить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -24,13 +24,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import UserContext from '@/components/UserContext';
 
-const getInitials = (name: string) =>
-  name
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase();
+const getInitials = (name: string) => name
+  .split(' ')
+  .slice(0, 2)
+  .map((word) => word[0])
+  .join('')
+  .toUpperCase();
 
 interface ISidebarItem {
   icon: SvgIconComponent;

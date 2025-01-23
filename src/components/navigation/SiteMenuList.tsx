@@ -78,9 +78,9 @@ export default function SiteMenuList({ siteId, menus, loading, refetchMenus }: S
                   Удалить
                 </Button>
 
-                <Button variant="outlined" size="small" onClick={() => setMenuToAddItem(menu)}>
+                {/* <Button variant="outlined" size="small" onClick={() => setMenuToAddItem(menu)}>
                   Добавить пункт меню
-                </Button>
+                </Button> */}
               </Box>
             </Box>
 

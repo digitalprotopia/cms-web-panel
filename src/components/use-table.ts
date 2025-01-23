@@ -1,8 +1,11 @@
 import { useQuery, gql, useMutation } from '@apollo/client';
+import { useState } from 'react';
 import {
   FieldType, IField, IFieldOptions,
 } from './entities/IField';
 import { IEntity } from './entities/IEntity';
+import { ISiteItem } from './entities/ISiteItem';
+import { ISiteMenuItem, ISiteMenuItemType } from './entities/ISiteMenuItem';
 
 type TableField = IField & {
   id: string;
@@ -579,6 +582,80 @@ export const useCategories = () => {
       }
     }
   `);
+
+  return result;
+};
+
+const getSiteItemUrl = (siteItem: ISiteItem, siteItems: ISiteItem[]) => {
+  let { url } = siteItem;
+  let currentItem: (ISiteItem | null) = siteItem;
+  while (currentItem?.parentId) {
+    // eslint-disable-next-line @typescript-eslint/no-loop-func
+    currentItem = siteItems.find((p) => p.id === currentItem!.parentId) || null;
+    url = `${currentItem?.url}/${url}`;
+  }
+  return `/${url}`;
+};
+
+export const useSiteMenu = (siteMenuName: string) => {
+  const [result, setResult] = useState<ISiteMenuItem[]>([]);
+
+  useQuery(gql`
+  query ($name: String!) {
+    getSiteMenuByName(name: $name) {
+      id
+      name
+      title
+      items {
+        id
+        title
+        type
+        url
+        position
+        parentId
+        siteItemId
+        siteItem {
+          id
+          parentId
+          url
+          title
+        }
+        createdAt
+      }
+      createdAt
+      updatedAt
+    }
+    getAllSiteItems {
+      id
+      parentId
+      url
+    }
+  }
+    `, {
+    variables: {
+      name: siteMenuName,
+    },
+    onCompleted: (data) => {
+      if (!data) {
+        return;
+      }
+      const { items } = data.getSiteMenuByName;
+      items.forEach((item: ISiteMenuItem) => {
+        if (item.parentId) {
+          const parent = items.find((p: ISiteItem) => p.id === item.parentId);
+          if (parent) {
+            if (!parent.children) {
+              parent.children = [];
+            }
+            parent.children.push(item);
+          }
+        }
+        item.url = item.type === ISiteMenuItemType.URL ? item.url
+          : getSiteItemUrl((item as any).siteItem, data.getAllSiteItems);
+      });
+      setResult(items.filter((item: ISiteMenuItem) => !item.parentId));
+    },
+  });
 
   return result;
 };

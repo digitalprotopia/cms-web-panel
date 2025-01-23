@@ -43,7 +43,7 @@ export default function CreateMenuDialog({ open, onClose, onSubmit }: CreateMenu
         />
 
         <TextField
-          label="Техническое название"
+          label="Код"
           value={formData.name}
           onChange={handleChange('name')}
           fullWidth

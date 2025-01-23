@@ -28,7 +28,7 @@ import { FieldType } from './entities/IField';
 import FormField from './form';
 import useTable, {
   TableField, useAddRow, useCategories, usePosts,
-  usePostsByCategorySlug, usePostsByTagSlug, useTableByDbName, useTags,
+  usePostsByCategorySlug, usePostsByTagSlug, useSiteMenu, useTableByDbName, useTags,
 } from './use-table';
 import { TemplateLanguage } from './entities/ITemplate';
 import DynamicParse from './DynamicParse';
@@ -91,6 +91,7 @@ export function parseReact(
       gql,
       useLazyQuery,
       useApolloClient,
+      useSiteMenu,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));

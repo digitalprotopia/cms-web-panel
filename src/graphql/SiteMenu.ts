@@ -9,10 +9,16 @@ export const GET_SITE_MENUS = gql`
       items {
         id
         title
+        type
         url
         position
         parentId
         siteItemId
+        siteItem {
+          id
+          url
+          title
+        }
         createdAt
       }
       createdAt

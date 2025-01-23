@@ -8,8 +8,8 @@ import {
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useMutation } from '@apollo/client';
-import { EditMenuDialogProps } from './types/types';
 import { EDIT_SITE_MENU, GET_SITE_MENUS } from '@/graphql/SiteMenu';
+import { EditMenuDialogProps } from './types/types';
 
 export default function EditMenuDialog({ open, onClose, menu, onSuccess }: EditMenuDialogProps) {
   const [formData, setFormData] = useState({
@@ -71,18 +71,18 @@ export default function EditMenuDialog({ open, onClose, menu, onSuccess }: EditM
 
       <DialogContent>
         <TextField
-          name="name"
+          name="title"
           label="Название"
-          value={formData.name}
+          value={formData.title}
           onChange={handleChange}
           fullWidth
           margin="normal"
         />
 
         <TextField
-          name="title"
-          label="Заголовок"
-          value={formData.title}
+          name="name"
+          label="Код"
+          value={formData.name}
           onChange={handleChange}
           fullWidth
           margin="normal"
