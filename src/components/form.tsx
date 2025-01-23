@@ -298,6 +298,7 @@ export default function FormField(props: FormFieldProps) {
         label={props.title}
         value={props.value || ''}
         onChange={(e) => props.onChange(e.target.value)}
+        className="min-w-48"
       />
     );
   }
@@ -309,6 +310,7 @@ export default function FormField(props: FormFieldProps) {
         onChange={(e) => props.onChange(e.target.value)}
         multiline
         rows={1}
+        className="min-w-48"
       />
     );
   }
