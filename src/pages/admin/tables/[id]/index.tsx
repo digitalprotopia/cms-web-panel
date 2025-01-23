@@ -641,7 +641,7 @@ function TablePage() {
             }
           }
           if (field.type === FieldType.TEXT) {
-            cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
+            cellValue = <div className="whitespace-nowrap overflow-ellipsis overflow-hidden max-w-52">{cellValue || <i>Нет текста</i>}</div>;
           }
           if (field.type === FieldType.GEO) {
             return (
