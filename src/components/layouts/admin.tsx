@@ -1,15 +1,5 @@
-import {
-  MouseEventHandler, ReactNode, useContext, useState,
-} from 'react';
-import {
-  Button,
-  Menu,
-  MenuItem,
-  IconButton,
-  Badge,
-  Avatar,
-  Divider,
-} from '@mui/material';
+import { MouseEventHandler, ReactNode, useContext, useState } from 'react';
+import { Button, Menu, MenuItem, IconButton, Badge, Avatar, Divider } from '@mui/material';
 import Link from 'next/link';
 import {
   NotificationsNoneOutlined,
@@ -22,6 +12,7 @@ import {
   DashboardOutlined,
   SmartToyOutlined,
   SvgIconComponent,
+  NavigationSharp,
   BuildOutlined,
   FileCopyOutlined,
 } from '@mui/icons-material';
@@ -102,6 +93,11 @@ const menuItems: ISidebarItem[] = [
     href: '/admin/pages',
   },
   {
+    icon: NavigationSharp,
+    label: 'Навигация',
+    href: '/admin/navigation',
+  },
+  {
     icon: DashboardOutlined,
     label: 'Шаблоны сайта',
     href: '/admin/templateGroups',
@@ -123,22 +119,12 @@ const menuItems: ISidebarItem[] = [
   },
 ];
 
-function SidebarItem({
-  href, icon: Icon, label, isActive,
-}: MenuItemProps) {
+function SidebarItem({ href, icon: Icon, label, isActive }: MenuItemProps) {
   return (
-    <li
-      className={clsx(
-        'rounded-md p-2',
-        isActive ? 'bg-cms-primary' : 'bg-cms-gray-light',
-      )}
-    >
+    <li className={clsx('rounded-md p-2', isActive ? 'bg-cms-primary' : 'bg-cms-gray-light')}>
       <Link
         href={href}
-        className={clsx(
-          'flex items-center',
-          isActive ? 'text-white' : 'text-cms-gray-dark',
-        )}
+        className={clsx('flex items-center', isActive ? 'text-white' : 'text-cms-gray-dark')}
       >
         <Icon />
         <span className="ml-2">{label}</span>
@@ -159,11 +145,7 @@ function MenuNavigation({ items }: MenuNavigationProps) {
   return (
     <ul className="flex flex-col gap-2">
       {items.map((item) => (
-        <SidebarItem
-          key={item.href}
-          {...item}
-          isActive={currentPath === item.href}
-        />
+        <SidebarItem key={item.href} {...item} isActive={currentPath === item.href} />
       ))}
     </ul>
   );
@@ -224,9 +206,7 @@ export default function AdminLayout({
                       flexItem
                     />
                     <div className="flex items-center gap-2">
-                      <Avatar className="size-8 text-sm">
-                        {getInitials(user.user.name)}
-                      </Avatar>
+                      <Avatar className="size-8 text-sm">{getInitials(user.user.name)}</Avatar>
                       <Button
                         variant="text"
                         className="normal-case text-cms-gray-dark !text-base"
@@ -249,9 +229,7 @@ export default function AdminLayout({
                           horizontal: 'right',
                         }}
                       >
-                        <MenuItem onClick={() => router.push('/account')}>
-                          Мой аккаунт
-                        </MenuItem>
+                        <MenuItem onClick={() => router.push('/account')}>Мой аккаунт</MenuItem>
                         <MenuItem onClick={handleLogout}>Выйти</MenuItem>
                       </Menu>
                     </div>
@@ -277,7 +255,9 @@ export default function AdminLayout({
                 </nav>
                 <main className="flex-1 overflow-hidden">{children}</main>
               </>
-            ) : 'Доступ запрещен'}
+            ) : (
+              'Доступ запрещен'
+            )}
           </div>
         </div>
       </main>
