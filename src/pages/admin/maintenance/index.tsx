@@ -17,6 +17,12 @@ export default function Maintenance() {
     }
   `);
 
+  const [restartGraphql] = useMutation(gql`
+    mutation {
+      restartGraphql
+    }
+  `);
+
   return (
     <>
       <Button
@@ -36,6 +42,15 @@ export default function Maintenance() {
         }}
       >
         Очистить кэш
+      </Button>
+      <Button
+        variant="contained"
+        onClick={async () => {
+          await restartGraphql();
+          enqueueSnackbar('GraphQL перезапущен', { variant: 'success' });
+        }}
+      >
+        Перезапустить GraphQL
       </Button>
     </>
   );
