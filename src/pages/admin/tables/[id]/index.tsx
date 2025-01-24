@@ -17,10 +17,10 @@ import {
   Popover,
   MenuItem,
   Select,
-  InputLabel,
+  InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, Save,
+  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, OpenInFull, Save,
 } from '@mui/icons-material';
 import {
   gql, useApolloClient, useMutation, useQuery,
@@ -200,8 +200,8 @@ function CellEdit({
 }: CellEditProps) {
   const [value, setValue] = useState<any>(() => {
     if (field.type === FieldType.MANY_TO_MANY_FIRST
-        || field.type === FieldType.MANY_TO_MANY_SECOND
-        || field.type === FieldType.ONE_TO_MANY_MANY) {
+      || field.type === FieldType.MANY_TO_MANY_SECOND
+      || field.type === FieldType.ONE_TO_MANY_MANY) {
       return (cell.getValue() as any)?.map((item: any) => item?.id);
     }
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
@@ -212,52 +212,95 @@ function CellEdit({
     }
     return cell.getValue();
   });
+
+  const [isDialogOpen, setDialogOpen] = useState(false);
   const editRow = useEditRow(meta.dbName);
+
   if (field.type === FieldType.USER_CREATOR) {
     return null;
   }
-  if (field.type === 'boolean') {
-    return (
-      <Checkbox
-        checked={!!cell.getValue()}
-        onChange={(e) => {
-          editRow(row.original.id, {
-            [field.dbName]: e.target.checked,
-          });
-          refetch();
-        }}
-      />
-    );
-  }
+
+  const handleSave = async () => {
+    await editRow(row.original.id, {
+      [field.dbName]: value,
+    });
+    refetch();
+    setEditMode(false);
+    setDialogOpen(false);
+  };
+
   return (
-    <div>
-      <FormField
-                  // field={field}
-        value={value}
-        title=""
-        field={field}
-        onChange={(_value) => setValue(_value)}
-      />
-      <IconButton
-        onClick={async () => {
-          console.log(value);
-          await editRow(row.original.id, {
-            [field.dbName]: value,
-          });
-          setEditMode(false);
-          refetch();
-        }}
-      >
-        <Save />
-      </IconButton>
-      <IconButton
-        onClick={() => {
-          setValue(cell.getValue());
-          setEditMode(false);
-        }}
-      >
-        <Close />
-      </IconButton>
+    <div className="flex items-center gap-1">
+      {field.type === 'boolean' ? (
+        <Checkbox
+          checked={!!cell.getValue()}
+          onChange={(e) => {
+            editRow(row.original.id, {
+              [field.dbName]: e.target.checked,
+            });
+            refetch();
+          }}
+        />
+      ) : (
+        <>
+          <FormField
+            value={value}
+            title=""
+            field={field}
+            onChange={(newValue) => setValue(newValue)}
+          />
+          <IconButton
+            onClick={async () => {
+              await editRow(row.original.id, {
+                [field.dbName]: value,
+              });
+              setEditMode(false);
+              refetch();
+            }}
+          >
+            <Save />
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              setValue(cell.getValue());
+              setEditMode(false);
+            }}
+          >
+            <Close />
+          </IconButton>
+          {field.type === 'text' && (
+            <>
+              <IconButton
+                onClick={() => setDialogOpen(true)}
+              >
+                <OpenInFull />
+              </IconButton>
+              <Dialog open={isDialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="xl">
+                <DialogTitle>Редактирование текста</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    className="mt-0.5"
+                    fullWidth
+                    multiline
+                    rows={10}
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setDialogOpen(false)}>
+                    Отмена
+                  </Button>
+                  <Button onClick={handleSave}>
+                    Сохранить
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </>
+          )}
+        </>
+      )}
+
     </div>
   );
 }
@@ -602,7 +645,7 @@ function TablePage() {
             }
           }
           if (field.type === FieldType.TEXT) {
-            cellValue = <div style={{ whiteSpace: 'pre' }}>{cellValue || <i>Нет текста</i>}</div>;
+            cellValue = <div className="whitespace-nowrap overflow-ellipsis overflow-hidden max-w-52">{cellValue || <i>Нет текста</i>}</div>;
           }
           if (field.type === FieldType.COLOR) {
             cellValue = (
