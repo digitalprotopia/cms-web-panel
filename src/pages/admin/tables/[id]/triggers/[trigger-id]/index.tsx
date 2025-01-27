@@ -1,8 +1,10 @@
+import { TableTriggerType } from '@/components/entities/ITableTrigger';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Editor } from '@monaco-editor/react';
-import { Button, TextField } from '@mui/material';
+import { Button, Checkbox, FormControlLabel, MenuItem, TextField } from '@mui/material';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useSnackbar } from 'notistack';
+import { useMemo, useState } from 'react';
 
 export default function TableTrigger() {
   const router = useRouter();
@@ -10,6 +12,8 @@ export default function TableTrigger() {
   const [form, setForm] = useState({
     title: '',
     code: '',
+    enabled: false,
+    type: TableTriggerType.AFTER_CREATE,
   });
 
   const [args, setArgs] = useState<string>('{}');
@@ -25,6 +29,8 @@ export default function TableTrigger() {
         getTableTrigger(id: $tableTriggerId) {
             id
             title
+            enabled
+            type
             serverScript {
                code
             }
@@ -39,6 +45,8 @@ export default function TableTrigger() {
       setForm({
         title: _data.getTableTrigger.title,
         code: _data.getTableTrigger.serverScript.code,
+        enabled: _data.getTableTrigger.enabled,
+        type: _data.getTableTrigger.type,
       });
     },
   });
@@ -63,6 +71,7 @@ export default function TableTrigger() {
     }
 `);
 
+  const { enqueueSnackbar } = useSnackbar();
   if (!data) {
     return null;
   }
@@ -75,12 +84,43 @@ export default function TableTrigger() {
           {' '}
           {data.getTable.name}
         </h1>
+        <div style={{ display: 'flex' }}>
+          <div style={{ flex: 1 }}>
+            <TextField
+              label="Название"
+              value={form.title}
+              fullWidth
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+          </div>
+          <div>
+            <FormControlLabel
+              control={(
+                <Checkbox
+                  checked={form.enabled}
+                  onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
+                />
+                )}
+              label="Включен"
+            />
+          </div>
+        </div>
         <div>
           <TextField
-            label="Название"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-          />
+            select
+            variant="standard"
+            label="Тип"
+            className="w-full"
+            value={form.type}
+            onChange={(e) => setForm(
+              { ...form,
+                type: e.target.value as TableTriggerType },
+            )}
+          >
+            {Object.values(TableTriggerType).map((type) => (
+              <MenuItem value={type}>{type}</MenuItem>
+            ))}
+          </TextField>
         </div>
         <div style={{ display: 'flex', width: '100%' }}>
           <div style={{ flex: 1 }}>
@@ -134,15 +174,35 @@ export default function TableTrigger() {
                   id: router.query['trigger-id'],
                   input: {
                     title: form.title,
+                    enabled: form.enabled,
+                    type: form.type,
                   },
                   script: {
                     code: form.code,
                   },
                 },
               });
+              enqueueSnackbar('Триггер сохранен', { variant: 'success' });
             }}
           >
             Сохранить
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={async () => {
+              if (!window.confirm('Удалить триггер?')) {
+                return;
+              }
+              await deleteTrigger({
+                variables: {
+                  id: router.query['trigger-id'],
+                },
+              });
+              router.push(`/admin/tables/${router.query.id}/triggers`);
+            }}
+          >
+            Удалить
           </Button>
         </div>
       </div>

@@ -15,6 +15,7 @@ export interface ITableTrigger extends IEntity {
   title: string;
   name: string;
   type: TableTriggerType
+  enabled: boolean;
   tableId: string;
   serverScriptId: string;
 }

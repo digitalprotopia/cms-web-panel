@@ -1,9 +1,10 @@
 import { ITableTrigger, TableTriggerType } from '@/components/entities/ITableTrigger';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField } from '@mui/material';
+import { MaterialReactTable } from 'material-react-table';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function Triggers() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function Triggers() {
                 tableTriggers {
                     id
                     title
+                    type
                 }
             }
         }
@@ -39,6 +41,29 @@ export default function Triggers() {
   const [createForm, setCreateForm] = useState<Partial<ITableTrigger>>({});
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+      },
+      {
+        accessorKey: 'title',
+        header: 'Имя',
+        Cell: ({ row }: { row: any }) => (
+          <Link href={`/admin/tables/${router.query.id}/triggers/${row.original.id}`}>
+            {row.original.title}
+          </Link>
+        ),
+      },
+      {
+        accessorKey: 'type',
+        header: 'Тип',
+      },
+    ],
+    [data],
+  );
+
   if (!data) {
     return null;
   }
@@ -50,7 +75,7 @@ export default function Triggers() {
           {' '}
           {data.getTable.name}
         </h1>
-        <div>
+        <div className="mb-4">
           <Button
             variant="contained"
             onClick={() => setDialogOpen(true)}
@@ -58,13 +83,30 @@ export default function Triggers() {
             Создать триггер
           </Button>
         </div>
-        {data.getTable.tableTriggers.map((trigger: ITableTrigger) => (
-          <div>
-            <Link href={`/admin/tables/${router.query.id}/triggers/${trigger.id}`}>
-              {trigger.title}
-            </Link>
-          </div>
-        ))}
+        <MaterialReactTable
+          columns={columns}
+          data={data.getTable.tableTriggers}
+          enableColumnResizing
+          enableFullScreenToggle={false}
+          enableDensityToggle
+          enableColumnFilters
+          enablePagination
+          enableSorting
+          muiTableProps={{
+            sx: {
+              tableLayout: 'fixed',
+            },
+          }}
+          renderTopToolbarCustomActions={() => (
+            <div className="px-4 py-2">
+              <h1 className="text-xl font-bold">
+                Триггеры таблицы
+                {' '}
+                {data.getTable.name}
+              </h1>
+            </div>
+          )}
+        />
       </div>
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>Создать триггер</DialogTitle>
