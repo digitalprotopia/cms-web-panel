@@ -71,6 +71,12 @@ function TablesPage() {
             >
               Просмотр
             </Button>
+            <Button
+              onClick={() => router.push(`/admin/tables/${row.original.id}/triggers`)}
+            >
+              Триггеры
+            </Button>
+
             {/* <Button
               onClick={() => {
                 setEditDialogOpen(row.original.id);
