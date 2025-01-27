@@ -48,7 +48,7 @@ const ADD_FIELDS = gql`
 const initialFormState = {
   name: '',
   dbName: '',
-  fields: [{ name: '', dbName: '', type: 'string' }],
+  fields: [{ name: 'Название', dbName: 'title', type: 'string' }],
 };
 
 function TableEditor({
@@ -191,7 +191,7 @@ function TableEditor({
               disabled={isEditMode}
             />
 
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium">Поля</h3>
                 <Button
@@ -266,7 +266,7 @@ function TableEditor({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
         </DialogContent>
 

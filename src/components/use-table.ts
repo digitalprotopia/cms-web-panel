@@ -586,7 +586,7 @@ export const useCategories = () => {
   return result;
 };
 
-const getSiteItemUrl = (siteItem: ISiteItem, siteItems: ISiteItem[]) => {
+export const getSiteItemUrl = (siteItem: ISiteItem, siteItems: ISiteItem[]) => {
   let { url } = siteItem;
   let currentItem: (ISiteItem | null) = siteItem;
   while (currentItem?.parentId) {

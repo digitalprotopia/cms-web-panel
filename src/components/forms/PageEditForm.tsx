@@ -172,7 +172,7 @@ export default function PageForm({
         initialData={initialData.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
       />
-      <h4>Контент</h4>
+      {/* <h4>Контент</h4>
       <DefaultEditor
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
@@ -206,7 +206,7 @@ export default function PageForm({
             {form.title}
           </MenuItem>
         ))}
-      </div>
+      </div> */}
 
       <div className="flex justify-end gap-2 mt-5">
         <Button variant="outlined" onClick={onCancel}>
