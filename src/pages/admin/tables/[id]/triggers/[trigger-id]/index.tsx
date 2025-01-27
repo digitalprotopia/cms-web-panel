@@ -4,7 +4,7 @@ import { Editor } from '@monaco-editor/react';
 import { Button, Checkbox, FormControlLabel, MenuItem, TextField } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 export default function TableTrigger() {
   const router = useRouter();
