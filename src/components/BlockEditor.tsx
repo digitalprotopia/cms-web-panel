@@ -8,6 +8,7 @@ import {
   CustomBlockConfig,
   InlineContentSchema,
   StyleSchema,
+  defaultStyleSpecs,
 } from '@blocknote/core';
 import {
   createReactBlockSpec, getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
@@ -21,6 +22,18 @@ import {
   BlockColorsItem,
   DragHandleMenuProps,
   ReactCustomBlockRenderProps,
+  createReactStyleSpec,
+  FormattingToolbarController,
+  FormattingToolbar,
+  BlockTypeSelect,
+  FileCaptionButton,
+  BasicTextStyleButton,
+  FileReplaceButton,
+  TextAlignButton,
+  ColorStyleButton,
+  NestBlockButton,
+  UnnestBlockButton,
+  CreateLinkButton,
 } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import {
@@ -30,12 +43,15 @@ import {
 // import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
-  DashboardOutlined, MoreVert, WidgetsOutlined,
+  DashboardOutlined, MoreVert, WidgetsOutlined, Html,
+  Visibility,
 } from '@mui/icons-material';
 import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField,
+  Tooltip,
 } from '@mui/material';
 import { useState } from 'react';
+import { Editor } from '@monaco-editor/react';
 import { IWidget } from './entities/IWidget';
 // eslint-disable-next-line import/no-cycle
 import { FormWidget, PageWidget } from './ParseWidgets';
@@ -43,6 +59,46 @@ import { FormWidget, PageWidget } from './ParseWidgets';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { IForm } from './entities/IForm';
+
+export const ClassStyle = createReactStyleSpec(
+  {
+    type: 'class',
+    propSchema: 'string',
+  },
+  {
+    render: (props) => (
+      <span className={props.value} ref={props.contentRef} />
+    ),
+  },
+);
+
+function SetClassButton() {
+  const editor = useBlockNoteEditor<
+    typeof schema.blockSchema,
+    typeof schema.inlineContentSchema,
+    typeof schema.styleSchema
+  >();
+
+  const Components = useComponentsContext()!;
+  console.log(JSON.stringify(editor.getActiveStyles()));
+  return (
+    <Button
+      onClick={(values) => {
+        console.log(values);
+        const fontName = prompt('Укажите класс', editor.getActiveStyles().class);
+        if (fontName !== null) {
+          editor.addStyles({
+            class: fontName,
+          });
+        }
+      }}
+    >
+      <Tooltip title={editor.getActiveStyles().class}>
+        <span>CSS Class</span>
+      </Tooltip>
+    </Button>
+  );
+}
 
 function BlockSettings(
   props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
@@ -300,6 +356,61 @@ export const BlockEditorPosts = createReactBlockSpec(
   },
 );
 
+export const BlockEditorHtmlView = createReactBlockSpec(
+  {
+    type: 'html-view',
+    propSchema: {
+      html: {
+        default: '',
+        type: 'string',
+      },
+    },
+    content: 'none',
+    isSelectable: false,
+  },
+  {
+    render: (props) => {
+      const [isShow, setIsShow] = useState(false);
+
+      return (
+        <div data-widget-type="html-view">
+          <div style={{ display: 'flex' }}>
+            {props.editor.isEditable ? (
+              <div>
+                <IconButton
+                  onClick={() => setIsShow(!isShow)}
+                >
+                  <Visibility />
+                </IconButton>
+              </div>
+            ) : null}
+            {(props.editor.isEditable && !isShow)
+              ? (
+                <div>
+                  <Editor
+                    height={200}
+                    width={800}
+                    defaultLanguage="html"
+                    defaultValue={props.block.props.html}
+                    onChange={(value) => {
+                      props.editor.updateBlock(props.block, {
+                        type: 'html-view',
+                        props: { html: value },
+                      });
+                    }}
+                  />
+                </div>
+              )
+              : (
+                <div dangerouslySetInnerHTML={{ __html: props.block.props.html }} />
+              )}
+          </div>
+        </div>
+      );
+    },
+  },
+);
+
 export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
   widgets.map((widget) => ({
     title: widget.title,
@@ -354,6 +465,24 @@ export const insertBlockEditorPosts = (editor: BlockNoteEditor) => (
   }
 );
 
+export const insertBlockEditorHtmlView = (editor: BlockNoteEditor) => (
+  {
+    title: 'HTML блок',
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: 'html-view' as any,
+        props: {
+        } as any,
+      });
+    },
+    aliases: [
+      'html-view',
+    ],
+    group: 'Базовые блоки',
+    icon: <Html />,
+  }
+);
+
 interface BlockEditorProps {
   initialData: any;
   onChange: (data: any) => void;
@@ -403,6 +532,22 @@ export function AddBlocksItem(props: DragHandleMenuProps) {
   );
 }
 
+const schema = BlockNoteSchema.create({
+  blockSpecs: {
+    // Adds all default blocks.
+    ...defaultBlockSpecs,
+    // Adds the Alert block.
+    widget: BlockEditorWidget,
+    form: BlockEditorForm,
+    posts: BlockEditorPosts,
+    'html-view': BlockEditorHtmlView,
+  },
+  styleSpecs: {
+    ...defaultStyleSpecs,
+    class: ClassStyle,
+  },
+});
+
 function BlockEditor({
   initialData, onChange, isEditable = true,
 }: BlockEditorProps) {
@@ -422,17 +567,6 @@ function BlockEditor({
     }
     }`, {
     skip: !isEditable,
-  });
-
-  const schema = BlockNoteSchema.create({
-    blockSpecs: {
-      // Adds all default blocks.
-      ...defaultBlockSpecs,
-      // Adds the Alert block.
-      widget: BlockEditorWidget,
-      form: BlockEditorForm,
-      posts: BlockEditorPosts,
-    },
   });
 
   const editor = useCreateBlockNote({
@@ -477,6 +611,7 @@ function BlockEditor({
         <BlockNoteView
           slashMenu={false}
           sideMenu={false}
+          formattingToolbar={false}
           editor={editor}
           editable={isEditable}
           onChange={() => {
@@ -508,16 +643,67 @@ function BlockEditor({
             getItems={async (query) => (
               // Gets all default slash menu items and `insertAlert` item.
               filterSuggestionItems(
-                [...combineByGroup(
-                  getDefaultReactSlashMenuItems(editor),
-                  getMultiColumnSlashMenuItems(editor),
-                ),
-                ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
-                ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
-                insertBlockEditorPosts(editor as any),
+                [
+                  insertBlockEditorHtmlView(editor as any),
+                  ...combineByGroup(
+                    getDefaultReactSlashMenuItems(editor),
+                    getMultiColumnSlashMenuItems(editor),
+                  ),
+                  ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
+                  ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
+                  insertBlockEditorPosts(editor as any),
                 ],
                 query,
               ))}
+          />
+          <FormattingToolbarController
+            formattingToolbar={() => (
+              <FormattingToolbar>
+                <BlockTypeSelect key="blockTypeSelect" />
+
+                <FileCaptionButton key="fileCaptionButton" />
+                <FileReplaceButton key="replaceFileButton" />
+
+                <BasicTextStyleButton
+                  basicTextStyle="bold"
+                  key="boldStyleButton"
+                />
+                <BasicTextStyleButton
+                  basicTextStyle="italic"
+                  key="italicStyleButton"
+                />
+                <BasicTextStyleButton
+                  basicTextStyle="underline"
+                  key="underlineStyleButton"
+                />
+                <BasicTextStyleButton
+                  basicTextStyle="strike"
+                  key="strikeStyleButton"
+                />
+                {/* Adds SetFontStyleButton */}
+                <SetClassButton />
+
+                <TextAlignButton
+                  textAlignment="left"
+                  key="textAlignLeftButton"
+                />
+                <TextAlignButton
+                  textAlignment="center"
+                  key="textAlignCenterButton"
+                />
+                <TextAlignButton
+                  textAlignment="right"
+                  key="textAlignRightButton"
+                />
+
+                <ColorStyleButton key="colorStyleButton" />
+
+                <NestBlockButton key="nestBlockButton" />
+                <UnnestBlockButton key="unnestBlockButton" />
+
+                <CreateLinkButton key="createLinkButton" />
+              </FormattingToolbar>
+            )}
           />
         </BlockNoteView>
       </div>
