@@ -30,10 +30,10 @@ import { IUser } from './entities/IUser';
 import 'dayjs/locale/ru';
 import { IFile } from './entities/IFile';
 
-export const toBase64 = (file: File) => new Promise((resolve, reject) => {
+export const toBase64 = (file: File):Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.readAsDataURL(file);
-  reader.onload = () => resolve(reader.result?.toString().replace(/^data:(.*,)?/, ''));
+  reader.onload = () => resolve(reader.result?.toString().replace(/^data:(.*,)?/, '') as string);
   reader.onerror = reject;
 });
 

@@ -6,6 +6,7 @@ export interface ITemplateFormData {
   templateGroupId: string | null | undefined;
   html: string;
   css: string;
+  fileId?: string;
   language?: TemplateLanguage;
   type?: TemplateType;
 }
