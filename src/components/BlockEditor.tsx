@@ -79,8 +79,6 @@ function SetClassButton() {
     typeof schema.styleSchema
   >();
 
-  const Components = useComponentsContext()!;
-  console.log(JSON.stringify(editor.getActiveStyles()));
   return (
     <Button
       onClick={(values) => {
@@ -370,6 +368,7 @@ export const BlockEditorHtmlView = createReactBlockSpec(
   },
   {
     render: (props) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       const [isShow, setIsShow] = useState(false);
 
       return (

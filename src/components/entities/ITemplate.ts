@@ -7,6 +7,7 @@ export interface ITemplateFormData {
   html: string;
   css: string;
   language?: TemplateLanguage;
+  type?: TemplateType;
 }
 
 export interface ITemplate extends IEntity, ITemplateFormData {
@@ -16,4 +17,9 @@ export interface ITemplate extends IEntity, ITemplateFormData {
 export enum TemplateLanguage {
   SIMPLE = 'simple',
   REACT = 'react',
+}
+
+export enum TemplateType {
+  TEXT = 'text',
+  FILE = 'file',
 }

@@ -4,10 +4,7 @@ import {
   Button, CircularProgress, MenuItem, TextField,
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
-import DefaultEditor from 'react-simple-wysiwyg';
 import { ISiteItem, SiteItemType, siteItemTypeNames } from '../entities/ISiteItem';
-import { IForm } from '../entities/IForm';
-import { IWidget } from '../entities/IWidget';
 import { IRole } from '../entities/IRole';
 import BlockEditor from '../BlockEditor';
 
@@ -65,22 +62,6 @@ export default function PageForm({
     e.preventDefault();
     onSubmit(formData);
   };
-
-  const snippets = useQuery(gql`
-        query {
-        getAllWidgets {
-        id
-        name
-        title
-        createdAt
-        }
-        getAllForms {
-        id
-        name
-        title
-        createdAt
-        }
-        }`);
 
   const { data: pagesData, loading } = useQuery(GET_PAGES);
 

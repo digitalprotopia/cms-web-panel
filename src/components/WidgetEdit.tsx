@@ -360,19 +360,20 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {widgetTable.meta?.fields.map((field: IField) => (
-          <Button
-            key={field.id}
-            variant="contained"
-            color="primary"
-            onClick={() => setForm({
-              ...form,
-              templateHtml: `${form.templateHtml}{${field.dbName}}`,
-            })}
-          >
-            {`{${field.dbName}}`}
-          </Button>
-        ))}
+        {form.language === TemplateLanguage.SIMPLE
+         && widgetTable.meta?.fields.map((field: IField) => (
+           <Button
+             key={field.id}
+             variant="contained"
+             color="primary"
+             onClick={() => setForm({
+               ...form,
+               templateHtml: `${form.templateHtml}{${field.dbName}}`,
+             })}
+           >
+             {`{${field.dbName}}`}
+           </Button>
+         ))}
         {widgetTable.meta?.fields.length === 0 && (
           <span>В таблице нет полей</span>
         )}

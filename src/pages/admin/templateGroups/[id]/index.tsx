@@ -12,9 +12,10 @@ import {
   TextField,
   DialogActions,
   Button,
+  MenuItem,
 } from '@mui/material';
 
-import { ITemplate, ITemplateFormData } from '@/components/entities/ITemplate';
+import { ITemplate, ITemplateFormData, TemplateType } from '@/components/entities/ITemplate';
 import {
   useRouter,
 } from 'next/router';
@@ -35,6 +36,7 @@ const GET_TEMPLATES = gql`
         title
         html
         templateGroupId
+        type
         createdAt
         updatedAt
       }
@@ -151,21 +153,35 @@ function CreateTemplate(props: {
   const [form, setForm] = useState<Partial<ITemplateFormData>>({
     name: '',
     title: '',
+    type: TemplateType.TEXT,
   });
   return (
     <Dialog open={props.open} onClose={props.onClose}>
       <DialogTitle>Создать шаблон</DialogTitle>
       <DialogContent>
-        <TextField
-          label="Название"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-        <TextField
-          label="Имя файла"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
+        <div>
+          <TextField
+            label="Тип"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value as TemplateType })}
+            select
+          >
+            <MenuItem value={TemplateType.TEXT}>Текст</MenuItem>
+            <MenuItem value={TemplateType.FILE}>Файл</MenuItem>
+          </TextField>
+        </div>
+        <div>
+          <TextField
+            label="Название"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+          <TextField
+            label="Имя файла"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+        </div>
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Отмена</Button>
@@ -187,7 +203,7 @@ function TemplatesPage() {
   const templateId = useSearchParams().get('templateId');
   // TODO: investigate, why this is called many times:
   // alert('many times');
-  const [selectedTemplate, setSelectedTemplate] = useState<ITemplate | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   // TODO: id can be null, but the hook can't be called conditionally. Error is generated.
   const resultGetTemplate = useQuery(
@@ -197,9 +213,9 @@ function TemplatesPage() {
       onCompleted: (_data) => {
         console.log('_data', _data);
 
-        setSelectedTemplate(_data.getTemplate);
+        setSelectedTemplateId(_data.getTemplate.id);
 
-        console.log('selectedTemplate', selectedTemplate);
+        // console.log('selectedTemplate', selectedTemplate);
       },
       onError(error) {
         console.log('Ошибка при получении шаблона:', error);
@@ -214,6 +230,10 @@ function TemplatesPage() {
   const { data, loading, refetch } = useQuery(GET_TEMPLATES, {
     variables: { id: templateGroupId },
   });
+
+  const selectedTemplate = data?.getTemplateGroup?.templates.find(
+    (t: ITemplate) => t.id === selectedTemplateId,
+  );
 
   const [createTemplate] = useMutation(CREATE_TEMPLATE, {
     onCompleted: () => {
@@ -260,13 +280,14 @@ function TemplatesPage() {
   };
 
   const handleUpdate = async (formData: ITemplateFormData) => {
-    if (!selectedTemplate) return;
+    if (!selectedTemplateId) return;
     await updateTemplate({
       variables: {
-        id: selectedTemplate.id,
+        id: selectedTemplateId,
         input: formData,
       },
     });
+    refetch();
     enqueueSnackbar('Шаблон обновлен', { variant: 'success' });
   };
 
@@ -282,8 +303,8 @@ function TemplatesPage() {
   if (!templates || !templates[0]) {
     throw new Error('У группы отсутсвуют шаблоны.');
   }
-  if (!selectedTemplate) {
-    setSelectedTemplate(templates[0]);
+  if (!selectedTemplateId) {
+    setSelectedTemplateId(templates[0].id);
     return (
       <div className="flex items-center justify-center">
         <CircularProgress />
@@ -299,7 +320,7 @@ function TemplatesPage() {
       <Grid2 container spacing={2}>
         <Grid2 size={9}>
           <TemplateEdit
-            key={selectedTemplate.id}
+            key={selectedTemplateId}
             initialData={selectedTemplate}
             onSubmit={handleUpdate}
             templates={templates}
@@ -309,7 +330,7 @@ function TemplatesPage() {
         <Grid2 className="p-4" size={3}>
           <TemplateNavigation
             key={templateGroupId as string}
-            currentId={selectedTemplate.id}
+            currentId={selectedTemplateId}
             items={[
               // todo: use getByValues
               ...(templates.map((t: ITemplate) => ({
@@ -318,12 +339,12 @@ function TemplatesPage() {
                 onClick: () => {
                   router.query.templateId = t.id;
                   router.push(router);
-                  setSelectedTemplate(t);
+                  setSelectedTemplateId(t.id);
                 },
                 onDelete: () => {
                   if (window.confirm('Вы уверены, что хотите удалить этот шаблон?')) {
-                    if (t.id === selectedTemplate.id) {
-                      setSelectedTemplate(null);
+                    if (t.id === selectedTemplateId) {
+                      setSelectedTemplateId(null);
                       router.query.templateId = undefined;
                       router.push(router);
                     }
