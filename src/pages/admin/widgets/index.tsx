@@ -18,6 +18,7 @@ import {
 import dayjs from 'dayjs';
 import { IWidget } from '@/components/entities/IWidget';
 import WidgetEdit from '@/components/WidgetEdit';
+import Link from 'next/link';
 
 const GET_WIDGETS = gql`
   query GetAllWidgets {
@@ -42,11 +43,9 @@ const DELETE_WIDGET = gql`
 
 function WidgetCard({
   widget,
-  onEdit,
   onDelete,
 }: {
   widget: IWidget;
-  onEdit: (widget: IWidget) => void;
   onDelete: (id: string) => void;
 }) {
   return (
@@ -55,9 +54,11 @@ function WidgetCard({
         title={widget.title}
         action={(
           <div>
-            <IconButton onClick={() => onEdit(widget)} size="small">
-              <Edit />
-            </IconButton>
+            <Link href={`/admin/widgets/${widget.id}`}>
+              <IconButton size="small">
+                <Edit />
+              </IconButton>
+            </Link>
             <IconButton
               onClick={() => onDelete(widget.id)}
               size="small"
@@ -84,8 +85,6 @@ function WidgetCard({
 }
 
 function WidgetsPage() {
-  const [selectedWidget, setSelectedWidget] = useState<IWidget | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
 
@@ -136,15 +135,13 @@ function WidgetsPage() {
       </Dialog>
       <div className="flex items-center justify-between gap-4">
         <Typography variant="h4">Виджеты</Typography>
-        <Button
-          variant="contained"
-          onClick={() => {
-            setSelectedWidget(null);
-            setIsFormOpen(true);
-          }}
-        >
-          Добавить виджет
-        </Button>
+        <Link href="/admin/widgets/add">
+          <Button
+            variant="contained"
+          >
+            Добавить виджет
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
@@ -152,39 +149,10 @@ function WidgetsPage() {
           <WidgetCard
             key={widget.id}
             widget={widget}
-            onEdit={(_widget) => {
-              console.log(_widget);
-              setSelectedWidget(_widget);
-              setIsFormOpen(true);
-            }}
             onDelete={handleDelete}
           />
         ))}
       </div>
-
-      <Dialog
-        open={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedWidget(null);
-        }}
-        maxWidth="md"
-        fullScreen
-      >
-        <DialogTitle>
-          {selectedWidget ? 'Редактировать виджет' : 'Создать новый виджет'}
-        </DialogTitle>
-        <DialogContent>
-          <WidgetEdit
-            id={selectedWidget?.id}
-            tableId={(selectedWidget as any)?.tableView?.tableId}
-            onClose={() => {
-              setIsFormOpen(false);
-              refetch();
-            }}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
