@@ -815,13 +815,13 @@ function TablePage() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">{meta?.name}</h2>
         <div className="flex gap-4">
-          <Button
+          {/* <Button
             variant="contained"
             onClick={() => setIsEditModalOpen(true)}
             className="normal-case"
           >
             Редактировать таблицу
-          </Button>
+          </Button> */}
           {/* <Link href={`/admin/widgets/add?table-id=${id}`}> */}
           {/*  <Button variant="contained" className="normal-case"> */}
           {/*    Добавить виджет */}

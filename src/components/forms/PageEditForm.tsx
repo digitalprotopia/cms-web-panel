@@ -4,10 +4,7 @@ import {
   Button, CircularProgress, MenuItem, TextField,
 } from '@mui/material';
 import { gql, useQuery } from '@apollo/client';
-import DefaultEditor from 'react-simple-wysiwyg';
 import { ISiteItem, SiteItemType, siteItemTypeNames } from '../entities/ISiteItem';
-import { IForm } from '../entities/IForm';
-import { IWidget } from '../entities/IWidget';
 import { IRole } from '../entities/IRole';
 import BlockEditor from '../BlockEditor';
 
@@ -65,22 +62,6 @@ export default function PageForm({
     e.preventDefault();
     onSubmit(formData);
   };
-
-  const snippets = useQuery(gql`
-        query {
-        getAllWidgets {
-        id
-        name
-        title
-        createdAt
-        }
-        getAllForms {
-        id
-        name
-        title
-        createdAt
-        }
-        }`);
 
   const { data: pagesData, loading } = useQuery(GET_PAGES);
 
@@ -172,7 +153,7 @@ export default function PageForm({
         initialData={initialData.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
       />
-      <h4>Контент</h4>
+      {/* <h4>Контент</h4>
       <DefaultEditor
         value={formData.html}
         onChange={(e) => setFormData({ ...formData, html: e.target.value })}
@@ -206,7 +187,7 @@ export default function PageForm({
             {form.title}
           </MenuItem>
         ))}
-      </div>
+      </div> */}
 
       <div className="flex justify-end gap-2 mt-5">
         <Button variant="outlined" onClick={onCancel}>

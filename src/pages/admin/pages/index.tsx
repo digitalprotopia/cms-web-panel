@@ -18,10 +18,11 @@ import {
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import Link from 'next/link';
-import { ISiteItem } from '@/components/entities/ISiteItem';
+import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 
 import PageEditForm, { GET_PAGES } from '@/components/forms/PageEditForm';
 import { makeTree, TreeItem } from '@/components/guiElements/Tree';
+import { getSiteItemUrl } from '@/components/use-table';
 
 const CREATE_PAGE = gql`
   mutation CreateSiteItem($input: SiteItemInput!) {
@@ -69,10 +70,12 @@ const DELETE_PAGE = gql`
 
 function PageCard({
   page,
+  pages,
   onEdit,
   onDelete,
 }: {
   page: ISiteItem;
+  pages: ISiteItem[];
   onEdit: (page: ISiteItem) => void;
   onDelete: (id: string) => void;
 }) {
@@ -88,17 +91,20 @@ function PageCard({
     <Card>
       <CardHeader
         title={page.title}
-        subheader={page.url}
+        subheader={getSiteItemUrl(page, pages)
+          + (page.type === SiteItemType.DYNAMIC ? ' (динамическая)' : '')}
         action={(
           <div>
             <IconButton onClick={() => onEdit(page)} size="small">
               <Edit />
             </IconButton>
-            <Link href={`/${page.url}`}>
-              <IconButton size="small">
-                <Visibility />
-              </IconButton>
-            </Link>
+            {page.type === SiteItemType.DYNAMIC ? null : (
+              <Link href={getSiteItemUrl(page, pages)}>
+                <IconButton size="small">
+                  <Visibility />
+                </IconButton>
+              </Link>
+            )}
             <IconButton
               onClick={() => onDelete(page.id)}
               size="small"
@@ -211,6 +217,7 @@ function PagesPage() {
             <PageCard
               key={page.id}
               page={page}
+              pages={data.getAllSiteItems}
               onEdit={(_page) => {
                 setSelectedPage({
                   ..._page,

@@ -3,9 +3,9 @@ import { IEntity } from './IEntity';
 export enum WidgetViewType {
   LIST = 'list',
   MAP = 'map',
-  SINGLE = 'single',
+  // SINGLE = 'single',
   STATIC = 'static',
-  CALENDAR = 'calendar',
+  // CALENDAR = 'calendar',
 }
 
 export interface IWidget extends IEntity {

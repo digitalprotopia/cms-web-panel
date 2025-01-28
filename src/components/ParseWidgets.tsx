@@ -38,6 +38,7 @@ import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 // eslint-disable-next-line import/no-cycle
 import { BlockView } from './BlockEditor';
+import { WidgetViewType } from './entities/IWidget';
 
 export function parseReact(
   code: string,
@@ -464,6 +465,13 @@ export function RenderWidget(
         </ErrorBoundary>
       );
     }
+  }
+  if (language === TemplateLanguage.SIMPLE && widgetViewType === WidgetViewType.STATIC) {
+    return (
+      <div className={props.cssClass || undefined}>
+        <div dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    );
   }
   return (
     <div className={props.cssClass || undefined}>

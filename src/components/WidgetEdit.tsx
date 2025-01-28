@@ -241,6 +241,25 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         onChange={(e) => setForm({ ...form, cssClass: e.target.value })}
       />
 
+      <TextField
+        select
+        label="Тип виджета"
+        variant="outlined"
+        fullWidth
+        value={form.widgetViewType}
+        onChange={(e) => {
+          setForm({ ...form,
+            widgetViewType: e.target.value,
+            tableId: e.target.value === WidgetViewType.STATIC ? null : form.tableId });
+        }}
+      >
+        {Object.values(WidgetViewType).map((type) => (
+          <MenuItem key={type} value={type}>
+            {type}
+          </MenuItem>
+        ))}
+      </TextField>
+
       {form.widgetViewType !== WidgetViewType.STATIC && (
       <FormControl fullWidth variant="outlined">
         <InputLabel id="table-select-label">Выберите таблицу</InputLabel>
@@ -268,21 +287,6 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
 
       <TextField
         select
-        label="Тип виджета"
-        variant="outlined"
-        fullWidth
-        value={form.widgetViewType}
-        onChange={(e) => setForm({ ...form, widgetViewType: e.target.value })}
-      >
-        {Object.values(WidgetViewType).map((type) => (
-          <MenuItem key={type} value={type}>
-            {type}
-          </MenuItem>
-        ))}
-      </TextField>
-
-      <TextField
-        select
         label="Язык"
         variant="outlined"
         fullWidth
@@ -306,14 +310,11 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
           />
         )
         : (
-          <TextField
-            label="HTML"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={4}
+          <Editor
             value={form.templateHtml}
-            onChange={(e) => setForm({ ...form, templateHtml: e.target.value })}
+            height={200}
+            onChange={(value) => setForm({ ...form, templateHtml: value! })}
+            language="html"
           />
         )}
 
@@ -359,19 +360,20 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {widgetTable.meta?.fields.map((field: IField) => (
-          <Button
-            key={field.id}
-            variant="contained"
-            color="primary"
-            onClick={() => setForm({
-              ...form,
-              templateHtml: `${form.templateHtml}{${field.dbName}}`,
-            })}
-          >
-            {`{${field.dbName}}`}
-          </Button>
-        ))}
+        {form.language === TemplateLanguage.SIMPLE
+         && widgetTable.meta?.fields.map((field: IField) => (
+           <Button
+             key={field.id}
+             variant="contained"
+             color="primary"
+             onClick={() => setForm({
+               ...form,
+               templateHtml: `${form.templateHtml}{${field.dbName}}`,
+             })}
+           >
+             {`{${field.dbName}}`}
+           </Button>
+         ))}
         {widgetTable.meta?.fields.length === 0 && (
           <span>В таблице нет полей</span>
         )}
@@ -383,7 +385,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         onClick={handleSave}
         disabled={
           !form.name || !form.title! || !form.templateHtml
-          || (form.widgetViewType === WidgetViewType.STATIC && !form.tableId)
+          || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
         }
       >
         {isEditMode ? 'Сохранить' : 'Создать'}

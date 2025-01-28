@@ -1,5 +1,5 @@
 import React, {
-  useState, useEffect, useCallback, FormEventHandler,
+  useState, useEffect, FormEventHandler,
 } from 'react';
 import {
   Dialog,
@@ -8,13 +8,7 @@ import {
   DialogActions,
   Button,
   TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  IconButton,
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { gql, useMutation } from '@apollo/client';
 
 const CREATE_TABLE = gql`
@@ -48,7 +42,7 @@ const ADD_FIELDS = gql`
 const initialFormState = {
   name: '',
   dbName: '',
-  fields: [{ name: '', dbName: '', type: 'string' }],
+  fields: [{ name: 'Название', dbName: 'title', type: 'string' }],
 };
 
 function TableEditor({
@@ -125,39 +119,39 @@ function TableEditor({
     }
   };
 
-  const addField = useCallback(() => {
-    const newField = { name: '', dbName: '', type: 'string' };
-    setFormData((prev) => ({
-      ...prev,
-      fields: [...prev.fields, newField],
-    }));
-    setNewFields((prev) => [...prev, newField]);
-  }, []);
+  // const addField = useCallback(() => {
+  //   const newField = { name: '', dbName: '', type: 'string' };
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     fields: [...prev.fields, newField],
+  //   }));
+  //   setNewFields((prev) => [...prev, newField]);
+  // }, []);
 
-  const removeField = useCallback(
-    (index: number) => {
-      const removedField = formData.fields[index];
-      setFormData((prev) => ({
-        ...prev,
-        fields: prev.fields.filter((_, i) => i !== index),
-      }));
-      setNewFields((prev) => prev.filter((field) => field !== removedField));
-    },
-    [formData.fields],
-  );
+  // const removeField = useCallback(
+  //   (index: number) => {
+  //     const removedField = formData.fields[index];
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       fields: prev.fields.filter((_, i) => i !== index),
+  //     }));
+  //     setNewFields((prev) => prev.filter((field) => field !== removedField));
+  //   },
+  //   [formData.fields],
+  // );
 
-  const updateField = useCallback(
-    (index: number, field: any) => {
-      setFormData((prev) => ({
-        ...prev,
-        fields: prev.fields.map((f, i) => (i === index ? field : f)),
-      }));
-      if (newFields.includes(formData.fields[index])) {
-        setNewFields((prev) => prev.map((f) => (f === formData.fields[index] ? field : f)));
-      }
-    },
-    [formData.fields, newFields],
-  );
+  // const updateField = useCallback(
+  //   (index: number, field: any) => {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       fields: prev.fields.map((f, i) => (i === index ? field : f)),
+  //     }));
+  //     if (newFields.includes(formData.fields[index])) {
+  //       setNewFields((prev) => prev.map((f) => (f === formData.fields[index] ? field : f)));
+  //     }
+  //   },
+  //   [formData.fields, newFields],
+  // );
 
   const isEditMode = mode === 'edit';
 
@@ -191,7 +185,7 @@ function TableEditor({
               disabled={isEditMode}
             />
 
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium">Поля</h3>
                 <Button
@@ -266,7 +260,7 @@ function TableEditor({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
         </DialogContent>
 

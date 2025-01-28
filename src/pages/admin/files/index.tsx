@@ -65,11 +65,13 @@ function FilesPage() {
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
             {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(row.original.extension) ? (
-              <img
-                src={`${window.config.server}/download/?id=${row.original.id}`}
-                alt={row.original.name}
-                className="w-20 h-20"
-              />
+              <a href={`${window.config.server}/download/?id=${row.original.id}&mode=view`} target="_blank" rel="noreferrer">
+                <img
+                  src={`${window.config.server}/download/?id=${row.original.id}&mode=view`}
+                  alt={row.original.name}
+                  className="w-20 h-20"
+                />
+              </a>
             ) : null}
             <Button
               onClick={() => router.push(`${window.config.server}/download/?id=${row.original.id}`)}
