@@ -93,7 +93,7 @@ function TemplateFile(props: {
     <>
       {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(selectedFile?.extension) ? (
         <img
-          src={`${window.config.server}/download/?id=${selectedFile.id}`}
+          src={`${window.config.server}/download/?id=${selectedFile?.id}`}
           alt={selectedFile.name}
           className="w-20 h-20"
         />
@@ -195,7 +195,7 @@ export default function TemplateEdit({
   }`);
 
   const [formData, setFormData] = useState<ITemplateFormData>({
-    name, title, templateGroupId, html, css, fileId: file.id,
+    name, title, templateGroupId, html, css, fileId: file?.id,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
