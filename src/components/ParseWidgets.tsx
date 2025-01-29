@@ -28,7 +28,8 @@ import { FieldType } from './entities/IField';
 import FormField from './form';
 import useTable, {
   TableField, useAddRow, useCategories, usePosts,
-  usePostsByCategorySlug, usePostsByTagSlug, useSiteMenu, useTableByDbName, useTags,
+  usePostsByCategorySlug, usePostsByTagSlug, useSiteMenu, useTableByDbName,
+  UseTableOptions, useTags,
 } from './use-table';
 import { TemplateLanguage } from './entities/ITemplate';
 import DynamicParse from './DynamicParse';
@@ -50,6 +51,7 @@ export function parseReact(
     Component: React.ComponentType<any>,
     filter?: (data: any[]) => any[],
     search?: any,
+    params?: UseTableOptions,
     ListComponent?: React.ComponentType<any>,
     getColor?: (row: any) => string,
   } {
@@ -511,8 +513,8 @@ export function PageWidget(props: {
   const user = useContext(UserContext);
   const router = useRouter();
 
-  let search: any;
   let filter: ReturnType<typeof parseReact>['filter'];
+  let params: UseTableOptions = {};
   if (data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
     const widget = parseReact(
       data.getWidgetByName.template.html,
@@ -521,10 +523,15 @@ export function PageWidget(props: {
       router,
     );
     filter = widget.filter;
-    search = widget.search;
+    if (widget.search) {
+      params.search = widget.search;
+    }
+    if (widget.params) {
+      params = widget.params;
+    }
   }
 
-  const table = useTable(data?.getWidgetByName?.tableView.tableId, { search });
+  const table = useTable(data?.getWidgetByName?.tableView.tableId, params);
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
     return (

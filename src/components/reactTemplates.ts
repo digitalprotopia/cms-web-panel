@@ -11,6 +11,9 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
         setSearch: (search) => {
           result.search = search();
         },
+        setParams: (params) => {
+          result.params = params();
+        },
         setComponent: (c) => {
           result.Component = c;
         },
@@ -55,6 +58,7 @@ const reactTemplates: Record<string, { definition: string, type: string }> = {
       };
       declare const MMCMS: {
         setFilter: (f: (row: any) => boolean) => void;
+        setParams: (p: () => any) => void;
         setComponent: (c: (props: {row: any}) => React.ReactNode) => void;
         setListComponent: (c: (props: {
         data: any[], children: React.ReactNode, 

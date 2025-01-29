@@ -136,13 +136,13 @@ export const generateGetTableDataQuery = (
     }
   });
   return gql`
-      query GetTableData($search: ${tableName}Search) {
+      query GetTableData($search: ${tableName}Search $offset: Int $count: Int $orderBy: String $orderDirection: OrderDirectionInput) {
         getUsers {
           id
           name
         }
         ${tables.map((table) => `getAll${table} { id _cms_title }`).join('\n')}
-          getAll${tableName} (search: $search) {
+          getAll${tableName} (search: $search offset: $offset count: $count orderBy: $orderBy orderDirection: $orderDirection) {
           id
           createdAt
           updatedAt
@@ -181,6 +181,10 @@ interface UseTableOptions {
   onMetaLoaded?: (meta: TableMeta) => void;
   onDataLoaded?: (data: TableData[]) => void;
   search?: any;
+  offset?: number;
+  count?: number;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
 }
 
 const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: string) => {
@@ -198,24 +202,6 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
   });
 
   const tableMeta = tableMetaData?.getTable || tableMetaData?.getTableByDbName;
-
-  const {
-    data: tableData,
-    loading: dataLoading,
-    error: dataError,
-    refetch: refetchData,
-  } = useQuery(
-    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
-    {
-      skip: !tableMeta?.dbName || !tableMeta?.fields,
-      onCompleted: (data) => {
-        options?.onDataLoaded?.(data[`getAll${tableMeta!.dbName}`]);
-      },
-      variables: {
-        search: options?.search,
-      },
-    },
-  );
 
   const processData = (data: any) => {
     const tables: string[] = [];
@@ -265,6 +251,28 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
 
     return data[`getAll${tableMeta!.dbName}`];
   };
+
+  const {
+    data: tableData,
+    loading: dataLoading,
+    error: dataError,
+    refetch: refetchData,
+  } = useQuery(
+    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
+    {
+      skip: !tableMeta?.dbName || !tableMeta?.fields,
+      onCompleted: (data) => {
+        options?.onDataLoaded?.(processData(data));
+      },
+      variables: {
+        search: options?.search,
+        offset: options?.offset,
+        count: options?.count,
+        orderBy: options?.orderBy,
+        orderDirection: options?.orderDirection,
+      },
+    },
+  );
 
   const loading = metaLoading || dataLoading;
   const error = metaError || dataError;
