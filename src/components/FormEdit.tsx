@@ -20,10 +20,9 @@ import { ITable } from './entities/ITable';
 import { IField } from './entities/IField';
 import DndComponent from './guiElements/DndComponent';
 
-function FormEdit({ id, onClose, tables }: {
+function FormEdit({ id, onClose }: {
   id?: string;
   onClose: () => void;
-  tables: Partial<ITable>[];
 }) {
   const [form, setForm] = useState<
   {
@@ -40,6 +39,15 @@ function FormEdit({ id, onClose, tables }: {
     fields: [],
     cssClass: '',
   });
+
+  const tables = useQuery(gql`
+    query {
+      getTables {
+        id
+        name
+      }
+    }
+  `);
 
   const [createForm] = useMutation(gql`
     mutation ($input: FormInput!, $fields: [FormFieldInput]!) {
@@ -183,7 +191,7 @@ function FormEdit({ id, onClose, tables }: {
             onChange={(e) => setForm((prev) => ({ ...prev, tableId: e.target.value }))}
             label="Таблица"
           >
-            {tables.map((_table) => (
+            {tables.data?.getTables.map((_table: ITable) => (
               <MenuItem key={_table.id} value={_table.id}>
                 {_table.name}
               </MenuItem>

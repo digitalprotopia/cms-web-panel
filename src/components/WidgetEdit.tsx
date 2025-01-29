@@ -23,7 +23,6 @@ import FramePreview from './FramePreview';
 
 interface WidgetEditProps {
   id?: string;
-  tableId?: string;
   onClose: () => void;
 }
 
@@ -98,11 +97,11 @@ const UPDATE_WIDGET = gql`
   }
 `;
 
-function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
+function WidgetEdit({ id, onClose }: WidgetEditProps) {
   const [form, setForm] = useState({
     name: '',
     title: '',
-    tableId: tableId || null,
+    tableId: '',
     templateHtml: '',
     widgetViewType: 'list',
     language: TemplateLanguage.SIMPLE,
@@ -250,7 +249,7 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         onChange={(e) => {
           setForm({ ...form,
             widgetViewType: e.target.value,
-            tableId: e.target.value === WidgetViewType.STATIC ? null : form.tableId });
+            tableId: e.target.value === WidgetViewType.STATIC ? null as any : form.tableId });
         }}
       >
         {Object.values(WidgetViewType).map((type) => (
@@ -379,17 +378,19 @@ function WidgetEdit({ id, tableId, onClose }: WidgetEditProps) {
         )}
       </div>
 
-      <Button
-        variant="contained"
-        className="w-full mt-4"
-        onClick={handleSave}
-        disabled={
+      <div className="flex gap-4">
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          disabled={
           !form.name || !form.title! || !form.templateHtml
           || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
         }
-      >
-        {isEditMode ? 'Сохранить' : 'Создать'}
-      </Button>
+        >
+          {isEditMode ? 'Сохранить' : 'Создать'}
+        </Button>
+        <Button variant="contained" onClick={onClose}>Отмена</Button>
+      </div>
     </div>
   );
 }

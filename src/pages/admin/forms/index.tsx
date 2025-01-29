@@ -1,22 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { gql, useQuery } from '@apollo/client';
 import {
   Card,
   CardHeader,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   IconButton,
   Typography,
   CircularProgress,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import FormEdit from '@/components/FormEdit';
 import { IForm } from '@/components/entities/IForm';
+import Link from 'next/link';
 
-const GET_FORMS_AND_TABLES = gql`
+const GET_FORMS = gql`
   query {
     getAllForms {
       id
@@ -24,16 +21,11 @@ const GET_FORMS_AND_TABLES = gql`
       title
       createdAt
     }
-    getTables {
-      id
-      name
-    }
   }
 `;
 
-function FormCard({ form, onEdit, onDelete }: {
+function FormCard({ form, onDelete }: {
   form: Partial<IForm>;
-  onEdit: (form: Partial<IForm>) => void;
   onDelete: (id: string) => void;
 }) {
   return (
@@ -55,9 +47,11 @@ function FormCard({ form, onEdit, onDelete }: {
         )}
         action={(
           <div className="flex gap-2">
-            <IconButton onClick={() => onEdit(form)} size="small">
-              <Edit />
-            </IconButton>
+            <Link href={`/admin/forms/${form.id}`}>
+              <IconButton size="small">
+                <Edit />
+              </IconButton>
+            </Link>
             <IconButton
               onClick={() => onDelete(form.id!)}
               size="small"
@@ -73,16 +67,7 @@ function FormCard({ form, onEdit, onDelete }: {
 }
 
 function FormsPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedForm, setSelectedForm] = useState<any>(null);
-
-  const { data, loading, refetch } = useQuery(GET_FORMS_AND_TABLES);
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-    setSelectedForm(null);
-    refetch();
-  };
+  const { data, loading } = useQuery(GET_FORMS);
 
   const handleDelete = () => {
     if (window.confirm('Вы уверены, что хотите удалить эту форму?')) {
@@ -102,9 +87,11 @@ function FormsPage() {
     <div className="p-6 bg-white rounded shadow-lg">
       <div className="flex items-center justify-between mb-6">
         <Typography variant="h4">Формы</Typography>
-        <Button variant="contained" onClick={() => setIsFormOpen(true)}>
-          Добавить форму
-        </Button>
+        <Link href="/admin/forms/add">
+          <Button variant="contained">
+            Добавить форму
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -112,32 +99,11 @@ function FormsPage() {
           <FormCard
             key={form.id}
             form={form}
-            onEdit={(_form: any) => {
-              setSelectedForm(_form);
-              setIsFormOpen(true);
-            }}
             onDelete={handleDelete}
           />
         ))}
       </div>
 
-      <Dialog
-        open={isFormOpen}
-        onClose={handleCloseForm}
-        maxWidth="xl"
-        fullWidth
-      >
-        <DialogTitle>
-          {selectedForm ? 'Редактировать форму' : 'Создать форму'}
-        </DialogTitle>
-        <DialogContent>
-          <FormEdit
-            id={selectedForm?.id}
-            onClose={handleCloseForm}
-            tables={data?.getTables || []}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -35,6 +35,12 @@ const GET_TEMPLATES = gql`
         name
         title
         html
+        file {
+          id
+          name
+          extension
+          size
+        }
         templateGroupId
         type
         createdAt
