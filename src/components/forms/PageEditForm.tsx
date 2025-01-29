@@ -92,13 +92,13 @@ export default function PageForm({
     },
   });
 
-  const handleCreate = (formData: Partial<ISiteItem>) => {
-    createPage({ variables: { input: formData } });
+  const handleCreate = async (formData: Partial<ISiteItem>) => {
+    await createPage({ variables: { input: formData } });
     onClose();
   };
 
-  const handleUpdate = (formData: Partial<ISiteItem>) => {
-    updatePage({
+  const handleUpdate = async (formData: Partial<ISiteItem>) => {
+    await updatePage({
       variables: {
         id,
         input: formData,
@@ -179,7 +179,7 @@ export default function PageForm({
 
   const { data: pagesData, loading } = useQuery(GET_PAGES);
 
-  if (loading || !roles.data || (id && !initialData.data)) {
+  if (loading || !roles.data || (id && !initialData.data?.getSiteItem?.id)) {
     return (
       <div className="flex items-center justify-center">
         <CircularProgress />
@@ -264,7 +264,7 @@ export default function PageForm({
       />
       <h4>Содержимое страницы</h4>
       <BlockEditor
-        initialData={initialData.data?.getSiteItem.blockContent}
+        initialData={initialData.data?.getSiteItem?.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
       />
       {/* <h4>Контент</h4>
