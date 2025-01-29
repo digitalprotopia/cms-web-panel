@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
   CardContent,
   CardHeader,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   IconButton,
   Typography,
   CircularProgress,
@@ -20,47 +17,9 @@ import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 
-import PageEditForm, { GET_PAGES } from '@/components/forms/PageEditForm';
+import { GET_PAGES } from '@/components/forms/PageEditForm';
 import { makeTree, TreeItem } from '@/components/guiElements/Tree';
 import { getSiteItemUrl } from '@/components/use-table';
-
-const CREATE_PAGE = gql`
-  mutation CreateSiteItem($input: SiteItemInput!) {
-    createSiteItem(input: $input) {
-      id
-      name
-      title
-      url
-      parentId
-      isRoot
-      seotag
-      html
-      blockContent
-      type
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const UPDATE_PAGE = gql`
-  mutation UpdateSiteItem($id: ID!, $input: SiteItemInput!) {
-    editSiteItem(id: $id, input: $input) {
-      id
-      name
-      title
-      url
-      parentId
-      isRoot
-      seotag
-      html
-      blockContent
-      type
-      createdAt
-      updatedAt
-    }
-  }
-`;
 
 const DELETE_PAGE = gql`
   mutation DeleteSiteItem($id: ID!) {
@@ -71,12 +30,10 @@ const DELETE_PAGE = gql`
 function PageCard({
   page,
   pages,
-  onEdit,
   onDelete,
 }: {
   page: ISiteItem;
   pages: ISiteItem[];
-  onEdit: (page: ISiteItem) => void;
   onDelete: (id: string) => void;
 }) {
   // const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
@@ -95,9 +52,11 @@ function PageCard({
           + (page.type === SiteItemType.DYNAMIC ? ' (динамическая)' : '')}
         action={(
           <div>
-            <IconButton onClick={() => onEdit(page)} size="small">
-              <Edit />
-            </IconButton>
+            <Link href={`/admin/pages/${page.id}`}>
+              <IconButton size="small">
+                <Edit />
+              </IconButton>
+            </Link>
             {page.type === SiteItemType.DYNAMIC ? null : (
               <Link href={getSiteItemUrl(page, pages)}>
                 <IconButton size="small">
@@ -131,31 +90,7 @@ function PageCard({
 }
 
 function PagesPage() {
-  const [selectedPage, setSelectedPage] = useState<ISiteItem | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
   const { data, loading, refetch } = useQuery(GET_PAGES);
-
-  const [createPage] = useMutation(CREATE_PAGE, {
-    onCompleted: () => {
-      setIsFormOpen(false);
-      refetch();
-    },
-    onError: (error) => {
-      console.error('Ошибка при создании страницы:', error);
-    },
-  });
-
-  const [updatePage] = useMutation(UPDATE_PAGE, {
-    onCompleted: () => {
-      setIsFormOpen(false);
-      setSelectedPage(null);
-      refetch();
-    },
-    onError: (error) => {
-      console.error('Ошибка при обновлении страницы:', error);
-    },
-  });
 
   const [deletePage] = useMutation(DELETE_PAGE, {
     onCompleted: () => {
@@ -165,20 +100,6 @@ function PagesPage() {
       console.error('Ошибка при удалении страницы:', error);
     },
   });
-
-  const handleCreate = (formData: Partial<ISiteItem>) => {
-    createPage({ variables: { input: formData } });
-  };
-
-  const handleUpdate = (formData: Partial<ISiteItem>) => {
-    if (!selectedPage) return;
-    updatePage({
-      variables: {
-        id: selectedPage.id,
-        input: formData,
-      },
-    });
-  };
 
   const handleDelete = (id: string) => {
     if (window.confirm('Вы уверены, что хотите удалить эту страницу?')) {
@@ -201,15 +122,13 @@ function PagesPage() {
     <div className="rounded p-4 shadow-lg bg-white">
       <div className="flex items-center gap-4">
         <Typography variant="h4">Страницы</Typography>
-        <Button
-          variant="contained"
-          onClick={() => {
-            setSelectedPage(null);
-            setIsFormOpen(true);
-          }}
-        >
-          Добавить страницу
-        </Button>
+        <Link href="/admin/pages/add">
+          <Button
+            variant="contained"
+          >
+            Добавить страницу
+          </Button>
+        </Link>
       </div>
       <div className="flex flex-col md:flex-row gap-4 mt-4">
         <div className="flex-grow grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
@@ -218,13 +137,6 @@ function PagesPage() {
               key={page.id}
               page={page}
               pages={data.getAllSiteItems}
-              onEdit={(_page) => {
-                setSelectedPage({
-                  ..._page,
-                  roleIds: _page.roles!.map((role) => role.id),
-                });
-                setIsFormOpen(true);
-              }}
               onDelete={handleDelete}
             />
           ))}
@@ -238,31 +150,6 @@ function PagesPage() {
           </List>
         </div>
       </div>
-
-      <Dialog
-        open={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedPage(null);
-        }}
-        maxWidth="md"
-        fullScreen
-      >
-        <DialogTitle>
-          {selectedPage ? 'Редактировать страницу' : 'Создать новую страницу'}
-        </DialogTitle>
-        <DialogContent>
-          <PageEditForm
-            initialData={selectedPage || {}}
-            onSubmit={selectedPage ? handleUpdate : handleCreate}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setSelectedPage(null);
-            }}
-            roles={data.getRoles}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

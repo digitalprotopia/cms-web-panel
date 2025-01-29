@@ -3,10 +3,48 @@ import { useState } from 'react';
 import {
   Button, CircularProgress, MenuItem, TextField,
 } from '@mui/material';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { ISiteItem, SiteItemType, siteItemTypeNames } from '../entities/ISiteItem';
 import { IRole } from '../entities/IRole';
 import BlockEditor from '../BlockEditor';
+
+const CREATE_PAGE = gql`
+  mutation CreateSiteItem($input: SiteItemInput!) {
+    createSiteItem(input: $input) {
+      id
+      name
+      title
+      url
+      parentId
+      isRoot
+      seotag
+      html
+      blockContent
+      type
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const UPDATE_PAGE = gql`
+  mutation UpdateSiteItem($id: ID!, $input: SiteItemInput!) {
+    editSiteItem(id: $id, input: $input) {
+      id
+      name
+      title
+      url
+      parentId
+      isRoot
+      seotag
+      html
+      blockContent
+      type
+      createdAt
+      updatedAt
+    }
+  }
+`;
 
 export const GET_PAGES = gql`
   query GetAllSiteItems {
@@ -36,36 +74,112 @@ export const GET_PAGES = gql`
 `;
 
 export default function PageForm({
-  initialData = {},
-  onSubmit,
-  onCancel,
-  roles,
+  id,
+  onClose,
 }: {
-  initialData: Partial<ISiteItem>;
-  onSubmit: (data: Partial<ISiteItem>) => void;
-  onCancel: () => void;
-  roles: Partial<IRole>[];
+  id?: string;
+  onClose: () => void;
 }) {
-  const [formData, setFormData] = useState<Partial<ISiteItem>>({
-    name: initialData.name || '',
-    title: initialData.title || '',
-    url: initialData.url || '',
-    parentId: initialData.parentId,
-    isRoot: initialData.isRoot || false,
-    seotag: initialData.seotag || '',
-    html: initialData.html || '',
-    roleIds: initialData.roleIds || [],
-    type: initialData.type! || 'static',
+  const [createPage] = useMutation(CREATE_PAGE, {
+    onError: (error) => {
+      console.error('Ошибка при создании страницы:', error);
+    },
   });
+
+  const [updatePage] = useMutation(UPDATE_PAGE, {
+    onError: (error) => {
+      console.error('Ошибка при обновлении страницы:', error);
+    },
+  });
+
+  const handleCreate = (formData: Partial<ISiteItem>) => {
+    createPage({ variables: { input: formData } });
+    onClose();
+  };
+
+  const handleUpdate = (formData: Partial<ISiteItem>) => {
+    updatePage({
+      variables: {
+        id,
+        input: formData,
+      },
+    });
+    onClose();
+  };
+
+  const [formData, setFormData] = useState<Partial<ISiteItem>>({
+    name: '',
+    title: '',
+    url: '',
+    parentId: undefined,
+    isRoot: false,
+    seotag: '',
+    html: '',
+    roleIds: [],
+    type: SiteItemType.STATIC,
+  });
+
+  const initialData = useQuery(gql`
+    query ($id: ID!) {
+      getSiteItem(id: $id) {
+        id
+        name
+        title
+        url
+        parentId
+        isRoot
+        seotag
+        html
+        blockContent
+        roles {
+          id
+          name
+        }
+        type
+        createdAt
+        updatedAt
+      }
+    }
+  `, {
+    variables: { id },
+    skip: !id,
+    onCompleted: (data) => {
+      setFormData({
+        name: data.getSiteItem.name,
+        title: data.getSiteItem.title,
+        url: data.getSiteItem.url,
+        parentId: data.getSiteItem.parentId,
+        isRoot: data.getSiteItem.isRoot,
+        seotag: data.getSiteItem.seotag,
+        html: data.getSiteItem.html,
+        roleIds: data.getSiteItem.roles.map((role: IRole) => role.id),
+        type: data.getSiteItem.type,
+        blockContent: data.getSiteItem.blockContent,
+      });
+    },
+  });
+
+  const roles = useQuery(gql`
+    query {
+      getRoles {
+        id
+        name
+      }
+    }
+  `);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (id) {
+      handleUpdate(formData);
+    } else {
+      handleCreate(formData);
+    }
   };
 
   const { data: pagesData, loading } = useQuery(GET_PAGES);
 
-  if (loading) {
+  if (loading || !roles.data || (id && !initialData.data)) {
     return (
       <div className="flex items-center justify-center">
         <CircularProgress />
@@ -120,7 +234,7 @@ export default function PageForm({
           <S3Autocomplete
             value={formData.roleIds!}
             onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
-            options={roles.map((role) => ({
+            options={roles.data.getRoles.map((role: IRole) => ({
               id: role.id!,
               name: role.name!,
             })) || []}
@@ -150,7 +264,7 @@ export default function PageForm({
       />
       <h4>Содержимое страницы</h4>
       <BlockEditor
-        initialData={initialData.blockContent}
+        initialData={initialData.data?.getSiteItem.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
       />
       {/* <h4>Контент</h4>
@@ -190,11 +304,11 @@ export default function PageForm({
       </div> */}
 
       <div className="flex justify-end gap-2 mt-5">
-        <Button variant="outlined" onClick={onCancel}>
+        <Button variant="outlined" onClick={() => onClose()}>
           Отмена
         </Button>
         <Button variant="contained" type="submit">
-          {initialData.id ? 'Обновить' : 'Создать'}
+          {id ? 'Обновить' : 'Создать'}
         </Button>
       </div>
     </form>
