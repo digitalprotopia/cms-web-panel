@@ -6,6 +6,7 @@ export enum WidgetViewType {
   // SINGLE = 'single',
   STATIC = 'static',
   // CALENDAR = 'calendar',
+  HTML = 'html',
 }
 
 export interface IWidget extends IEntity {

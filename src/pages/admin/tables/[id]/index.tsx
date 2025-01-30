@@ -220,9 +220,10 @@ function CellEdit({
     return null;
   }
 
-  const handleSave = async () => {
+  const handleSave = async (saveValue?: any) => {
+    console.log(saveValue);
     await editRow(row.original.id, {
-      [field.dbName]: value,
+      [field.dbName]: saveValue || value,
     });
     refetch();
     setEditMode(false);
@@ -248,27 +249,33 @@ function CellEdit({
             title=""
             field={field}
             onChange={(newValue) => setValue(newValue)}
+            handleSave={handleSave}
           />
-          <IconButton
-            onClick={async () => {
-              await editRow(row.original.id, {
-                [field.dbName]: value,
-              });
-              setEditMode(false);
-              refetch();
-            }}
-          >
-            <Save />
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              setValue(cell.getValue());
-              setEditMode(false);
-            }}
-          >
-            <Close />
-          </IconButton>
-          {field.type === 'text' && (
+          {(field.type !== FieldType.HTML && field.type !== FieldType.BLOCK)
+            && (
+              <>
+                <IconButton
+                  onClick={async () => {
+                    await editRow(row.original.id, {
+                      [field.dbName]: value,
+                    });
+                    setEditMode(false);
+                    refetch();
+                  }}
+                >
+                  <Save />
+                </IconButton>
+                <IconButton
+                  onClick={() => {
+                    setValue(cell.getValue());
+                    setEditMode(false);
+                  }}
+                >
+                  <Close />
+                </IconButton>
+              </>
+            )}
+          {field.type === FieldType.TEXT && (
             <>
               <IconButton
                 onClick={() => setDialogOpen(true)}
@@ -721,6 +728,9 @@ function TablePage() {
           }
           if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;
+          }
+          if (field.type === FieldType.HTML) {
+            cellValue = <Button>Открыть редактор</Button>;
           }
           return (
             <div onClick={() => setEditMode(true)}>

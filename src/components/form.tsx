@@ -1,14 +1,17 @@
 import {
+  Box,
   Button,
   Checkbox,
   Dialog,
+  DialogActions,
   DialogContent,
   FormControl,
   FormControlLabel,
   MenuItem,
+  Popover,
   Radio,
   RadioGroup,
-  TextField,
+  TextField, Typography,
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { gql, useQuery } from '@apollo/client';
@@ -16,7 +19,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
   DatePicker, DateTimePicker, LocalizationProvider, TimePicker,
 } from '@mui/x-date-pickers';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { MaterialReactTable } from 'material-react-table';
 import {
@@ -29,6 +32,7 @@ import S3Autocomplete from './guiElements/S3Autocomplete';
 import { IUser } from './entities/IUser';
 import 'dayjs/locale/ru';
 import { IFile } from './entities/IFile';
+import { Editor } from '@monaco-editor/react';
 
 export const toBase64 = (file: File):Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -42,6 +46,7 @@ interface FormFieldProps {
   field: TableField;
   value: any;
   onChange: (value: any) => void;
+  handleSave?: (saveValue?: any) => void;
 }
 
 function FormFieldFile(props: FormFieldProps) {
@@ -264,6 +269,92 @@ function FormFieldMultipleId(props: FormFieldProps) {
   );
 }
 
+function FormFieldHTML(props) {
+  const [openEditorDialog, setOpenEditorDialog] = useState(true);
+  const [localHtml, setLocalHtml] = useState(props.value || '');
+  const [hasChanges, setHasChanges] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
+  const handleOpen = () => {
+    setLocalHtml(props.value || '');
+    setHasChanges(false);
+    setOpenEditorDialog(true);
+    setConfirmCancel(false);
+  };
+
+  const handleClose = () => {
+    if (confirmCancel) {
+      props.handleSave?.();
+      setOpenEditorDialog(false);
+      return;
+    }
+
+    if (!hasChanges) {
+      props.handleSave?.();
+      setOpenEditorDialog(false);
+      return;
+    }
+
+    setConfirmCancel(true);
+  };
+
+  const handleSave = () => {
+    props.handleSave?.(localHtml);
+    setOpenEditorDialog(false);
+  };
+
+  return (
+    <>
+      <Button variant="text" onClick={handleOpen}>
+        Открыть редактор
+      </Button>
+
+      <Dialog
+        open={openEditorDialog}
+        onClose={handleClose}
+        fullScreen
+        sx={{ '& .MuiDialog-paper': { height: '100vh', width: '100vw', margin: 0 } }}
+      >
+        <DialogContent sx={{ display: 'flex', height: '100%' }}>
+          <div style={{ flex: 1, paddingRight: '10px' }}>
+            <Editor
+              height="100%"
+              defaultLanguage="html"
+              value={localHtml}
+              onChange={(value) => {
+                setLocalHtml(value || '');
+                setHasChanges(true);
+              }}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                overviewRulerLanes: 0,
+              }}
+            />
+          </div>
+          <div className="flex-1 p-2.5 overflow-auto border-l">
+            <iframe
+              title="HTML Preview"
+              srcDoc={localHtml}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+            />
+          </div>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={handleClose}
+            color={confirmCancel ? 'error' : 'primary'}
+          >
+            {confirmCancel ? 'Есть несохраненные изменения, отменить?' : 'Отменить'}
+          </Button>
+          <Button onClick={handleSave} variant="contained">Сохранить</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
 export default function FormField(props: FormFieldProps) {
   if (!props.field) {
     return null;
@@ -446,6 +537,17 @@ export default function FormField(props: FormFieldProps) {
         field={props.field}
         value={props.value}
         onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.HTML) {
+    return (
+      <FormFieldHTML
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
+        handleSave={props.handleSave}
       />
     );
   }
