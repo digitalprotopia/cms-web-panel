@@ -19,6 +19,7 @@ import FormField from './form';
 import { ITable } from './entities/ITable';
 import { IField } from './entities/IField';
 import DndComponent from './guiElements/DndComponent';
+import { FormType } from './entities/IForm';
 
 function FormEdit({ id, onClose }: {
   id?: string;
@@ -28,6 +29,7 @@ function FormEdit({ id, onClose }: {
   {
     name: string;
     title: string;
+    type: FormType;
     tableId: string;
     fields: any[];
     cssClass: string;
@@ -35,6 +37,7 @@ function FormEdit({ id, onClose }: {
   >({
     name: '',
     title: '',
+    type: FormType.CREATE,
     tableId: '',
     fields: [],
     cssClass: '',
@@ -73,7 +76,7 @@ function FormEdit({ id, onClose }: {
           fields: meta.fields.map((field) => ({
             name: field.name,
             title: field.name,
-            сssClass: '',
+            cssClass: '',
             formFieldType: 'string',
             tableFieldId: field.id,
             position: field.position,
@@ -90,6 +93,7 @@ function FormEdit({ id, onClose }: {
           id
           name
           title
+          type
           cssClass
           createdAt
           table {
@@ -100,6 +104,7 @@ function FormEdit({ id, onClose }: {
           fields {
             name
             title
+            description
             cssClass
             position
             formFieldType
@@ -116,11 +121,13 @@ function FormEdit({ id, onClose }: {
         setForm({
           name: formData.name,
           title: formData.title,
+          type: formData.type,
           cssClass: formData.cssClass,
           tableId: formData.table.id,
           fields: formData.fields.map((field: any) => ({
             name: field.name,
             title: field.title,
+            description: field.description,
             formFieldType: field.formFieldType,
             tableFieldId: field.tableFieldId,
             position: field.position,
@@ -136,6 +143,7 @@ function FormEdit({ id, onClose }: {
       input: {
         name: form.name,
         title: form.title,
+        type: form.type,
         tableId: form.tableId,
         cssClass: form.cssClass,
       },
@@ -181,6 +189,17 @@ function FormEdit({ id, onClose }: {
           onChange={(e) => setForm((prev) => ({ ...prev, cssClass: e.target.value }))}
           fullWidth
         />
+
+        <TextField
+          label="Тип"
+          value={form.type}
+          onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as FormType }))}
+          select
+          fullWidth
+        >
+          <MenuItem value="create">Создание</MenuItem>
+          <MenuItem value="edit">Редактирование</MenuItem>
+        </TextField>
       </div>
 
       {!id && (
@@ -254,6 +273,19 @@ function FormEdit({ id, onClose }: {
                       >
                         <Delete />
                       </IconButton>
+                    </div>
+                    <div>
+                      <TextField
+                        label="Описание"
+                        value={field.description || ''}
+                        onChange={(e) => {
+                          const newFields = [...fields];
+                          newFields[index] = { ...field, description: e.target.value };
+                          setForm((prev) => ({ ...prev, fields: newFields }));
+                        }}
+                        multiline
+                        fullWidth
+                      />
                     </div>
                   </Card>
                 ),
