@@ -20,7 +20,14 @@ import {
   InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, OpenInFull, Save,
+  Add,
+  ArrowDropDown,
+  Close,
+  Delete,
+  Download,
+  MapOutlined,
+  OpenInFull,
+  Save,
 } from '@mui/icons-material';
 import {
   gql, useApolloClient, useMutation, useQuery,
@@ -35,7 +42,7 @@ import {
   IFieldOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
-import FormField from '@/components/form';
+import FormField, { FormFieldHTML } from '@/components/form';
 import useTable, {
   TableField,
   TableMeta,
@@ -221,15 +228,22 @@ function CellEdit({
   }
 
   const handleSave = async (saveValue?: any) => {
-    console.log(saveValue);
+    const updatedValue = saveValue !== undefined ? saveValue : value;
+
+    if (saveValue !== undefined) {
+      setValue(updatedValue);
+    }
+
     await editRow(row.original.id, {
-      [field.dbName]: saveValue || value,
+      [field.dbName]: updatedValue,
     });
+
     refetch();
     setEditMode(false);
     setDialogOpen(false);
   };
 
+  if (field.type === FieldType.HTML) return (<FormFieldHTML title="" field={field} value={value} onSave={handleSave} />);
   return (
     <div className="flex items-center gap-1">
       {field.type === 'boolean' ? (
@@ -251,30 +265,26 @@ function CellEdit({
             onChange={(newValue) => setValue(newValue)}
             handleSave={handleSave}
           />
-          {(field.type !== FieldType.HTML && field.type !== FieldType.BLOCK)
-            && (
-              <>
-                <IconButton
-                  onClick={async () => {
-                    await editRow(row.original.id, {
-                      [field.dbName]: value,
-                    });
-                    setEditMode(false);
-                    refetch();
-                  }}
-                >
-                  <Save />
-                </IconButton>
-                <IconButton
-                  onClick={() => {
-                    setValue(cell.getValue());
-                    setEditMode(false);
-                  }}
-                >
-                  <Close />
-                </IconButton>
-              </>
-            )}
+
+          <IconButton
+            onClick={async () => {
+              await editRow(row.original.id, {
+                [field.dbName]: value,
+              });
+              setEditMode(false);
+              refetch();
+            }}
+          >
+            <Save />
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              setValue(cell.getValue());
+              setEditMode(false);
+            }}
+          >
+            <Close />
+          </IconButton>
           {field.type === FieldType.TEXT && (
             <>
               <IconButton
@@ -651,7 +661,7 @@ function TablePage() {
               cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
             }
           }
-          if (field.type === FieldType.TEXT) {
+          if (field.type === FieldType.TEXT || field.type === FieldType.HTML) {
             cellValue = <div className="whitespace-nowrap overflow-ellipsis overflow-hidden max-w-52">{cellValue || <i>Нет текста</i>}</div>;
           }
           if (field.type === FieldType.COLOR) {
@@ -726,11 +736,10 @@ function TablePage() {
               </div>
             ) : null;
           }
+          if (field.type === FieldType.HTML) setEditMode(true);
+
           if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;
-          }
-          if (field.type === FieldType.HTML) {
-            cellValue = <Button>Открыть редактор</Button>;
           }
           return (
             <div onClick={() => setEditMode(true)}>

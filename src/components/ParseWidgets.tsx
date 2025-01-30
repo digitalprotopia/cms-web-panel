@@ -437,31 +437,7 @@ export function RenderWidget(
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
-  console.log(data);
-  if (widgetViewType === WidgetViewType.HTML) {
-    if (!fields) return;
-    const htmlFields = fields
-      .filter((field) => field.type === 'html')
-      .map((field) => field.dbName);
 
-    const result: Record<string, string[]> = {};
-
-    htmlFields.forEach((field) => {
-      result[field] = data.map((item) => item[field]).filter(Boolean);
-    });
-
-    return (
-      <div>
-        {Object.entries(result).map(([field, values]) => (
-          <div key={field}>
-            {values.map((html, index) => (
-              <div key={index} dangerouslySetInnerHTML={{ __html: html }} />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  }
   if (widgetViewType === WidgetViewType.MAP) {
     return (
       <div className={props.cssClass || undefined}>

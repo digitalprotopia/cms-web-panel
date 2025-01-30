@@ -73,7 +73,7 @@ function FormEdit({ id, onClose }: {
           fields: meta.fields.map((field) => ({
             name: field.name,
             title: field.name,
-            сssClass: '',
+            cssClass: '',
             formFieldType: 'string',
             tableFieldId: field.id,
             position: field.position,

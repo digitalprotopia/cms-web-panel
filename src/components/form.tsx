@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Checkbox,
   Dialog,
@@ -8,10 +7,9 @@ import {
   FormControl,
   FormControlLabel,
   MenuItem,
-  Popover,
   Radio,
   RadioGroup,
-  TextField, Typography,
+  TextField,
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { gql, useQuery } from '@apollo/client';
@@ -19,20 +17,20 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
   DatePicker, DateTimePicker, LocalizationProvider, TimePicker,
 } from '@mui/x-date-pickers';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { MaterialReactTable } from 'material-react-table';
 import {
   YMaps, Map, FullscreenControl, Placemark, SearchControl,
 } from '@pbe/react-yandex-maps';
 import { MuiColorInput } from 'mui-color-input';
+import { Editor } from '@monaco-editor/react';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
 import { IUser } from './entities/IUser';
 import 'dayjs/locale/ru';
 import { IFile } from './entities/IFile';
-import { Editor } from '@monaco-editor/react';
 
 export const toBase64 = (file: File):Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -46,7 +44,6 @@ interface FormFieldProps {
   field: TableField;
   value: any;
   onChange: (value: any) => void;
-  handleSave?: (saveValue?: any) => void;
 }
 
 function FormFieldFile(props: FormFieldProps) {
@@ -269,8 +266,12 @@ function FormFieldMultipleId(props: FormFieldProps) {
   );
 }
 
-function FormFieldHTML(props) {
-  const [openEditorDialog, setOpenEditorDialog] = useState(true);
+interface FormFieldHTMLProps extends Omit<FormFieldProps, 'onChange'> {
+  onSave: (value: any) => void;
+}
+
+export function FormFieldHTML(props: FormFieldHTMLProps) {
+  const [openEditorDialog, setOpenEditorDialog] = useState(false);
   const [localHtml, setLocalHtml] = useState(props.value || '');
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -284,13 +285,11 @@ function FormFieldHTML(props) {
 
   const handleClose = () => {
     if (confirmCancel) {
-      props.handleSave?.();
       setOpenEditorDialog(false);
       return;
     }
 
     if (!hasChanges) {
-      props.handleSave?.();
       setOpenEditorDialog(false);
       return;
     }
@@ -299,24 +298,22 @@ function FormFieldHTML(props) {
   };
 
   const handleSave = () => {
-    props.handleSave?.(localHtml);
+    props.onSave(localHtml);
     setOpenEditorDialog(false);
   };
 
   return (
     <>
-      <Button variant="text" onClick={handleOpen}>
-        Открыть редактор
-      </Button>
+      <Button variant="text" onClick={handleOpen}>Открыть редактор</Button>
 
       <Dialog
         open={openEditorDialog}
         onClose={handleClose}
         fullScreen
-        sx={{ '& .MuiDialog-paper': { height: '100vh', width: '100vw', margin: 0 } }}
+        sx={{ '& .MuiDialog-paper': { height: '100%', width: '100%', margin: 0 } }}
       >
-        <DialogContent sx={{ display: 'flex', height: '100%' }}>
-          <div style={{ flex: 1, paddingRight: '10px' }}>
+        <DialogContent className="flex h-full">
+          <div className="flex-1 pr-2.5">
             <Editor
               height="100%"
               defaultLanguage="html"
@@ -334,9 +331,9 @@ function FormFieldHTML(props) {
           </div>
           <div className="flex-1 p-2.5 overflow-auto border-l">
             <iframe
-              title="HTML Preview"
+              title="Preview"
               srcDoc={localHtml}
-              style={{ width: '100%', height: '100%', border: 'none' }}
+              className="size-full border-none"
             />
           </div>
         </DialogContent>
@@ -546,8 +543,7 @@ export default function FormField(props: FormFieldProps) {
         title={props.title}
         field={props.field}
         value={props.value}
-        onChange={props.onChange}
-        handleSave={props.handleSave}
+        onSave={(value) => props.onChange(value)}
       />
     );
   }
