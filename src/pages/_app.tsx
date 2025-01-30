@@ -149,6 +149,16 @@ function CMSLayout({
                     await refetch();
                     await pages.refetch();
                   },
+                  logout: async () => {
+                    localStorage.removeItem('token');
+                    try {
+                      router.push('/');
+                      await refetch();
+                      await pages.refetch();
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  },
                   pages: pages.data?.getAllSiteItems as ISiteItem[],
                   site: pages.data?.getAllSites?.[0],
                   currentPage,

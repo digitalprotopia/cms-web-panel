@@ -31,6 +31,11 @@ function Header() {
 
   const user = useContext(UserContext);
 
+  const handleLogout = async () => {
+    handleUserPopoverClose();
+    user.logout();
+  };
+
   if (!user.user) {
     return null;
   }
@@ -86,7 +91,7 @@ function Header() {
                     <MenuItem onClick={() => router.push('/admin')}>
                       Админпанель
                     </MenuItem>
-                    {/* <MenuItem onClick={handleLogout}>Выйти</MenuItem> */}
+                    <MenuItem onClick={handleLogout}>Выйти</MenuItem>
                   </Menu>
                 </div>
               </>

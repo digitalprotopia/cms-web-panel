@@ -171,13 +171,7 @@ export default function AdminLayout({
 
   const handleLogout = async () => {
     handleUserPopoverClose();
-    localStorage.removeItem('token');
-    try {
-      await user.refetch();
-      router.push('/auth/login');
-    } catch (e) {
-      console.error(e);
-    }
+    user.logout();
   };
 
   return (
