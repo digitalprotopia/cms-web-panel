@@ -27,7 +27,7 @@ import { Login } from '@/pages/auth/login';
 import { FieldType } from './entities/IField';
 import FormField from './form';
 import useTable, {
-  TableField, useAddRow, useCategories, usePosts,
+  TableField, useAddRow, useCategories, useEditRow, usePosts,
   usePostsByCategorySlug, usePostsByTagSlug, useSiteMenu, useTableByDbName,
   UseTableOptions, useTags,
 } from './use-table';
@@ -41,6 +41,7 @@ import { getReactTemplateDefinition } from './reactTemplates';
 import { BlockView } from './BlockEditor';
 import { WidgetViewType } from './entities/IWidget';
 import { usePageContext } from './PageContext';
+import { FormType } from './entities/IForm';
 
 export function parseReact(
   code: string,
@@ -573,6 +574,7 @@ export function PageWidget(props: {
 
 export function FormWidget(props: {
   formName: string;
+  id?: string;
 }) {
   const [form, setForm] = useState<any>({});
   const { data } = useQuery(gql`
@@ -580,6 +582,7 @@ export function FormWidget(props: {
                   getFormByName(name: $name) {
                       id
                       name
+                      type
                       title
                       cssClass
                       createdAt
@@ -587,6 +590,7 @@ export function FormWidget(props: {
                           id
                           title
                           name
+                          description
                           position
                           tableFieldId
                           formFieldType
@@ -643,7 +647,38 @@ export function FormWidget(props: {
       setForm(_form);
     },
   });
+  console.log(data?.getFormByName.type);
+  useTable((props.id && data?.getFormByName.type === FormType.EDIT)
+    ? data?.getFormByName.table.id : null, {
+    search: {
+      id: {
+        query: [props.id],
+      },
+    },
+    onDataLoaded(tableData) {
+      console.log(tableData);
+      if (tableData.length) {
+        const _form = JSON.parse(JSON.stringify(form));
+        data.getFormByName.fields.forEach((field: any) => {
+          if (field.field.type === FieldType.ONE_TO_MANY_ONE
+            || field.field.type === FieldType.USER
+          ) {
+            _form[field.field.dbName] = tableData[0][field.field.dbName]?.id;
+          } else if (field.field.type === FieldType.ONE_TO_MANY_MANY
+            || field.field.type === FieldType.MANY_TO_MANY_FIRST
+            || field.field.type === FieldType.MANY_TO_MANY_SECOND
+          ) {
+            _form[field.field.dbName] = tableData[0][field.field.dbName]?.map((r: any) => r.id);
+          } else {
+            _form[field.field.dbName] = tableData[0][field.field.dbName];
+          }
+        });
+        setForm(_form);
+      }
+    },
+  });
   const addRow = useAddRow(data?.getFormByName.table.dbName);
+  const editRow = useEditRow(data?.getFormByName.table.dbName);
   const { enqueueSnackbar } = useSnackbar();
   if (!data?.getFormByName) {
     return null;
@@ -658,12 +693,15 @@ export function FormWidget(props: {
       <div>
         {data.getFormByName.fields.map((field: any) => {
           const fieldComponent = (
-            <FormField
-              title={field.title}
-              field={field.field}
-              value={form[field.field.dbName]}
-              onChange={(value) => setForm({ ...form, [field.field.dbName]: value })}
-            />
+            <div className={`mmcms-form-field mmcms-form-field-type-${field.field.type}`}>
+              <FormField
+                title={field.title}
+                field={field.field}
+                value={form[field.field.dbName]}
+                onChange={(value) => setForm({ ...form, [field.field.dbName]: value })}
+              />
+              <div className="mmcms-form-field-description">{field.description}</div>
+            </div>
           );
 
           return (
@@ -676,22 +714,26 @@ export function FormWidget(props: {
       <div>
         <Button onClick={async () => {
           const _form:any = {};
-          await addRow(form);
-          fields.forEach((field: any) => {
-            if (field.field.type === 'string') {
-              _form[field.field.dbName] = '';
-            }
-            if (field.field.type === 'geo') {
-              _form[field.field.dbName] = {
-                lat: 0,
-                lng: 0,
-              };
-            }
-            if (field.field.type === 'boolean') {
-              _form[field.field.dbName] = false;
-            }
-          });
-          setForm(_form);
+          if (data.getFormByName.type === 'edit') {
+            await editRow(props.id!, form);
+          } else {
+            await addRow(form);
+            fields.forEach((field: any) => {
+              if (field.field.type === 'string') {
+                _form[field.field.dbName] = '';
+              }
+              if (field.field.type === 'geo') {
+                _form[field.field.dbName] = {
+                  lat: 0,
+                  lng: 0,
+                };
+              }
+              if (field.field.type === 'boolean') {
+                _form[field.field.dbName] = false;
+              }
+            });
+            setForm(_form);
+          }
           enqueueSnackbar('Форма отправлена', { variant: 'success' });
         }}
         >
