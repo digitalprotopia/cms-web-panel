@@ -13,6 +13,7 @@ import Head from 'next/head';
 import BlockEditor from '@/components/BlockEditor';
 import { CircularProgress } from '@mui/material';
 import parse from 'html-react-parser';
+import { usePageContext } from '@/components/PageContext';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -90,6 +91,12 @@ function DynamicPage() {
   );
 
   const { site } = user;
+
+  const pageContext = usePageContext();
+
+  useEffect(() => {
+    pageContext.clearData();
+  }, [siteItem]);
 
   if (!site) return <span>Loading...</span>;
 

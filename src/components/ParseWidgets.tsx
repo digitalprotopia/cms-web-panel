@@ -40,6 +40,7 @@ import { getReactTemplateDefinition } from './reactTemplates';
 // eslint-disable-next-line import/no-cycle
 import { BlockView } from './BlockEditor';
 import { WidgetViewType } from './entities/IWidget';
+import { usePageContext } from './PageContext';
 
 export function parseReact(
   code: string,
@@ -95,6 +96,7 @@ export function parseReact(
       useLazyQuery,
       useApolloClient,
       useSiteMenu,
+      usePageContext,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));

@@ -28,6 +28,7 @@ import { IUser } from '@/components/entities/IUser';
 import UserContext from '@/components/UserContext';
 import { ISiteItem } from '@/components/entities/ISiteItem';
 import { YMaps } from '@pbe/react-yandex-maps';
+import { PageProvider } from '@/components/PageContext';
 
 declare global {
   interface Window {
@@ -154,7 +155,9 @@ function CMSLayout({
                   setCurrentPage,
                 }}
                 >
-                  {result}
+                  <PageProvider>
+                    {result}
+                  </PageProvider>
                 </UserContext.Provider>
               </div>
             </SnackbarProvider>
