@@ -571,6 +571,7 @@ export const useTags = () => {
         id
         title
         slug
+        postsCount
         createdAt
       }
     }
@@ -586,6 +587,7 @@ export const useCategories = () => {
         id
         title
         slug
+        postsCount
         createdAt
       }
     }
