@@ -575,6 +575,7 @@ export function PageWidget(props: {
 export function FormWidget(props: {
   formName: string;
   id?: string;
+  input?: any;
 }) {
   const [form, setForm] = useState<any>({});
   const { data } = useQuery(gql`
@@ -715,9 +716,9 @@ export function FormWidget(props: {
         <Button onClick={async () => {
           const _form:any = {};
           if (data.getFormByName.type === 'edit') {
-            await editRow(props.id!, form);
+            await editRow(props.id!, { ...form, ...(props.input || {}) });
           } else {
-            await addRow(form);
+            await addRow({ ...form, ...(props.input || {}) });
             fields.forEach((field: any) => {
               if (field.field.type === 'string') {
                 _form[field.field.dbName] = '';

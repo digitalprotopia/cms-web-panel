@@ -79,6 +79,10 @@ function SetClassButton() {
     typeof schema.styleSchema
   >();
 
+  if (!editor.isEditable) {
+    return null;
+  }
+
   return (
     <Button
       onClick={(values) => {
