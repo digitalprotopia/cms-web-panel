@@ -189,12 +189,27 @@ export function ParseRow(
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
       resultRow[field.dbName] = row[field.dbName] ? row[field.dbName]._cms_title : null;
     }
-    if (field.type === FieldType.ONE_TO_MANY_MANY
-        || field.type === FieldType.MANY_TO_MANY_FIRST
-        || field.type === FieldType.MANY_TO_MANY_SECOND) {
-      resultRow[field.dbName] = row[field.dbName] ? row[field.dbName].map((r: any) => r._cms_title).join(', ') : null;
+    if (
+      field.type === FieldType.ONE_TO_MANY_MANY
+      || field.type === FieldType.MANY_TO_MANY_FIRST
+      || field.type === FieldType.MANY_TO_MANY_SECOND
+    ) {
+      resultRow[field.dbName] = row[field.dbName]
+        ? row[field.dbName].map((r: any) => r._cms_title).join(', ')
+        : null;
+    }
+    if (field.type === FieldType.HTML) {
+      resultRow[field.dbName] = (
+        <div
+          dangerouslySetInnerHTML={{ __html: row[field.dbName] }}
+        />
+      );
+    }
+    if (field.type === FieldType.BLOCK) {
+      resultRow[field.dbName] = <BlockView blockContent={row[field.dbName]} />;
     }
   });
+
   return (
     <div key={resultRow.id}>
       <DynamicParse html={html} replace={resultRow} />

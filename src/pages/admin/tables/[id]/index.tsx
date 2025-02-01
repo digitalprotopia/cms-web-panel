@@ -42,7 +42,7 @@ import {
   IFieldOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
-import FormField, { FormFieldHTML } from '@/components/form';
+import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
 import useTable, {
   TableField,
   TableMeta,
@@ -244,6 +244,8 @@ function CellEdit({
   };
 
   if (field.type === FieldType.HTML) return (<FormFieldHTML title="" field={field} value={value} onSave={handleSave} />);
+  if (field.type === FieldType.BLOCK) return (<FormFieldBlock title="" field={field} value={value} onSave={handleSave} />);
+
   return (
     <div className="flex items-center gap-1">
       {field.type === 'boolean' ? (
@@ -263,7 +265,6 @@ function CellEdit({
             title=""
             field={field}
             onChange={(newValue) => setValue(newValue)}
-            handleSave={handleSave}
           />
 
           <IconButton
@@ -661,7 +662,7 @@ function TablePage() {
               cellValue = dayjs(cellValue).format('YYYY-MM-DD HH:mm');
             }
           }
-          if (field.type === FieldType.TEXT || field.type === FieldType.HTML) {
+          if (field.type === FieldType.TEXT) {
             cellValue = <div className="whitespace-nowrap overflow-ellipsis overflow-hidden max-w-52">{cellValue || <i>Нет текста</i>}</div>;
           }
           if (field.type === FieldType.COLOR) {
@@ -736,7 +737,8 @@ function TablePage() {
               </div>
             ) : null;
           }
-          if (field.type === FieldType.HTML) setEditMode(true);
+
+          if ([FieldType.HTML, FieldType.BLOCK].includes(field.type)) setEditMode(true);
 
           if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;

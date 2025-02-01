@@ -25,6 +25,7 @@ import {
 } from '@pbe/react-yandex-maps';
 import { MuiColorInput } from 'mui-color-input';
 import { Editor } from '@monaco-editor/react';
+import BlockEditor from '@/components/BlockEditor';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
@@ -283,7 +284,7 @@ export function FormFieldHTML(props: FormFieldHTMLProps) {
     setConfirmCancel(false);
   };
 
-  const handleClose = () => {
+  const handleCancel = () => {
     if (confirmCancel) {
       setOpenEditorDialog(false);
       return;
@@ -308,7 +309,7 @@ export function FormFieldHTML(props: FormFieldHTMLProps) {
 
       <Dialog
         open={openEditorDialog}
-        onClose={handleClose}
+        onClose={handleCancel}
         fullScreen
         sx={{ '& .MuiDialog-paper': { height: '100%', width: '100%', margin: 0 } }}
       >
@@ -330,17 +331,83 @@ export function FormFieldHTML(props: FormFieldHTMLProps) {
             />
           </div>
           <div className="flex-1 p-2.5 overflow-auto border-l">
-            <iframe
-              title="Preview"
-              srcDoc={localHtml}
-              className="size-full border-none"
+            <div dangerouslySetInnerHTML={{__html: localHtml}} />
+          </div>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={handleCancel}
+            color={confirmCancel ? 'error' : 'primary'}
+          >
+            {confirmCancel ? 'Есть несохраненные изменения, отменить?' : 'Отменить'}
+          </Button>
+          <Button onClick={handleSave} variant="contained">Сохранить</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
+export function FormFieldBlock(props: FormFieldHTMLProps) {
+  const [openEditorDialog, setOpenEditorDialog] = useState(false);
+  const [localBlockContent, setLocalBlockContent] = useState(props.value || '');
+  const [hasChanges, setHasChanges] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
+  const handleOpen = () => {
+    setLocalBlockContent(
+      typeof props.value === 'string' ? JSON.parse(props.value) : props.value || [],
+    );
+    setHasChanges(false);
+    setOpenEditorDialog(true);
+    setConfirmCancel(false);
+  };
+
+  const handleCancel = () => {
+    if (confirmCancel) {
+      setOpenEditorDialog(false);
+      return;
+    }
+
+    if (!hasChanges) {
+      setOpenEditorDialog(false);
+      return;
+    }
+
+    setConfirmCancel(true);
+  };
+
+  const handleSave = () => {
+    props.onSave(JSON.stringify(localBlockContent));
+    setOpenEditorDialog(false);
+  };
+
+  return (
+    <>
+      <Button variant="text" onClick={handleOpen}>Открыть редактор</Button>
+
+      <Dialog
+        open={openEditorDialog}
+        onClose={handleCancel}
+        fullScreen
+        sx={{ '& .MuiDialog-paper': { height: '100%', width: '100%', margin: 0 } }}
+      >
+        <DialogContent className="flex h-full">
+          <div className="flex-1">
+            <BlockEditor
+              initialData={localBlockContent}
+              onChange={(value) => {
+                setLocalBlockContent(value || '');
+                setHasChanges(true);
+              }}
             />
           </div>
         </DialogContent>
 
         <DialogActions>
           <Button
-            onClick={handleClose}
+            onClick={handleCancel}
             color={confirmCancel ? 'error' : 'primary'}
           >
             {confirmCancel ? 'Есть несохраненные изменения, отменить?' : 'Отменить'}
@@ -540,6 +607,16 @@ export default function FormField(props: FormFieldProps) {
   if (props.field.type === FieldType.HTML) {
     return (
       <FormFieldHTML
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onSave={(value) => props.onChange(value)}
+      />
+    );
+  }
+  if (props.field.type === FieldType.BLOCK) {
+    return (
+      <FormFieldBlock
         title={props.title}
         field={props.field}
         value={props.value}
