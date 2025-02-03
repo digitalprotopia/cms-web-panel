@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
@@ -17,9 +17,11 @@ import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 
-import { GET_PAGES } from '@/components/forms/PageEditForm';
+import { GET_SITE_PAGES } from '@/components/forms/PageEditForm';
 import { makeTree, TreeItem } from '@/components/guiElements/Tree';
 import { getSiteItemUrl } from '@/components/use-table';
+import { useRouter } from 'next/router';
+import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 
 const DELETE_PAGE = gql`
   mutation DeleteSiteItem($id: ID!) {
@@ -36,6 +38,8 @@ function PageCard({
   pages: ISiteItem[];
   onDelete: (id: string) => void;
 }) {
+  const router = useRouter();
+
   // const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
   //   day: 'numeric',
   //   month: 'long',
@@ -52,7 +56,7 @@ function PageCard({
           + (page.type === SiteItemType.DYNAMIC ? ' (динамическая)' : '')}
         action={(
           <div>
-            <Link href={`/admin/pages/${page.id}`}>
+            <Link href={`/admin/sites/${router.query['site-id']}/pages/${page.id}`}>
               <IconButton size="small">
                 <Edit />
               </IconButton>
@@ -90,7 +94,13 @@ function PageCard({
 }
 
 function PagesPage() {
-  const { data, loading, refetch } = useQuery(GET_PAGES);
+  const router = useRouter();
+
+  const { data, loading, refetch } = useQuery(GET_SITE_PAGES, {
+    variables: {
+      id: router.query['site-id'],
+    },
+  });
 
   const [deletePage] = useMutation(DELETE_PAGE, {
     onCompleted: () => {
@@ -107,6 +117,61 @@ function PagesPage() {
     }
   };
 
+  const columns: MRT_ColumnDef<any, any>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'title',
+        header: 'Название',
+        size: 200,
+      },
+      {
+        accessorKey: 'url',
+        header: 'URL',
+        size: 400,
+        Cell: ({ row }: { row: any }) => (
+          row.original.url + (row.original.type === SiteItemType.DYNAMIC ? ' (динамическая)' : '')
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Дата создания',
+        size: 150,
+        Cell: ({ row }: { row: any }) => (
+          dayjs(row.original.createdAt).format('DD.MM.YYYY HH:mm')
+        ),
+      },
+      {
+        accessorKey: 'actions',
+        header: 'Действия',
+        size: 200,
+        Cell: ({ row }: { row: any }) => (
+          <div>
+            <Link href={`/admin/sites/${router.query['site-id']}/pages/${row.original.id}`}>
+              <IconButton size="small">
+                <Edit />
+              </IconButton>
+            </Link>
+            {row.original.type === SiteItemType.DYNAMIC ? null : (
+              <Link href={getSiteItemUrl(row.original, data?.getSite?.siteItems || [])}>
+                <IconButton size="small">
+                  <Visibility />
+                </IconButton>
+              </Link>
+            )}
+            <IconButton
+              onClick={() => handleDelete(row.original.id)}
+              size="small"
+              color="error"
+            >
+              <Delete />
+            </IconButton>
+          </div>
+        ),
+      },
+    ],
+    [router],
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center">
@@ -115,14 +180,13 @@ function PagesPage() {
     );
   }
 
-  const items: ISiteItem[] = data?.getAllSiteItems || [];
+  const items: ISiteItem[] = data?.getSite?.siteItems || [];
   const tree = makeTree(items);
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
       <div className="flex items-center gap-4">
-        <Typography variant="h4">Страницы</Typography>
-        <Link href="/admin/pages/add">
+        <Link href={`/admin/sites/${router.query['site-id']}/pages/add`}>
           <Button
             variant="contained"
           >
@@ -131,17 +195,39 @@ function PagesPage() {
         </Link>
       </div>
       <div className="flex flex-col md:flex-row gap-4 mt-4">
-        <div className="flex-grow grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-          {data?.getAllSiteItems?.map((page: ISiteItem) => (
-            <PageCard
-              key={page.id}
-              page={page}
-              pages={data.getAllSiteItems}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-
+        <MaterialReactTable
+          columns={columns}
+          data={(data?.getSite?.siteItems || []).map((page: ISiteItem) => ({
+            ...page,
+            url: getSiteItemUrl(page, data?.getSite?.siteItems || []),
+          }))}
+          enableColumnResizing
+          enableFullScreenToggle={false}
+          enableDensityToggle
+          enableColumnFilters
+          enablePagination
+          enableSorting
+          initialState={{
+            sorting: [{
+              id: 'url',
+              desc: false,
+            }],
+          }}
+          muiTableProps={{
+            sx: {
+              tableLayout: 'fixed',
+            },
+          }}
+          renderTopToolbarCustomActions={() => (
+            <div className="px-4 py-2">
+              <h1 className="text-xl font-bold">
+                Страницы сайта
+                {' '}
+                {data?.getSite?.title}
+              </h1>
+            </div>
+          )}
+        />
         <div className="md:w-64 shrink-0">
           <List className="sticky top-4">
             {tree.map((page) => (

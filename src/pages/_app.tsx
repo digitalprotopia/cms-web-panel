@@ -97,16 +97,18 @@ function CMSLayout({
   }, [router.pathname]);
 
   const pages = useQuery(gql`
-    query {
-        getAllSiteItems {
+    query($domain: String!) {
+        getSiteByDomain(domain: $domain) {
           id
           title
-          url
-          parentId
-          type
-          createdAt
-        }
-        getAllSites {
+          siteItems {
+            id
+            title
+            url
+            parentId
+            type
+            createdAt
+          }
           templateGroup {
             templates {
               id
@@ -115,9 +117,14 @@ function CMSLayout({
               createdAt
             }
           }
+            
         }
     }
-    `);
+    `, {
+    variables: {
+      domain: window.config.domain,
+    },
+  });
 
   if (!loading && (error || !data?.me)) {
     localStorage.removeItem('token');
@@ -159,8 +166,12 @@ function CMSLayout({
                       console.error(e);
                     }
                   },
-                  pages: pages.data?.getAllSiteItems as ISiteItem[],
-                  site: pages.data?.getAllSites?.[0],
+                  pages: (pages.data?.getSiteByDomain?.siteItems || []) as ISiteItem[],
+                  site: pages.data?.getSiteByDomain || {
+                    templateGroup: {
+                      templates: [],
+                    },
+                  },
                   currentPage,
                   setCurrentPage,
                 }}

@@ -4,6 +4,7 @@ import {
   Button, CircularProgress, MenuItem, TextField,
 } from '@mui/material';
 import { gql, useMutation, useQuery } from '@apollo/client';
+import { useRouter } from 'next/router';
 import { ISiteItem, SiteItemType, siteItemTypeNames } from '../entities/ISiteItem';
 import { IRole } from '../entities/IRole';
 import BlockEditor from '../BlockEditor';
@@ -46,29 +47,33 @@ const UPDATE_PAGE = gql`
   }
 `;
 
-export const GET_PAGES = gql`
-  query GetAllSiteItems {
+export const GET_SITE_PAGES = gql`
+  query ($id: ID!) {
     getRoles {
       id
       name
     }
-    getAllSiteItems {
+    getSite(id: $id) {
       id
-      name
       title
-      url
-      parentId
-      isRoot
-      seotag
-      html
-      blockContent
-      roles {
+      siteItems {
         id
         name
+        title
+        url
+        parentId
+        isRoot
+        seotag
+        html
+        blockContent
+        roles {
+          id
+          name
+        }
+        type
+        createdAt
+        updatedAt
       }
-      type
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -107,7 +112,10 @@ export default function PageForm({
     onClose();
   };
 
+  const router = useRouter();
+
   const [formData, setFormData] = useState<Partial<ISiteItem>>({
+    siteId: router.query['site-id'] as string,
     name: '',
     title: '',
     url: '',
@@ -177,7 +185,11 @@ export default function PageForm({
     }
   };
 
-  const { data: pagesData, loading } = useQuery(GET_PAGES);
+  const { data: pagesData, loading } = useQuery(GET_SITE_PAGES, {
+    variables: {
+      id: router.query['site-id'] as string,
+    },
+  });
 
   if (loading || !roles.data || (id && !initialData.data?.getSiteItem?.id)) {
     return (
@@ -226,7 +238,7 @@ export default function PageForm({
             label="Родитель"
             variant="outlined"
             value={formData.parentId}
-            options={pagesData.getAllSiteItems}
+            options={pagesData?.getSite.siteItems || []}
             getOptionLabelFromKey="title"
             onChange={(e) => setFormData({ ...formData, parentId: e as string })}
           />

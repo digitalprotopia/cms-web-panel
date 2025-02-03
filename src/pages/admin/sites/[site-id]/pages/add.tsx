@@ -2,16 +2,15 @@ import PageEditForm from '@/components/forms/PageEditForm';
 import { Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 
-export default function PageEditPage() {
+export default function PageAddPage() {
   const router = useRouter();
-  const { id } = router.query;
+
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <Typography variant="h4">Редактировать форму</Typography>
+      <Typography variant="h4">Добавить страницу</Typography>
       <PageEditForm
-        id={id as string}
         onClose={() => {
-          router.push('/admin/pages');
+          router.push(`/admin/sites/${router.query['site-id']}/pages`);
         }}
       />
     </div>

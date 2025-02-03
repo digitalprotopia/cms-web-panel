@@ -23,6 +23,8 @@ import clsx from 'clsx';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import UserContext from '@/components/UserContext';
+import { gql, useQuery } from '@apollo/client';
+import { ISite } from '../entities/ISite';
 
 const getInitials = (name: string) => name
   .split(' ')
@@ -35,6 +37,7 @@ interface ISidebarItem {
   icon: SvgIconComponent;
   label: string;
   href: string;
+  BelowPages?: () => React.JSX.Element;
 }
 
 interface MenuItemProps extends ISidebarItem {
@@ -86,6 +89,28 @@ const menuItems: ISidebarItem[] = [
     icon: LanguageIcon,
     label: 'Сайты',
     href: '/admin/sites',
+    BelowPages: () => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const sites = useQuery(gql`
+        query {
+          getAllSites {
+            id
+            title
+          }
+        }
+      `);
+
+      return sites.data?.getAllSites.map((site: Partial<ISite>) => (
+        <div key={site.id}>
+          <div>
+            {site.title}
+          </div>
+          <div className="pl-4 underline">
+            <Link href={`/admin/sites/${site.id}/pages`}>Страницы</Link>
+          </div>
+        </div>
+      ));
+    },
   },
   {
     icon: CopyAllOutlined,
@@ -119,17 +144,22 @@ const menuItems: ISidebarItem[] = [
   },
 ];
 
-function SidebarItem({ href, icon: Icon, label, isActive }: MenuItemProps) {
+function SidebarItem({ href, icon: Icon, label, isActive, BelowPages }: MenuItemProps) {
   return (
-    <li className={clsx('rounded-md p-2', isActive ? 'bg-cms-primary' : 'bg-cms-gray-light')}>
-      <Link
-        href={href}
-        className={clsx('flex items-center', isActive ? 'text-white' : 'text-cms-gray-dark')}
-      >
-        <Icon />
-        <span className="ml-2">{label}</span>
-      </Link>
-    </li>
+    <>
+      <li className={clsx('rounded-md p-2', isActive ? 'bg-cms-primary' : 'bg-cms-gray-light')}>
+        <Link
+          href={href}
+          className={clsx('flex items-center', isActive ? 'text-white' : 'text-cms-gray-dark')}
+        >
+          <Icon />
+          <span className="ml-2">{label}</span>
+        </Link>
+      </li>
+      <li>
+        {BelowPages && isActive ? <div className="pl-4"><BelowPages /></div> : null}
+      </li>
+    </>
   );
 }
 
