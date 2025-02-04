@@ -1,17 +1,13 @@
 import React, { useMemo } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
-  Card,
-  CardContent,
-  CardHeader,
   Button,
   IconButton,
-  Typography,
   CircularProgress,
   List,
 } from '@mui/material';
 import {
-  Edit, AccessTime, Delete, Visibility,
+  Edit, Delete, Visibility,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import Link from 'next/link';
@@ -28,70 +24,6 @@ const DELETE_PAGE = gql`
     deleteSiteItem(id: $id)
   }
 `;
-
-function PageCard({
-  page,
-  pages,
-  onDelete,
-}: {
-  page: ISiteItem;
-  pages: ISiteItem[];
-  onDelete: (id: string) => void;
-}) {
-  const router = useRouter();
-
-  // const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
-  //   day: 'numeric',
-  //   month: 'long',
-  //   year: 'numeric',
-  //   hour: '2-digit',
-  //   minute: '2-digit',
-  // });
-
-  return (
-    <Card>
-      <CardHeader
-        title={page.title}
-        subheader={getSiteItemUrl(page, pages)
-          + (page.type === SiteItemType.DYNAMIC ? ' (динамическая)' : '')}
-        action={(
-          <div>
-            <Link href={`/admin/sites/${router.query['site-id']}/pages/${page.id}`}>
-              <IconButton size="small">
-                <Edit />
-              </IconButton>
-            </Link>
-            {page.type === SiteItemType.DYNAMIC ? null : (
-              <Link href={getSiteItemUrl(page, pages)}>
-                <IconButton size="small">
-                  <Visibility />
-                </IconButton>
-              </Link>
-            )}
-            <IconButton
-              onClick={() => onDelete(page.id)}
-              size="small"
-              color="error"
-            >
-              <Delete />
-            </IconButton>
-          </div>
-        )}
-      />
-      <CardContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {/* {page.url} */}
-        </Typography>
-        <div className="flex items-center">
-          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
-          <Typography variant="caption" color="text.secondary">
-            {dayjs(page.createdAt).toString()}
-          </Typography>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function PagesPage() {
   const router = useRouter();
