@@ -243,8 +243,8 @@ function CellEdit({
     setDialogOpen(false);
   };
 
-  if (field.type === FieldType.HTML) return (<FormFieldHTML title="" field={field} value={value} onSave={handleSave} />);
-  if (field.type === FieldType.BLOCK) return (<FormFieldBlock title="" field={field} value={value} onSave={handleSave} />);
+  if (field.type === FieldType.HTML) return (<FormFieldHTML title="" field={field} value={value} onSave={handleSave} inline={false} />);
+  if (field.type === FieldType.BLOCK) return (<FormFieldBlock title="" field={field} value={value} onSave={handleSave} inline={false} />);
 
   return (
     <div className="flex items-center gap-1">

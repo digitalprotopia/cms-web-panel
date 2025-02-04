@@ -267,11 +267,13 @@ function FormFieldMultipleId(props: FormFieldProps) {
   );
 }
 
-interface FormFieldHTMLProps extends Omit<FormFieldProps, 'onChange'> {
-  onSave: (value: any) => void;
+interface FormFieldModalProps extends Omit<FormFieldProps, 'onChange'> {
+  onChange?: (value: any) => void;
+  onSave?: (value: any) => void;
+  inline: boolean;
 }
 
-export function FormFieldHTML(props: FormFieldHTMLProps) {
+export function FormFieldHTML(props: FormFieldModalProps) {
   const [openEditorDialog, setOpenEditorDialog] = useState(false);
   const [localHtml, setLocalHtml] = useState(props.value || '');
   const [hasChanges, setHasChanges] = useState(false);
@@ -280,8 +282,8 @@ export function FormFieldHTML(props: FormFieldHTMLProps) {
   const handleOpen = () => {
     setLocalHtml(props.value || '');
     setHasChanges(false);
-    setOpenEditorDialog(true);
     setConfirmCancel(false);
+    setOpenEditorDialog(true);
   };
 
   const handleCancel = () => {
@@ -289,24 +291,47 @@ export function FormFieldHTML(props: FormFieldHTMLProps) {
       setOpenEditorDialog(false);
       return;
     }
-
     if (!hasChanges) {
       setOpenEditorDialog(false);
       return;
     }
-
     setConfirmCancel(true);
   };
 
   const handleSave = () => {
-    props.onSave(localHtml);
+    props?.onSave?.(localHtml);
     setOpenEditorDialog(false);
   };
 
-  return (
+  return props.inline ? (
+    <div className="flex h-full">
+      <div className="flex-1 pr-2.5">
+        <Editor
+          height="100%"
+          defaultLanguage="html"
+          value={localHtml}
+          onChange={(value) => {
+            const newValue = value || '';
+            setLocalHtml(newValue);
+            setHasChanges(true);
+            props.onChange?.(newValue);
+          }}
+          options={{
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            overviewRulerLanes: 0,
+          }}
+        />
+      </div>
+      <div className="flex-1 p-2.5 overflow-auto border-l">
+        <div dangerouslySetInnerHTML={{ __html: localHtml }} />
+      </div>
+    </div>
+  ) : (
     <>
-      <Button variant="text" onClick={handleOpen}>Открыть редактор</Button>
-
+      <Button variant="text" onClick={handleOpen}>
+        Открыть редактор
+      </Button>
       <Dialog
         open={openEditorDialog}
         onClose={handleCancel}
@@ -331,37 +356,38 @@ export function FormFieldHTML(props: FormFieldHTMLProps) {
             />
           </div>
           <div className="flex-1 p-2.5 overflow-auto border-l">
-            <div dangerouslySetInnerHTML={{__html: localHtml}} />
+            <div dangerouslySetInnerHTML={{ __html: localHtml }} />
           </div>
         </DialogContent>
-
         <DialogActions>
-          <Button
-            onClick={handleCancel}
-            color={confirmCancel ? 'error' : 'primary'}
-          >
+          <Button onClick={handleCancel} color={confirmCancel ? 'error' : 'primary'}>
             {confirmCancel ? 'Есть несохраненные изменения, отменить?' : 'Отменить'}
           </Button>
-          <Button onClick={handleSave} variant="contained">Сохранить</Button>
+          <Button onClick={handleSave} variant="contained">
+            Сохранить
+          </Button>
         </DialogActions>
       </Dialog>
     </>
   );
 }
 
-export function FormFieldBlock(props: FormFieldHTMLProps) {
+export function FormFieldBlock(props: FormFieldModalProps) {
   const [openEditorDialog, setOpenEditorDialog] = useState(false);
-  const [localBlockContent, setLocalBlockContent] = useState(props.value || '');
+  const [localBlockContent, setLocalBlockContent] = useState(
+    typeof props.value === 'string' && props.value ? JSON.parse(props.value) : props.value || [],
+  );
+
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
 
   const handleOpen = () => {
     setLocalBlockContent(
-      typeof props.value === 'string' ? JSON.parse(props.value) : props.value || [],
+      typeof props.value === 'string' && props.value ? JSON.parse(props.value) : props.value || [],
     );
     setHasChanges(false);
-    setOpenEditorDialog(true);
     setConfirmCancel(false);
+    setOpenEditorDialog(true);
   };
 
   const handleCancel = () => {
@@ -369,24 +395,34 @@ export function FormFieldBlock(props: FormFieldHTMLProps) {
       setOpenEditorDialog(false);
       return;
     }
-
     if (!hasChanges) {
       setOpenEditorDialog(false);
       return;
     }
-
     setConfirmCancel(true);
   };
 
   const handleSave = () => {
-    props.onSave(JSON.stringify(localBlockContent));
+    props?.onSave?.(JSON.stringify(localBlockContent));
     setOpenEditorDialog(false);
   };
 
-  return (
+  return props.inline ? (
+    <div className="flex size-full">
+      <BlockEditor
+        initialData={localBlockContent}
+        onChange={(value) => {
+          setLocalBlockContent(value);
+          setHasChanges(true);
+          props.onChange?.(value);
+        }}
+      />
+    </div>
+  ) : (
     <>
-      <Button variant="text" onClick={handleOpen}>Открыть редактор</Button>
-
+      <Button variant="text" onClick={handleOpen}>
+        Открыть редактор
+      </Button>
       <Dialog
         open={openEditorDialog}
         onClose={handleCancel}
@@ -398,21 +434,19 @@ export function FormFieldBlock(props: FormFieldHTMLProps) {
             <BlockEditor
               initialData={localBlockContent}
               onChange={(value) => {
-                setLocalBlockContent(value || '');
+                setLocalBlockContent(value);
                 setHasChanges(true);
               }}
             />
           </div>
         </DialogContent>
-
         <DialogActions>
-          <Button
-            onClick={handleCancel}
-            color={confirmCancel ? 'error' : 'primary'}
-          >
+          <Button onClick={handleCancel} color={confirmCancel ? 'error' : 'primary'}>
             {confirmCancel ? 'Есть несохраненные изменения, отменить?' : 'Отменить'}
           </Button>
-          <Button onClick={handleSave} variant="contained">Сохранить</Button>
+          <Button onClick={handleSave} variant="contained">
+            Сохранить
+          </Button>
         </DialogActions>
       </Dialog>
     </>
@@ -610,7 +644,8 @@ export default function FormField(props: FormFieldProps) {
         title={props.title}
         field={props.field}
         value={props.value}
-        onSave={(value) => props.onChange(value)}
+        onChange={(value) => props.onChange(value)}
+        inline
       />
     );
   }
@@ -620,7 +655,8 @@ export default function FormField(props: FormFieldProps) {
         title={props.title}
         field={props.field}
         value={props.value}
-        onSave={(value) => props.onChange(value)}
+        onChange={(value) => props.onChange(value)}
+        inline
       />
     );
   }
