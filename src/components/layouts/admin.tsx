@@ -6,7 +6,6 @@ import {
   KeyboardArrowDownRounded,
   HouseOutlined,
   PeopleAltOutlined,
-  CopyAllOutlined,
   ArticleOutlined,
   TableChartOutlined,
   DashboardOutlined,
