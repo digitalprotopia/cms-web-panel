@@ -15,6 +15,7 @@ export interface ISiteItem extends IEntity {
   name: string;
   title: string;
   url: string;
+  siteId: string;
   parentId?: string;
   isRoot: boolean;
   seotag: string;

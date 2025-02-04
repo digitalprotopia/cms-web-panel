@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
@@ -14,7 +14,8 @@ import dayjs from 'dayjs';
 import { ISite, SiteFormData } from '@/components/entities/ISite';
 import SiteEditDialog from '@/components/dialogs/SiteEditDialog';
 import { styled } from '@mui/material/styles';
-import { useRouter } from 'next/router';
+import UserContext from '@/components/UserContext';
+import Link from 'next/link';
 
 const GET_SITES = gql`
   query getAllSites {
@@ -82,18 +83,14 @@ function SiteCard({
   onEdit: (site: ISite) => void;
   onDelete: (id: string) => void;
 }) {
-  const router = useRouter();
-
-  const handleTitleClick = () => {
-    router.push(`/admin/sites/${site.id}`);
-  };
-
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader
         title={(
-          <ClickableTitle variant="h6" onClick={handleTitleClick}>
-            {site.title}
+          <ClickableTitle variant="h6">
+            <Link href={`/admin/sites/${site.id}/pages`}>
+              {site.title}
+            </Link>
           </ClickableTitle>
         )}
         action={(
@@ -118,7 +115,7 @@ function SiteCard({
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
-            {dayjs(parseInt(String(site.createdAt), 10)).toString()}
+            {dayjs(site.createdAt).toString()}
           </Typography>
         </div>
       </CardContent>
@@ -132,10 +129,13 @@ function SitesPage() {
 
   const { data, loading, refetch } = useQuery(GET_SITES);
 
+  const user = useContext(UserContext);
+
   const [createSite] = useMutation(CREATE_SITE, {
     onCompleted: () => {
       setIsFormOpen(false);
       refetch();
+      user.refetch();
     },
     onError: (error) => {
       console.error('Ошибка при создании сайта:', error);
@@ -147,6 +147,7 @@ function SitesPage() {
       setIsFormOpen(false);
       setSelectedSite(null);
       refetch();
+      user.refetch();
     },
     onError: (error) => {
       console.error('Ошибка при обновлении сайта:', error);
@@ -207,7 +208,7 @@ function SitesPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
+      <div className="flex flex-col gap-4 p-4">
         {data?.getAllSites?.map((site: ISite) => (
           <SiteCard
             key={site.id}
