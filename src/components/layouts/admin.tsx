@@ -113,11 +113,6 @@ const menuItems: ISidebarItem[] = [
     },
   },
   {
-    icon: CopyAllOutlined,
-    label: 'Страницы',
-    href: '/admin/pages',
-  },
-  {
     icon: NavigationSharp,
     label: 'Навигация',
     href: '/admin/navigation',
