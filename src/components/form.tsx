@@ -304,27 +304,30 @@ export function FormFieldHTML(props: FormFieldModalProps) {
   };
 
   return props.inline ? (
-    <div className="flex h-full">
-      <div className="flex-1 pr-2.5">
-        <Editor
-          height="100%"
-          defaultLanguage="html"
-          value={localHtml}
-          onChange={(value) => {
-            const newValue = value || '';
-            setLocalHtml(newValue);
-            setHasChanges(true);
-            props.onChange?.(newValue);
-          }}
-          options={{
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            overviewRulerLanes: 0,
-          }}
-        />
-      </div>
-      <div className="flex-1 p-2.5 overflow-auto border-l">
-        <div dangerouslySetInnerHTML={{ __html: localHtml }} />
+    <div>
+      <div>{props.title}</div>
+      <div className="flex h-full">
+        <div className="flex-1 pr-2.5">
+          <Editor
+            height="100%"
+            defaultLanguage="html"
+            value={localHtml}
+            onChange={(value) => {
+              const newValue = value || '';
+              setLocalHtml(newValue);
+              setHasChanges(true);
+              props.onChange?.(newValue);
+            }}
+            options={{
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              overviewRulerLanes: 0,
+            }}
+          />
+        </div>
+        <div className="flex-1 p-2.5 overflow-auto border-l">
+          <div dangerouslySetInnerHTML={{ __html: localHtml }} />
+        </div>
       </div>
     </div>
   ) : (
@@ -408,13 +411,16 @@ export function FormFieldBlock(props: FormFieldModalProps) {
   };
 
   return props.inline ? (
-    <div className="flex size-full">
+    <div className="size-full">
+      <div>
+        {props.title}
+      </div>
       <BlockEditor
         initialData={localBlockContent}
         onChange={(value) => {
           setLocalBlockContent(value);
           setHasChanges(true);
-          props.onChange?.(value);
+          props.onChange?.(JSON.stringify(value));
         }}
       />
     </div>
