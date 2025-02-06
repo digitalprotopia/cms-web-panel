@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { Register } from '@/pages/auth/register';
 import { Login } from '@/pages/auth/login';
 import { FieldType } from './entities/IField';
+// eslint-disable-next-line import/no-cycle
 import FormField from './form';
 import useTable, {
   TableField, useAddRow, useCategories, useEditRow, usePosts,
@@ -190,12 +191,27 @@ export function ParseRow(
     if (field.type === FieldType.ONE_TO_MANY_ONE) {
       resultRow[field.dbName] = row[field.dbName] ? row[field.dbName]._cms_title : null;
     }
-    if (field.type === FieldType.ONE_TO_MANY_MANY
-        || field.type === FieldType.MANY_TO_MANY_FIRST
-        || field.type === FieldType.MANY_TO_MANY_SECOND) {
-      resultRow[field.dbName] = row[field.dbName] ? row[field.dbName].map((r: any) => r._cms_title).join(', ') : null;
+    if (
+      field.type === FieldType.ONE_TO_MANY_MANY
+      || field.type === FieldType.MANY_TO_MANY_FIRST
+      || field.type === FieldType.MANY_TO_MANY_SECOND
+    ) {
+      resultRow[field.dbName] = row[field.dbName]
+        ? row[field.dbName].map((r: any) => r._cms_title).join(', ')
+        : null;
+    }
+    if (field.type === FieldType.HTML) {
+      resultRow[field.dbName] = (
+        <div
+          dangerouslySetInnerHTML={{ __html: row[field.dbName] }}
+        />
+      );
+    }
+    if (field.type === FieldType.BLOCK) {
+      resultRow[field.dbName] = <BlockView blockContent={row[field.dbName]} />;
     }
   });
+
   return (
     <div key={resultRow.id}>
       <DynamicParse html={html} replace={resultRow} />
@@ -438,7 +454,8 @@ export function RenderWidget(
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
-  if (widgetViewType === 'map') {
+
+  if (widgetViewType === WidgetViewType.MAP) {
     return (
       <div className={props.cssClass || undefined}>
         <WidgetMap

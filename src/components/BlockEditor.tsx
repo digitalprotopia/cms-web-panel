@@ -617,6 +617,7 @@ function BlockEditor({
           formattingToolbar={false}
           editor={editor}
           editable={isEditable}
+          contentEditable={isEditable === false ? false : undefined}
           onChange={() => {
             onChange(editor.document);
             // editor.blocksToFullHTML(editor.document).then((html) => {
