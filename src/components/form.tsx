@@ -25,6 +25,7 @@ import {
 } from '@pbe/react-yandex-maps';
 import { MuiColorInput } from 'mui-color-input';
 import { Editor } from '@monaco-editor/react';
+// eslint-disable-next-line import/no-cycle
 import BlockEditor from '@/components/BlockEditor';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
