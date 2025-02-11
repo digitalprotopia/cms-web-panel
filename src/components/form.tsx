@@ -2,6 +2,7 @@ import {
   Button,
   Checkbox,
   Dialog,
+  DialogActions,
   DialogContent,
   FormControl,
   FormControlLabel,
@@ -23,6 +24,9 @@ import {
   YMaps, Map, FullscreenControl, Placemark, SearchControl,
 } from '@pbe/react-yandex-maps';
 import { MuiColorInput } from 'mui-color-input';
+import { Editor } from '@monaco-editor/react';
+// eslint-disable-next-line import/no-cycle
+import BlockEditor from '@/components/BlockEditor';
 import { FieldType } from './entities/IField';
 import useTable, { TableField } from './use-table';
 import S3Autocomplete from './guiElements/S3Autocomplete';
@@ -264,6 +268,198 @@ function FormFieldMultipleId(props: FormFieldProps) {
   );
 }
 
+interface FormFieldModalProps extends Omit<FormFieldProps, 'onChange'> {
+  onChange?: (value: any) => void;
+  onSave?: (value: any) => void;
+  inline: boolean;
+}
+
+export function FormFieldHTML(props: FormFieldModalProps) {
+  const [openEditorDialog, setOpenEditorDialog] = useState(false);
+  const [localHtml, setLocalHtml] = useState(props.value || '');
+  const [hasChanges, setHasChanges] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
+  const handleOpen = () => {
+    setLocalHtml(props.value || '');
+    setHasChanges(false);
+    setConfirmCancel(false);
+    setOpenEditorDialog(true);
+  };
+
+  const handleCancel = () => {
+    if (confirmCancel) {
+      setOpenEditorDialog(false);
+      return;
+    }
+    if (!hasChanges) {
+      setOpenEditorDialog(false);
+      return;
+    }
+    setConfirmCancel(true);
+  };
+
+  const handleSave = () => {
+    props?.onSave?.(localHtml);
+    setOpenEditorDialog(false);
+  };
+
+  return props.inline ? (
+    <div>
+      <div>{props.title}</div>
+      <div className="flex h-full">
+        <div className="flex-1 pr-2.5">
+          <Editor
+            height="100%"
+            defaultLanguage="html"
+            value={localHtml}
+            onChange={(value) => {
+              const newValue = value || '';
+              setLocalHtml(newValue);
+              setHasChanges(true);
+              props.onChange?.(newValue);
+            }}
+            options={{
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              overviewRulerLanes: 0,
+            }}
+          />
+        </div>
+        <div className="flex-1 p-2.5 overflow-auto border-l">
+          <div dangerouslySetInnerHTML={{ __html: localHtml }} />
+        </div>
+      </div>
+    </div>
+  ) : (
+    <>
+      <Button variant="text" onClick={handleOpen}>
+        Открыть редактор
+      </Button>
+      <Dialog
+        open={openEditorDialog}
+        onClose={handleCancel}
+        fullScreen
+        sx={{ '& .MuiDialog-paper': { height: '100%', width: '100%', margin: 0 } }}
+      >
+        <DialogContent className="flex h-full">
+          <div className="flex-1 pr-2.5">
+            <Editor
+              height="100%"
+              defaultLanguage="html"
+              value={localHtml}
+              onChange={(value) => {
+                setLocalHtml(value || '');
+                setHasChanges(true);
+              }}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                overviewRulerLanes: 0,
+              }}
+            />
+          </div>
+          <div className="flex-1 p-2.5 overflow-auto border-l">
+            <div dangerouslySetInnerHTML={{ __html: localHtml }} />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancel} color={confirmCancel ? 'error' : 'primary'}>
+            {confirmCancel ? 'Есть несохраненные изменения, отменить?' : 'Отменить'}
+          </Button>
+          <Button onClick={handleSave} variant="contained">
+            Сохранить
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
+export function FormFieldBlock(props: FormFieldModalProps) {
+  const [openEditorDialog, setOpenEditorDialog] = useState(false);
+  const [localBlockContent, setLocalBlockContent] = useState(
+    typeof props.value === 'string' && props.value ? JSON.parse(props.value) : props.value || [],
+  );
+
+  const [hasChanges, setHasChanges] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
+  const handleOpen = () => {
+    setLocalBlockContent(
+      typeof props.value === 'string' && props.value ? JSON.parse(props.value) : props.value || [],
+    );
+    setHasChanges(false);
+    setConfirmCancel(false);
+    setOpenEditorDialog(true);
+  };
+
+  const handleCancel = () => {
+    if (confirmCancel) {
+      setOpenEditorDialog(false);
+      return;
+    }
+    if (!hasChanges) {
+      setOpenEditorDialog(false);
+      return;
+    }
+    setConfirmCancel(true);
+  };
+
+  const handleSave = () => {
+    props?.onSave?.(JSON.stringify(localBlockContent));
+    setOpenEditorDialog(false);
+  };
+
+  return props.inline ? (
+    <div className="size-full">
+      <div>
+        {props.title}
+      </div>
+      <BlockEditor
+        initialData={localBlockContent}
+        onChange={(value) => {
+          setLocalBlockContent(value);
+          setHasChanges(true);
+          props.onChange?.(JSON.stringify(value));
+        }}
+      />
+    </div>
+  ) : (
+    <>
+      <Button variant="text" onClick={handleOpen}>
+        Открыть редактор
+      </Button>
+      <Dialog
+        open={openEditorDialog}
+        onClose={handleCancel}
+        fullScreen
+        sx={{ '& .MuiDialog-paper': { height: '100%', width: '100%', margin: 0 } }}
+      >
+        <DialogContent className="flex h-full">
+          <div className="flex-1">
+            <BlockEditor
+              initialData={localBlockContent}
+              onChange={(value) => {
+                setLocalBlockContent(value);
+                setHasChanges(true);
+              }}
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancel} color={confirmCancel ? 'error' : 'primary'}>
+            {confirmCancel ? 'Есть несохраненные изменения, отменить?' : 'Отменить'}
+          </Button>
+          <Button onClick={handleSave} variant="contained">
+            Сохранить
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
 export default function FormField(props: FormFieldProps) {
   if (!props.field) {
     return null;
@@ -446,6 +642,28 @@ export default function FormField(props: FormFieldProps) {
         field={props.field}
         value={props.value}
         onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.HTML) {
+    return (
+      <FormFieldHTML
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={(value) => props.onChange(value)}
+        inline
+      />
+    );
+  }
+  if (props.field.type === FieldType.BLOCK) {
+    return (
+      <FormFieldBlock
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={(value) => props.onChange(value)}
+        inline
       />
     );
   }

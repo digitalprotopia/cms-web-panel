@@ -22,6 +22,8 @@ export enum FieldType {
   URL = 'url',
   CURRENCY = 'currency',
   USER = 'user',
+  HTML = 'html',
+  BLOCK = 'block',
 }
 
 export type IFieldOneToManyOptions = {

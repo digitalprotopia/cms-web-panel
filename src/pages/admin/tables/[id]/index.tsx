@@ -20,7 +20,14 @@ import {
   InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
 } from '@mui/material';
 import {
-  Add, ArrowDropDown, Close, Delete, Download, MapOutlined, OpenInFull, Save,
+  Add,
+  ArrowDropDown,
+  Close,
+  Delete,
+  Download,
+  MapOutlined,
+  OpenInFull,
+  Save,
 } from '@mui/icons-material';
 import {
   gql, useApolloClient, useMutation, useQuery,
@@ -35,7 +42,7 @@ import {
   IFieldOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
-import FormField from '@/components/form';
+import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
 import useTable, {
   TableField,
   TableMeta,
@@ -220,14 +227,24 @@ function CellEdit({
     return null;
   }
 
-  const handleSave = async () => {
+  const handleSave = async (saveValue?: any) => {
+    const updatedValue = saveValue !== undefined ? saveValue : value;
+
+    if (saveValue !== undefined) {
+      setValue(updatedValue);
+    }
+
     await editRow(row.original.id, {
-      [field.dbName]: value,
+      [field.dbName]: updatedValue,
     });
+
     refetch();
     setEditMode(false);
     setDialogOpen(false);
   };
+
+  if (field.type === FieldType.HTML) return (<FormFieldHTML title="" field={field} value={value} onSave={handleSave} inline={false} />);
+  if (field.type === FieldType.BLOCK) return (<FormFieldBlock title="" field={field} value={value} onSave={handleSave} inline={false} />);
 
   return (
     <div className="flex items-center gap-1">
@@ -249,6 +266,7 @@ function CellEdit({
             field={field}
             onChange={(newValue) => setValue(newValue)}
           />
+
           <IconButton
             onClick={async () => {
               await editRow(row.original.id, {
@@ -268,7 +286,7 @@ function CellEdit({
           >
             <Close />
           </IconButton>
-          {field.type === 'text' && (
+          {field.type === FieldType.TEXT && (
             <>
               <IconButton
                 onClick={() => setDialogOpen(true)}
@@ -719,6 +737,9 @@ function TablePage() {
               </div>
             ) : null;
           }
+
+          if ([FieldType.HTML, FieldType.BLOCK].includes(field.type)) setEditMode(true);
+
           if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;
           }
