@@ -162,9 +162,13 @@ function DynamicPage() {
   };
 
   if (template?.type === TemplateType.BLOCKS) {
-    return (<BlockView
-      blockContent={template?.blockContent}
-    />);
+    return (
+      <div className="mmcms-blocks-template">
+        <BlockView
+          blockContent={template?.blockContent}
+        />
+      </div>
+    );
   }
 
   return (

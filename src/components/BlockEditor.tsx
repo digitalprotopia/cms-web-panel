@@ -50,7 +50,7 @@ import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField,
   Tooltip,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { IWidget } from './entities/IWidget';
 // eslint-disable-next-line import/no-cycle
@@ -592,7 +592,14 @@ function BlockEditor({
       ...locales.ru,
       multi_column: multiColumnLocales.ru,
     },
+    domAttributes: {
+      editor: {
+        'data-editable': isEditable ? '1' : '0',
+      },
+    },
   });
+
+  const ref = useRef<HTMLDivElement>();
 
   // Gets the default slash menu items merged with the multi-column ones.
   // const getSlashMenuItems = useMemo(() => async (query: string) => filterSuggestionItems(
@@ -603,6 +610,30 @@ function BlockEditor({
   //   query,
   // ), [editor]);
 
+  useEffect(() => {
+    if (!isEditable && ref.current) {
+      [...(ref.current?.getElementsByClassName('bn-editor') || [])].forEach((el) => {
+        if (el.getAttribute('data-editable') === '0') {
+          el.removeAttribute('class');
+        }
+      });
+      [...(ref.current?.getElementsByClassName('bn-container') || [])].forEach((el) => {
+        el.removeAttribute('class');
+      });
+
+      setTimeout(() => {
+        [...(ref.current?.getElementsByClassName('bn-editor') || [])].forEach((el) => {
+          if (el.getAttribute('data-editable') === '0') {
+            el.removeAttribute('class');
+          }
+        });
+        [...(ref.current?.getElementsByClassName('bn-container') || [])].forEach((el) => {
+          el.removeAttribute('class');
+        });
+      }, 200);
+    }
+  }, [ref.current, initialData]);
+
   return (
     <>
       <style>
@@ -610,14 +641,36 @@ function BlockEditor({
         .bn-container[data-theming-css-view] .bn-editor {
           padding-inline: 0px;
         }
+
+        .mmcms-blocks-template .bn-block-content {
+            display: block;
+            padding: 0px;
+        }
+
+        .mmcms-blocks-template .bn-file-block-content-wrapper {
+            max-width: 100%;
+        }
+
+        .mmcms-blocks-template .bn-block-group {
+          margin: 0px;
+        }
+
+        .mmcms-blocks-template .bn-block-outer:before,
+        .mmcms-blocks-template .bn-block-group .bn-block-group>.bn-block-outer:not([data-prev-depth-changed]):before
+         {
+          border: 0px;
+        }
+        
       `}
       </style>
-      <div style={isEditable ? {
-        borderColor: 'lightgray',
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderRadius: 4,
-      } : undefined}
+      <div
+        style={isEditable ? {
+          borderColor: 'lightgray',
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderRadius: 4,
+        } : undefined}
+        ref={ref}
       >
         <BlockNoteView
           slashMenu={false}
