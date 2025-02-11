@@ -2,6 +2,7 @@
 import parse, { attributesToProps, DOMNode, domToReact } from 'html-react-parser';
 import reactStringReplace from 'react-string-replace';
 import Link from 'next/link';
+// eslint-disable-next-line import/no-cycle
 import { Posts } from './BlockEditor';
 import { FormWidget, PageWidget } from './ParseWidgets';
 
