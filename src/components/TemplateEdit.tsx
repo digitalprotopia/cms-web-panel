@@ -4,9 +4,10 @@ import { Button, Dialog, DialogContent, MenuItem, TextField } from '@mui/materia
 import { Editor } from '@monaco-editor/react';
 import { useRouter } from 'next/router';
 import { MaterialReactTable } from 'material-react-table';
-import { ITemplate, ITemplateFormData, TemplateType } from './entities/ITemplate';
+import { ITemplate, TemplateType } from './entities/ITemplate';
 import { IFile } from './entities/IFile';
 import { toBase64 } from './form';
+import TemplateBlocks from './blocks/templates/TemplateBlocks';
 
 function TemplateFile(props: {
   fileId?: string,
@@ -171,11 +172,12 @@ export default function TemplateEdit({
   templates,
 }: {
   initialData: Partial<ITemplate>;
-  onSubmit: (data: ITemplateFormData) => void;
-  templates: ITemplateFormData[];
+  onSubmit: (data: Partial<ITemplate>) => void;
+  templates: ITemplate[];
 }) {
   const {
     name = '', title = '', templateGroupId, html = '', css = '', file = undefined,
+    blockContent = null, type = 'text',
   } = initialData as any;
 
   const snippets = useQuery(gql`
@@ -194,8 +196,8 @@ export default function TemplateEdit({
       }
   }`);
 
-  const [formData, setFormData] = useState<ITemplateFormData>({
-    name, title, templateGroupId, html, css, fileId: file?.id,
+  const [formData, setFormData] = useState<Partial<ITemplate>>({
+    name, title, templateGroupId, html, css, fileId: file?.id, blockContent, type,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -223,19 +225,31 @@ export default function TemplateEdit({
           />
         </div>
         <div>
+          <TextField
+            select
+            label="Тип"
+            value={formData.type || TemplateType.TEXT}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value as TemplateType })}
+          >
+            <MenuItem value={TemplateType.TEXT}>Текст</MenuItem>
+            <MenuItem value={TemplateType.FILE}>Файл</MenuItem>
+            <MenuItem value={TemplateType.BLOCKS}>Блоки</MenuItem>
+          </TextField>
+        </div>
+        <div>
           <a href={`${window.config.server}/templates/${initialData.id}/${initialData.name}`} target="_blank" rel="noreferrer">
             {`URL: ${window.config.server}/templates/${initialData.id}/${initialData.name}`}
           </a>
         </div>
 
-        {initialData.type === TemplateType.TEXT ? (
+        {formData.type === TemplateType.TEXT ? (
           <>
             <h4>HTML</h4>
             <Editor
               value={formData.html}
               height={400}
               onChange={(value) => setFormData({ ...formData, html: value! })}
-              language={formData.name.endsWith('.css') ? 'css' : 'html'}
+              language={formData.name!.endsWith('.css') ? 'css' : 'html'}
             />
 
             <div className="flex flex-wrap gap-2">
@@ -292,11 +306,23 @@ export default function TemplateEdit({
             </div>
           </>
         ) : null}
-        {initialData.type === TemplateType.FILE
+        {formData.type === TemplateType.FILE
           ? (<TemplateFile
               fileId={formData.fileId}
               onChange={(fileId, _name) => setFormData({ ...formData, fileId, name: _name })}
           />) : null}
+        {formData.type === TemplateType.BLOCKS
+          ? (
+            <div>
+              <h4>Блочный редактор</h4>
+              <TemplateBlocks
+                blockContent={formData.blockContent}
+                onChange={(_blockContent) => setFormData(
+                  { ...formData, blockContent: _blockContent },
+                )}
+              />
+            </div>
+          ) : null}
         <div className="flex justify-end gap-2 mt-5">
           <Button variant="contained" type="submit">
             Сохранить

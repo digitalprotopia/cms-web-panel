@@ -1,0 +1,111 @@
+import { BlockView } from '@/components/BlockEditor';
+import ParsePage from '@/components/ParsePage';
+import UserContext from '@/components/UserContext';
+import { gql, useQuery } from '@apollo/client';
+import { BlockNoteEditor, insertOrUpdateBlock } from '@blocknote/core';
+import { createReactBlockSpec } from '@blocknote/react';
+import { Editor } from '@monaco-editor/react';
+import { Article } from '@mui/icons-material';
+import { useContext } from 'react';
+
+const GET_SITEITEM = gql`
+  query GetSiteItem($id: ID!) {
+    getSiteItem(id: $id) {
+      url
+      title
+      html
+      blockContent
+      id
+    }
+  }
+`;
+
+export const BlockEditorContentView = createReactBlockSpec(
+  {
+    type: 'content-view',
+    propSchema: {
+      html: {
+        default: '',
+        type: 'string',
+      },
+    },
+    content: 'none',
+    isSelectable: false,
+  },
+  {
+    render: (props) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const user = useContext(UserContext);
+
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const { data: siteItem } = useQuery(
+        GET_SITEITEM,
+        {
+          variables: { id: user.currentPage?.id },
+          skip: !user || props.editor.isEditable || !user.currentPage,
+        },
+      );
+
+      if (props.editor.isEditable) {
+        return (
+          <div data-widget-type="content-view">
+            <div>Содержимое страницы</div>
+            <div>
+              <Editor
+                height={200}
+                width={800}
+                defaultLanguage="html"
+                defaultValue={props.block.props.html}
+                onChange={(value) => {
+                  props.editor.updateBlock(props.block, {
+                    type: 'content-view',
+                    props: { html: value },
+                  });
+                }}
+              />
+            </div>
+          </div>
+        );
+      }
+      if (!siteItem) {
+        return null;
+      }
+      return (
+        <div>
+          <style>
+            {`.page a{
+            text-decoration: underline;
+          }`}
+          </style>
+          <ParsePage
+            html={props.block.props.html}
+            args={{
+              content: <BlockView
+                blockContent={siteItem?.getSiteItem?.blockContent}
+              />,
+            }}
+          />
+        </div>
+      );
+    },
+  },
+);
+
+export const insertBlockEditorContentView = (editor: BlockNoteEditor) => (
+  {
+    title: 'Контент страницы',
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: 'content-view' as any,
+        props: {
+          html: '{content}',
+        } as any,
+      });
+    },
+    aliases: [
+      'content-view',
+    ],
+    group: 'Базовые блоки',
+    icon: <Article />,
+  }
+);

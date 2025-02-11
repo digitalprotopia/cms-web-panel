@@ -59,6 +59,9 @@ import { FormWidget, PageWidget } from './ParseWidgets';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { IForm } from './entities/IForm';
+import { BlockEditorCssView, insertBlockEditorCssView } from './blocks/templates/css';
+import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templates/head';
+import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/templates/content';
 
 export const ClassStyle = createReactStyleSpec(
   {
@@ -377,7 +380,7 @@ export const BlockEditorHtmlView = createReactBlockSpec(
 
       return (
         <div data-widget-type="html-view">
-          <div style={{ display: 'flex' }}>
+          <div>
             {props.editor.isEditable ? (
               <div>
                 <IconButton
@@ -490,6 +493,7 @@ interface BlockEditorProps {
   initialData: any;
   onChange: (data: any) => void;
   isEditable?: boolean;
+  type?: 'page' | 'template';
 }
 
 export function AddBlocksItem(props: DragHandleMenuProps) {
@@ -544,6 +548,9 @@ const schema = BlockNoteSchema.create({
     form: BlockEditorForm,
     posts: BlockEditorPosts,
     'html-view': BlockEditorHtmlView,
+    'css-view': BlockEditorCssView,
+    'head-view': BlockEditorHeadView,
+    'content-view': BlockEditorContentView,
   },
   styleSpecs: {
     ...defaultStyleSpecs,
@@ -553,6 +560,7 @@ const schema = BlockNoteSchema.create({
 
 function BlockEditor({
   initialData, onChange, isEditable = true,
+  type = 'page',
 }: BlockEditorProps) {
   const snippets = useQuery(gql`
     query {
@@ -648,6 +656,9 @@ function BlockEditor({
               filterSuggestionItems(
                 [
                   insertBlockEditorHtmlView(editor as any),
+                  insertBlockEditorCssView(editor as any),
+                  insertBlockEditorHeadView(editor as any),
+                  insertBlockEditorContentView(editor as any),
                   ...combineByGroup(
                     getDefaultReactSlashMenuItems(editor),
                     getMultiColumnSlashMenuItems(editor),
