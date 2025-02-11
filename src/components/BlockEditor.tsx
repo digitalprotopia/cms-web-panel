@@ -512,6 +512,44 @@ export function AddBlocksItem(props: DragHandleMenuProps) {
             console.log(block);
           }
 
+          if (editor.getPrevBlock(block)) {
+            editor.insertBlocks([{
+              ...props.block,
+              id: undefined,
+            }], editor.getPrevBlock(block)!, 'before');
+            editor.removeBlocks([props.block]);
+          }
+        }}
+      >
+        Перенести выше
+      </Components.Generic.Menu.Item>
+      <Components.Generic.Menu.Item
+        onClick={() => {
+          let { block } = props;
+          while (editor.getParentBlock(block)) {
+            block = editor.getParentBlock(block) as Block;
+            console.log(block);
+          }
+
+          if (editor.getNextBlock(block)) {
+            editor.insertBlocks([{
+              ...props.block,
+              id: undefined,
+            }], editor.getNextBlock(block)!, 'after');
+            editor.removeBlocks([props.block]);
+          }
+        }}
+      >
+        Перенести ниже
+      </Components.Generic.Menu.Item>
+      <Components.Generic.Menu.Item
+        onClick={() => {
+          let { block } = props;
+          while (editor.getParentBlock(block)) {
+            block = editor.getParentBlock(block) as Block;
+            console.log(block);
+          }
+
           editor.insertBlocks([{
             type: 'paragraph',
             props: {},
