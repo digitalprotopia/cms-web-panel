@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-cycle
 import { BlockView } from '@/components/BlockEditor';
 import ParsePage from '@/components/ParsePage';
 import UserContext from '@/components/UserContext';
@@ -93,7 +94,7 @@ export const BlockEditorContentView = createReactBlockSpec(
 
 export const insertBlockEditorContentView = (editor: BlockNoteEditor) => (
   {
-    title: 'Контент страницы',
+    title: 'Содержимое страницы',
     onItemClick: () => {
       insertOrUpdateBlock(editor, {
         type: 'content-view' as any,

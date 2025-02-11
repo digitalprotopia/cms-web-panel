@@ -61,6 +61,7 @@ import '@blocknote/mantine/style.css';
 import { IForm } from './entities/IForm';
 import { BlockEditorCssView, insertBlockEditorCssView } from './blocks/templates/css';
 import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templates/head';
+// eslint-disable-next-line import/no-cycle
 import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/templates/content';
 
 export const ClassStyle = createReactStyleSpec(
@@ -634,6 +635,12 @@ function BlockEditor({
     }
   }, [ref.current, initialData]);
 
+  const templateInserts = [
+    insertBlockEditorCssView(editor as any),
+    insertBlockEditorHeadView(editor as any),
+    insertBlockEditorContentView(editor as any),
+  ];
+
   return (
     <>
       <style>
@@ -670,6 +677,7 @@ function BlockEditor({
           borderStyle: 'solid',
           borderRadius: 4,
         } : undefined}
+        // @ts-expect-error error
         ref={ref}
       >
         <BlockNoteView
@@ -710,9 +718,7 @@ function BlockEditor({
               filterSuggestionItems(
                 [
                   insertBlockEditorHtmlView(editor as any),
-                  insertBlockEditorCssView(editor as any),
-                  insertBlockEditorHeadView(editor as any),
-                  insertBlockEditorContentView(editor as any),
+                  ...(type === 'template' ? templateInserts : []),
                   ...combineByGroup(
                     getDefaultReactSlashMenuItems(editor),
                     getMultiColumnSlashMenuItems(editor),
