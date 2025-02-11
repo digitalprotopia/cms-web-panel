@@ -8,9 +8,9 @@ import {
 } from 'react';
 import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
-import { ITemplate } from '@/components/entities/ITemplate';
+import { ITemplate, TemplateType } from '@/components/entities/ITemplate';
 import Head from 'next/head';
-import BlockEditor from '@/components/BlockEditor';
+import BlockEditor, { BlockView } from '@/components/BlockEditor';
 import { CircularProgress } from '@mui/material';
 import parse from 'html-react-parser';
 import { usePageContext } from '@/components/PageContext';
@@ -82,15 +82,17 @@ function DynamicPage() {
     setCurrentPage(prevPage);
   }, [pages, slug]);
 
+  const { site } = user;
+
+  const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
+
   const { data: siteItem, loading: siteItemLoading } = useQuery(
     GET_SITEITEM,
     {
       variables: { id: currentPage },
-      skip: !currentPage,
+      skip: !currentPage || template?.type === TemplateType.BLOCKS,
     },
   );
-
-  const { site } = user;
 
   const pageContext = usePageContext();
 
@@ -100,7 +102,6 @@ function DynamicPage() {
 
   if (!site) return <span>Loading...</span>;
 
-  const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
   let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
   <div>{menu}</div>
   <div>{content}</div>
@@ -159,6 +160,16 @@ function DynamicPage() {
     title: siteItem?.getSiteItem?.title || '',
     blockContent,
   };
+
+  if (template?.type === TemplateType.BLOCKS) {
+    return (
+      <div className="mmcms-blocks-template">
+        <BlockView
+          blockContent={template?.blockContent}
+        />
+      </div>
+    );
+  }
 
   return (
     <>

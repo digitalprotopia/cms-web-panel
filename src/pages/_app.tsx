@@ -114,6 +114,8 @@ function CMSLayout({
               id
               name
               html
+              type
+              blockContent
               createdAt
             }
           }

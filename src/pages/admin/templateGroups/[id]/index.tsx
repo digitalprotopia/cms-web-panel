@@ -15,7 +15,7 @@ import {
   MenuItem,
 } from '@mui/material';
 
-import { ITemplate, ITemplateFormData, TemplateType } from '@/components/entities/ITemplate';
+import { ITemplate, TemplateType } from '@/components/entities/ITemplate';
 import {
   useRouter,
 } from 'next/router';
@@ -35,6 +35,7 @@ const GET_TEMPLATES = gql`
         name
         title
         html
+        blockContent
         file {
           id
           name
@@ -57,6 +58,8 @@ const GET_TEMPLATE = gql`
       name
       title
       html
+      blockContent
+      type
       templateGroupId
       createdAt
       updatedAt
@@ -154,9 +157,9 @@ function TemplateNavigation({ items, currentId }: TemplateNavigationProps) {
 function CreateTemplate(props: {
   open: boolean;
   onClose: () => void;
-  onSubmit: (formData: ITemplateFormData) => void;
+  onSubmit: (formData: ITemplate) => void;
 }) {
-  const [form, setForm] = useState<Partial<ITemplateFormData>>({
+  const [form, setForm] = useState<Partial<ITemplate>>({
     name: '',
     title: '',
     type: TemplateType.TEXT,
@@ -193,7 +196,7 @@ function CreateTemplate(props: {
         <Button onClick={props.onClose}>Отмена</Button>
         <Button
           onClick={() => {
-            props.onSubmit(form as ITemplateFormData);
+            props.onSubmit(form as ITemplate);
             props.onClose();
           }}
         >
@@ -274,7 +277,7 @@ function TemplatesPage() {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const handleCreate = (formData: ITemplateFormData) => {
+  const handleCreate = (formData: ITemplate) => {
     createTemplate({
       variables: {
         input: {
@@ -285,7 +288,7 @@ function TemplatesPage() {
     });
   };
 
-  const handleUpdate = async (formData: ITemplateFormData) => {
+  const handleUpdate = async (formData: Partial<ITemplate>) => {
     if (!selectedTemplateId) return;
     await updateTemplate({
       variables: {

@@ -39,7 +39,7 @@ export default function SiteEditForm({
         <div className="grid grid-cols-2 gap-4">
           <S3Autocomplete
             value={formData.templateGroupId}
-            options={templateGroups}
+            options={templateGroups as any}
             label="Шаблоны сайта"
             variant="outlined"
             onChange={(e) => setFormData({

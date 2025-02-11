@@ -50,7 +50,7 @@ import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField,
   Tooltip,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { IWidget } from './entities/IWidget';
 // eslint-disable-next-line import/no-cycle
@@ -59,6 +59,10 @@ import { FormWidget, PageWidget } from './ParseWidgets';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { IForm } from './entities/IForm';
+import { BlockEditorCssView, insertBlockEditorCssView } from './blocks/templates/css';
+import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templates/head';
+// eslint-disable-next-line import/no-cycle
+import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/templates/content';
 
 export const ClassStyle = createReactStyleSpec(
   {
@@ -377,7 +381,7 @@ export const BlockEditorHtmlView = createReactBlockSpec(
 
       return (
         <div data-widget-type="html-view">
-          <div style={{ display: 'flex' }}>
+          <div>
             {props.editor.isEditable ? (
               <div>
                 <IconButton
@@ -490,6 +494,7 @@ interface BlockEditorProps {
   initialData: any;
   onChange: (data: any) => void;
   isEditable?: boolean;
+  type?: 'page' | 'template';
 }
 
 export function AddBlocksItem(props: DragHandleMenuProps) {
@@ -499,6 +504,44 @@ export function AddBlocksItem(props: DragHandleMenuProps) {
 
   return (
     <>
+      <Components.Generic.Menu.Item
+        onClick={() => {
+          let { block } = props;
+          while (editor.getParentBlock(block)) {
+            block = editor.getParentBlock(block) as Block;
+            console.log(block);
+          }
+
+          if (editor.getPrevBlock(block)) {
+            editor.insertBlocks([{
+              ...props.block,
+              id: undefined,
+            }], editor.getPrevBlock(block)!, 'before');
+            editor.removeBlocks([props.block]);
+          }
+        }}
+      >
+        Перенести выше
+      </Components.Generic.Menu.Item>
+      <Components.Generic.Menu.Item
+        onClick={() => {
+          let { block } = props;
+          while (editor.getParentBlock(block)) {
+            block = editor.getParentBlock(block) as Block;
+            console.log(block);
+          }
+
+          if (editor.getNextBlock(block)) {
+            editor.insertBlocks([{
+              ...props.block,
+              id: undefined,
+            }], editor.getNextBlock(block)!, 'after');
+            editor.removeBlocks([props.block]);
+          }
+        }}
+      >
+        Перенести ниже
+      </Components.Generic.Menu.Item>
       <Components.Generic.Menu.Item
         onClick={() => {
           let { block } = props;
@@ -544,6 +587,9 @@ const schema = BlockNoteSchema.create({
     form: BlockEditorForm,
     posts: BlockEditorPosts,
     'html-view': BlockEditorHtmlView,
+    'css-view': BlockEditorCssView,
+    'head-view': BlockEditorHeadView,
+    'content-view': BlockEditorContentView,
   },
   styleSpecs: {
     ...defaultStyleSpecs,
@@ -553,6 +599,7 @@ const schema = BlockNoteSchema.create({
 
 function BlockEditor({
   initialData, onChange, isEditable = true,
+  type = 'page',
 }: BlockEditorProps) {
   const snippets = useQuery(gql`
     query {
@@ -584,7 +631,14 @@ function BlockEditor({
       ...locales.ru,
       multi_column: multiColumnLocales.ru,
     },
+    domAttributes: {
+      editor: {
+        'data-editable': isEditable ? '1' : '0',
+      },
+    },
   });
+
+  const ref = useRef<HTMLDivElement>();
 
   // Gets the default slash menu items merged with the multi-column ones.
   // const getSlashMenuItems = useMemo(() => async (query: string) => filterSuggestionItems(
@@ -595,6 +649,36 @@ function BlockEditor({
   //   query,
   // ), [editor]);
 
+  useEffect(() => {
+    if (!isEditable && ref.current) {
+      [...(ref.current?.getElementsByClassName('bn-editor') || [])].forEach((el) => {
+        if (el.getAttribute('data-editable') === '0') {
+          el.removeAttribute('class');
+        }
+      });
+      [...(ref.current?.getElementsByClassName('bn-container') || [])].forEach((el) => {
+        el.removeAttribute('class');
+      });
+
+      setTimeout(() => {
+        [...(ref.current?.getElementsByClassName('bn-editor') || [])].forEach((el) => {
+          if (el.getAttribute('data-editable') === '0') {
+            el.removeAttribute('class');
+          }
+        });
+        [...(ref.current?.getElementsByClassName('bn-container') || [])].forEach((el) => {
+          el.removeAttribute('class');
+        });
+      }, 200);
+    }
+  }, [ref.current, initialData]);
+
+  const templateInserts = [
+    insertBlockEditorCssView(editor as any),
+    insertBlockEditorHeadView(editor as any),
+    insertBlockEditorContentView(editor as any),
+  ];
+
   return (
     <>
       <style>
@@ -602,14 +686,37 @@ function BlockEditor({
         .bn-container[data-theming-css-view] .bn-editor {
           padding-inline: 0px;
         }
+
+        .mmcms-blocks-template .bn-block-content {
+            display: block;
+            padding: 0px;
+        }
+
+        .mmcms-blocks-template .bn-file-block-content-wrapper {
+            max-width: 100%;
+        }
+
+        .mmcms-blocks-template .bn-block-group {
+          margin: 0px;
+        }
+
+        .mmcms-blocks-template .bn-block-outer:before,
+        .mmcms-blocks-template .bn-block-group .bn-block-group>.bn-block-outer:not([data-prev-depth-changed]):before
+         {
+          border: 0px;
+        }
+        
       `}
       </style>
-      <div style={isEditable ? {
-        borderColor: 'lightgray',
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderRadius: 4,
-      } : undefined}
+      <div
+        style={isEditable ? {
+          borderColor: 'lightgray',
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderRadius: 4,
+        } : undefined}
+        // @ts-expect-error error
+        ref={ref}
       >
         <BlockNoteView
           slashMenu={false}
@@ -649,6 +756,7 @@ function BlockEditor({
               filterSuggestionItems(
                 [
                   insertBlockEditorHtmlView(editor as any),
+                  ...(type === 'template' ? templateInserts : []),
                   ...combineByGroup(
                     getDefaultReactSlashMenuItems(editor),
                     getMultiColumnSlashMenuItems(editor),
