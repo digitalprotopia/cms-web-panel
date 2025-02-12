@@ -77,7 +77,7 @@ function TemplatesPage() {
   });
 
   const selectedTemplate = data?.getTemplateGroup?.templates.find(
-    (t: ITemplate) => t.name === 'layout',
+    (t: ITemplate) => t.name === 'head',
   );
 
   const templates = data?.getTemplateGroup?.templates || [];
@@ -118,7 +118,7 @@ function TemplatesPage() {
         <TemplateGroupMenu />
       </div>
       <div className="flex items-center justify-between gap-4">
-        <Typography variant="h4">Редактирование шаблона сайта</Typography>
+        <Typography variant="h4">Редактирование Head шаблона</Typography>
       </div>
       <TemplateEdit
         initialData={selectedTemplate}
