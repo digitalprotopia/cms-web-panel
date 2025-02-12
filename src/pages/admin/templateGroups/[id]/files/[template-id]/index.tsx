@@ -308,7 +308,7 @@ function TemplateFilePage() {
     .filter((t: ITemplate) => t.name !== 'layout' && t.name !== 'head');
 
   if (!templates || !templates[0]) {
-    throw new Error('У шаблона отсутсвуют файлы.');
+    // throw new Error('У шаблона отсутсвуют файлы.');
   }
   if (!selectedTemplate && templates[0]) {
     router.push(`/admin/templateGroups/${templateGroupId}/files/${templates[0].id}`);
