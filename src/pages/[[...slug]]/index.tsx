@@ -164,6 +164,10 @@ function DynamicPage() {
   if (template?.type === TemplateType.BLOCKS) {
     return (
       <div className="mmcms-blocks-template">
+        <Head>
+          <title>{siteItem?.getSiteItem?.title || ''}</title>
+          {parse(head)}
+        </Head>
         <BlockView
           blockContent={template?.blockContent}
         />
