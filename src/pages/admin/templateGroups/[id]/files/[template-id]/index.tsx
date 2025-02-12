@@ -21,7 +21,6 @@ import {
 } from 'next/router';
 import TemplateEdit from '@/components/TemplateEdit';
 import clsx from 'clsx';
-import { useSearchParams } from 'next/navigation';
 import { Add, Delete } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import TemplateGroupMenu from '@/components/blocks/templates/TemplateGroupMenu';

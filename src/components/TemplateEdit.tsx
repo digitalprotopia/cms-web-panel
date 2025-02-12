@@ -182,22 +182,6 @@ export default function TemplateEdit({
     blockContent = null, type = 'text',
   } = initialData as any;
 
-  const snippets = useQuery(gql`
-    query {
-      getAllWidgets {
-        id
-        name
-        title
-        createdAt
-      }
-      getAllForms {
-        id
-        name
-        title
-        createdAt
-      }
-  }`);
-
   const [formData, setFormData] = useState<Partial<ITemplate>>({
     name, title, templateGroupId, html, css, fileId: file?.id, blockContent, type,
   });

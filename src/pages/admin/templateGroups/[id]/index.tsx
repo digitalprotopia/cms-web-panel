@@ -1,28 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Typography,
   CircularProgress,
-  Icon,
-  Grid2,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  DialogActions,
-  Button,
-  MenuItem,
 } from '@mui/material';
 
-import { ITemplate, TemplateType } from '@/components/entities/ITemplate';
+import { ITemplate } from '@/components/entities/ITemplate';
 import {
   useRouter,
 } from 'next/router';
 import TemplateEdit from '@/components/TemplateEdit';
-import clsx from 'clsx';
-import { useSearchParams } from 'next/navigation';
-import { Add, Delete } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import TemplateGroupMenu from '@/components/blocks/templates/TemplateGroupMenu';
 
