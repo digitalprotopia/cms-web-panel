@@ -86,7 +86,7 @@ import {
    
         <button
            className="fixed bottom-4 right-4 bg-green-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
-           onClick={() => router.push('/add-bot')}
+           onClick={() => router.push('/admin/bots/add-bot')}
         >
            Создать бот
         </button>
