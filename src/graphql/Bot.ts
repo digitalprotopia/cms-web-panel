@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql } from '@apollo/client';
 
 export const GET_BOT_QUERY = gql`
     query GetBot($id: ID!) {
@@ -14,7 +14,7 @@ export const GET_BOT_QUERY = gql`
             clientId
         }
     }
-`
+`;
 
 export const EDIT_BOT_MUTATION = gql`
     mutation EditBot($id: ID!, $input: BotInput!) {
@@ -30,7 +30,7 @@ export const EDIT_BOT_MUTATION = gql`
             clientId
         }
     }
-`
+`;
 
 export const GET_BOT_PAGES_QUERY = gql`
     query GetBotItems($botId: ID!) {
@@ -39,7 +39,7 @@ export const GET_BOT_PAGES_QUERY = gql`
                 title
         }
     }
-`
+`;
 
 export const GET_PAGE_QUERY = gql`
     query GetBotItem($id: ID!) {
@@ -48,7 +48,7 @@ export const GET_PAGE_QUERY = gql`
             title
         }
     }
-`
+`;
 
 export const EDIT_PAGE_MUTATION = gql`
     mutation EditBotItem($id: ID!, $input: ItemInput!) {
@@ -57,4 +57,4 @@ export const EDIT_PAGE_MUTATION = gql`
             title
         }
     }
-`
+`;
