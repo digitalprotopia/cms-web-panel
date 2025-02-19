@@ -241,7 +241,7 @@ function EditBotPage() {
         <Button
           variant="contained"
           color="primary"
-          // onClick={() => router.push()}
+          onClick={() => router.push(`${id}/pages/create`)}
         >
           Добавить страницу
         </Button>

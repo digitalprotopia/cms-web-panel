@@ -4,7 +4,7 @@ import {
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { MaterialReactTable } from 'material-react-table';
-import Link from "next/link";
+import Link from 'next/link';
 
 function BotsPage() {
   const router = useRouter();
@@ -30,7 +30,7 @@ function BotsPage() {
         accessorKey: 'id',
         header: 'ID бота',
         size: 150,
-        Cell: ({ row }: { row: any }) => (<Link href={`bots/${row.original.id}`} className="cursor-pointer">{row.original.id}</Link>)
+        Cell: ({ row }: { row: any }) => (<Link href={`bots/${row.original.id}`} className="cursor-pointer">{row.original.id}</Link>),
       },
       {
         accessorKey: 'name',
