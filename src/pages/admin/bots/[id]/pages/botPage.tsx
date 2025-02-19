@@ -21,6 +21,9 @@ const GET_BOT_ITEM = gql`
       filterScript
       type
       tableViewId
+      tableView {
+        tableId
+      }
       tableRowId
       botId
       buttons {
@@ -29,30 +32,60 @@ const GET_BOT_ITEM = gql`
         type
         targetBotItemId
         targetTriggerId
+        targetTrigger {
+          serverScript {
+            code
+          }
+        }
       }
     }
   }
 `;
 
+const GET_BOT_ITEMS = gql`
+  query GetBotItems($botId: ID!) {
+    getBotItems(id: $botId) {
+      id
+      title
+    }
+    getTables {
+      id
+      name
+    }
+}
+`;
+
 const CREATE_BOT_ITEM = gql`
-  mutation CreateBotItem($input: BotItemInput!) {
-    createBotItem(input: $input) {
+  mutation CreateBotItem($input: BotItemInput! $tableId: ID) {
+    createBotItem(input: $input tableId: $tableId) {
       id
     }
   }
 `;
 
 const EDIT_BOT_ITEM = gql`
-  mutation EditBotItem($id: ID!, $input: BotItemInput!) {
-    editBotItem(id: $id, input: $input) {
+  mutation EditBotItem($id: ID!, $input: BotItemInput! $tableId: ID) {
+    editBotItem(id: $id, input: $input, tableId: $tableId) {
       id
     }
   }
 `;
 
 const CREATE_BOT_BUTTON = gql`
-  mutation CreateBotButton($input: BotButtonInput!) {
-    createBotButton(input: $input) {
+  mutation CreateBotButton($input: BotButtonInput! $triggerCode: String) {
+    createBotButton(input: $input triggerCode: $triggerCode) {
+      id
+      title
+      type
+      targetBotItemId
+      targetTriggerId
+    }
+  }
+`;
+
+const EDIT_BOT_BUTTON = gql`
+  mutation EditBotButton($id: ID! $input: BotButtonInput! $triggerCode: String) {
+    editBotButton(id: $id input: $input triggerCode: $triggerCode) {
       id
       title
       type
@@ -78,9 +111,14 @@ function BotPage() {
     skip: !id,
   });
 
+  const botItems = useQuery(GET_BOT_ITEMS, {
+    variables: { botId },
+  });
+
   const [createBotItem] = useMutation(CREATE_BOT_ITEM);
   const [editBotItem] = useMutation(EDIT_BOT_ITEM);
   const [createBotButton] = useMutation(CREATE_BOT_BUTTON);
+  const [editBotButton] = useMutation(EDIT_BOT_BUTTON);
   const [deleteBotButton] = useMutation(DELETE_BOT_BUTTON);
 
   const [botItem, setBotItem] = useState({
@@ -89,7 +127,7 @@ function BotPage() {
     content: null,
     filterScript: null,
     type: null,
-    tableViewId: null,
+    tableId: null,
     tableRowId: null,
     botId: botId || null,
   });
@@ -105,11 +143,18 @@ function BotPage() {
         content: fetched.content || null,
         filterScript: fetched.filterScript || null,
         type: fetched.type || null,
-        tableViewId: fetched.tableViewId || null,
+        tableId: fetched.tableView?.tableId || null,
         tableRowId: fetched.tableRowId || null,
         botId: fetched.botId || null,
       });
-      setButtons(fetched.buttons || []);
+      setButtons(fetched.buttons?.map((button) => ({
+        id: button.id,
+        title: button.title,
+        type: button.type,
+        targetBotItemId: button.targetBotItemId,
+        triggerCode: button.targetTrigger?.serverScript?.code || '',
+      })
+         || []));
     }
   }, [data]);
 
@@ -130,18 +175,35 @@ function BotPage() {
       let newPageId = id;
 
       if (!id) {
-        const res = await createBotItem({ variables: { input: botItem } });
+        const res = await createBotItem({ variables: {
+          input: { ...botItem, tableId: undefined },
+          tableId: botItem.tableId,
+        } });
         newPageId = res.data.createBotItem.id;
-        router.push(`/bots/${botId}/pages/${newPageId}`);
+        router.push(`/admin/bots/${botId}/pages/${newPageId}`);
       } else {
-        await editBotItem({ variables: { id, input: botItem } });
+        await editBotItem({ variables: { id,
+          input: { ...botItem, tableId: undefined },
+          tableId: botItem.tableId } });
       }
 
+      // eslint-disable-next-line no-restricted-syntax
       for (const button of buttons) {
         if (!button.id) {
+          // eslint-disable-next-line no-await-in-loop
           await createBotButton({
             variables: {
-              input: { ...button, botItemId: newPageId },
+              input: { ...button, triggerCode: undefined, botItemId: newPageId },
+              triggerCode: button.triggerCode,
+            },
+          });
+        } else {
+          // eslint-disable-next-line no-await-in-loop
+          await editBotButton({
+            variables: {
+              id: button.id,
+              input: { ...button, id: undefined, triggerCode: undefined },
+              triggerCode: button.triggerCode,
             },
           });
         }
@@ -161,7 +223,7 @@ function BotPage() {
   };
 
   const handleAddNewButton = () => {
-    setButtons([...buttons, { title: null, type: null, targetBotItemId: null, targetTriggerId: null }]);
+    setButtons([...buttons, { title: null, type: null, targetBotItemId: null, triggerCode: '' }]);
   };
 
   const handleDeleteButton = async (index) => {
@@ -208,8 +270,24 @@ function BotPage() {
           <MenuItem value="list">list</MenuItem>
           <MenuItem value="single">single</MenuItem>
         </TextField>
-        <TextField label="tableViewId" name="tableViewId" value={botItem.tableViewId} onChange={handleInputChange} fullWidth />
-        <TextField label="tableRowId" name="tableRowId" value={botItem.tableRowId} onChange={handleInputChange} fullWidth />
+        {botItem.type === 'list' && (
+          <TextField
+            label="Таблица"
+            name="tableId"
+            value={botItem.tableId}
+            onChange={handleInputChange}
+            fullWidth
+            select
+          >
+            {botItems.data?.getTables.map((table) => (
+              <MenuItem key={table.id} value={table.id}>
+                {table.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+        {/* <TextField label="tableRowId" name="tableRowId"
+        value={botItem.tableRowId} onChange={handleInputChange} fullWidth /> */}
         <Button variant="contained" color="primary" type="submit">
           {id ? 'Сохранить' : 'Создать'}
         </Button>
@@ -234,21 +312,36 @@ function BotPage() {
               onChange={(e) => handleButtonChange(index, 'type', e.target.value)}
               fullWidth
               className="mb-2"
-            />
+              select
+            >
+              <MenuItem value="botItem">Переход</MenuItem>
+              <MenuItem value="trigger">Триггер</MenuItem>
+            </TextField>
+            {button.type === 'botItem' && (
+              <TextField
+                label="На страницу"
+                value={button.targetBotItemId}
+                onChange={(e) => handleButtonChange(index, 'targetBotItemId', e.target.value)}
+                fullWidth
+                className="mb-2"
+                select
+              >
+                {botItems.data?.getBotItems.map((item) => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+            {button.type === 'trigger' && (
             <TextField
-              label="targetBotItemId"
-              value={button.targetBotItemId}
-              onChange={(e) => handleButtonChange(index, 'targetBotItemId', e.target.value)}
+              label="Триггер"
+              value={button.triggerCode}
+              onChange={(e) => handleButtonChange(index, 'triggerCode', e.target.value)}
               fullWidth
               className="mb-2"
             />
-            <TextField
-              label="targetTriggerId"
-              value={button.targetTriggerId}
-              onChange={(e) => handleButtonChange(index, 'targetTriggerId', e.target.value)}
-              fullWidth
-              className="mb-2"
-            />
+            )}
             <Button variant="outlined" color="error" onClick={() => handleDeleteButton(index)}>
               Удалить кнопку
             </Button>
