@@ -36,21 +36,13 @@ function BotsPage() {
         accessorKey: 'name',
         header: 'Логин бота',
         size: 150,
+        Cell: ({ row }: { row: any }) => (<Link href={`bots/${row.original.id}`} className="cursor-pointer">{row.original.name}</Link>),
       },
       {
         accessorKey: 'title',
         header: 'Имя бота',
         size: 150,
-      },
-      {
-        accessorKey: 'url',
-        header: 'URL',
-        size: 200,
-      },
-      {
-        accessorKey: 'platformID',
-        header: 'Platform ID',
-        size: 150,
+        Cell: ({ row }: { row: any }) => (<Link href={`bots/${row.original.id}`} className="cursor-pointer">{row.original.title}</Link>),
       },
     ],
     [router],
@@ -64,7 +56,7 @@ function BotsPage() {
     return (<div>
       Error:
       {error.message}
-    </div>);
+            </div>);
   }
 
   if (!data || !data.getBots) {

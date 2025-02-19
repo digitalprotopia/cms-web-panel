@@ -10,6 +10,8 @@ import {
   MenuItem,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
+import { Editor } from '@monaco-editor/react';
+import Link from 'next/link';
 
 const GET_BOT_ITEM = gql`
   query GetBotItem($id: ID!) {
@@ -44,6 +46,10 @@ const GET_BOT_ITEM = gql`
 
 const GET_BOT_ITEMS = gql`
   query GetBotItems($botId: ID!) {
+    getBot(id: $botId) {
+      id
+      title
+    }
     getBotItems(id: $botId) {
       id
       title
@@ -159,7 +165,7 @@ function BotPage() {
   }, [data]);
 
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error loading bot item.</p>;
+  // if (error) return <p>Error loading bot item.</p>;
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -176,24 +182,40 @@ function BotPage() {
 
       if (!id) {
         const res = await createBotItem({ variables: {
-          input: { ...botItem, tableId: undefined },
+          input: {
+            title: botItem.title,
+            content: botItem.content,
+            filterScript: botItem.filterScript,
+            type: botItem.type,
+          },
           tableId: botItem.tableId,
         } });
         newPageId = res.data.createBotItem.id;
         router.push(`/admin/bots/${botId}/pages/${newPageId}`);
       } else {
         await editBotItem({ variables: { id,
-          input: { ...botItem, tableId: undefined },
+          input: {
+            title: botItem.title,
+            content: botItem.content,
+            filterScript: botItem.filterScript,
+            type: botItem.type,
+          },
           tableId: botItem.tableId } });
       }
 
       // eslint-disable-next-line no-restricted-syntax
       for (const button of buttons) {
         if (!button.id) {
+          console.log(button);
           // eslint-disable-next-line no-await-in-loop
           await createBotButton({
             variables: {
-              input: { ...button, triggerCode: undefined, botItemId: newPageId },
+              input: {
+                title: button.title,
+                type: button.type,
+                targetBotItemId: button.targetBotItemId,
+                botItemId: newPageId,
+              },
               triggerCode: button.triggerCode,
             },
           });
@@ -202,7 +224,11 @@ function BotPage() {
           await editBotButton({
             variables: {
               id: button.id,
-              input: { ...button, id: undefined, triggerCode: undefined },
+              input: {
+                title: button.title,
+                type: button.type,
+                targetBotItemId: button.targetBotItemId,
+              },
               triggerCode: button.triggerCode,
             },
           });
@@ -226,8 +252,8 @@ function BotPage() {
     setButtons([...buttons, { title: null, type: null, targetBotItemId: null, triggerCode: '' }]);
   };
 
-  const handleDeleteButton = async (index) => {
-    const button = buttons[index];
+  const handleDeleteButton = async (id) => {
+    const button = buttons.find((b) => b.id === id);
     if (button.id) {
       try {
         await deleteBotButton({ variables: { id: button.id } });
@@ -240,7 +266,7 @@ function BotPage() {
     } else {
       enqueueSnackbar('Кнопка удалена', { variant: 'success' });
     }
-    const newButtons = buttons.filter((_, i) => i !== index);
+    const newButtons = buttons.filter((b) => b.id !== id);
     setButtons(newButtons);
   };
 
@@ -250,6 +276,8 @@ function BotPage() {
         {id ? 'Редактировать' : 'Создать'}
         {' '}
         страницу бота
+        {' '}
+        <Link href={`/admin/bots/${botId}`}>{botItems.data?.getBot.title}</Link>
       </Typography>
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormControlLabel
@@ -334,15 +362,14 @@ function BotPage() {
               </TextField>
             )}
             {button.type === 'trigger' && (
-            <TextField
-              label="Триггер"
-              value={button.triggerCode}
-              onChange={(e) => handleButtonChange(index, 'triggerCode', e.target.value)}
-              fullWidth
-              className="mb-2"
-            />
+              <Editor
+                height={200}
+                defaultLanguage="javascript"
+                value={button.triggerCode}
+                onChange={(value) => handleButtonChange(index, 'triggerCode', value!)}
+              />
             )}
-            <Button variant="outlined" color="error" onClick={() => handleDeleteButton(index)}>
+            <Button variant="outlined" color="error" onClick={() => handleDeleteButton(button.id)}>
               Удалить кнопку
             </Button>
           </div>
