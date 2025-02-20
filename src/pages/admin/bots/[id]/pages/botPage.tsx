@@ -191,6 +191,7 @@ function BotPage() {
             filterScript: botItem.filterScript,
             type: botItem.type,
             isStart: botItem.isStart,
+            botId,
           },
           tableId: botItem.tableId,
         } });
