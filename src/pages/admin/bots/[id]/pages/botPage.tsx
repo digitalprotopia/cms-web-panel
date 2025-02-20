@@ -12,6 +12,9 @@ import {
 import { useSnackbar } from 'notistack';
 import { Editor } from '@monaco-editor/react';
 import Link from 'next/link';
+import { BotButtonType, IBotButton } from '@/components/entities/IBotButton';
+import { BotItemType, IBotItem } from '@/components/entities/IBotItem';
+import { ITable } from '@/components/entities/ITable';
 
 const GET_BOT_ITEM = gql`
   query GetBotItem($id: ID!) {
@@ -127,18 +130,18 @@ function BotPage() {
   const [editBotButton] = useMutation(EDIT_BOT_BUTTON);
   const [deleteBotButton] = useMutation(DELETE_BOT_BUTTON);
 
-  const [botItem, setBotItem] = useState({
+  const [botItem, setBotItem] = useState<Partial<IBotItem & { tableId: string }>>({
     isStart: false,
-    title: null,
-    content: null,
-    filterScript: null,
-    type: null,
-    tableId: null,
-    tableRowId: null,
-    botId: botId || null,
+    title: '',
+    content: '',
+    filterScript: undefined,
+    type: BotItemType.Static,
+    tableId: undefined,
+    tableRowId: undefined,
+    botId: botId as string,
   });
 
-  const [buttons, setButtons] = useState([]);
+  const [buttons, setButtons] = useState<Partial<IBotButton & { triggerCode: string }>[]>([]);
 
   useEffect(() => {
     if (data && data.getBotItem) {
@@ -153,12 +156,12 @@ function BotPage() {
         tableRowId: fetched.tableRowId || null,
         botId: fetched.botId || null,
       });
-      setButtons(fetched.buttons?.map((button) => ({
+      setButtons(fetched.buttons?.map((button: IBotButton) => ({
         id: button.id,
         title: button.title,
         type: button.type,
         targetBotItemId: button.targetBotItemId,
-        triggerCode: button.targetTrigger?.serverScript?.code || '',
+        triggerCode: (button as any).targetTrigger?.serverScript?.code || '',
       })
          || []));
     }
@@ -249,14 +252,14 @@ function BotPage() {
   };
 
   const handleAddNewButton = () => {
-    setButtons([...buttons, { title: null, type: null, targetBotItemId: null, triggerCode: '' }]);
+    setButtons([...buttons, { title: '', type: BotButtonType.BotItem, targetBotItemId: undefined, triggerCode: '' }]);
   };
 
-  const handleDeleteButton = async (id) => {
-    const button = buttons.find((b) => b.id === id);
-    if (button.id) {
+  const handleDeleteButton = async (_id: string) => {
+    const button = buttons.find((b) => b.id === _id);
+    if (button!.id) {
       try {
-        await deleteBotButton({ variables: { id: button.id } });
+        await deleteBotButton({ variables: { id: button!.id } });
         enqueueSnackbar('Кнопка успешно удалена', { variant: 'success' });
       } catch (err) {
         console.error(err);
@@ -266,7 +269,7 @@ function BotPage() {
     } else {
       enqueueSnackbar('Кнопка удалена', { variant: 'success' });
     }
-    const newButtons = buttons.filter((b) => b.id !== id);
+    const newButtons = buttons.filter((b) => b.id !== _id);
     setButtons(newButtons);
   };
 
@@ -307,7 +310,7 @@ function BotPage() {
             fullWidth
             select
           >
-            {botItems.data?.getTables.map((table) => (
+            {botItems.data?.getTables.map((table: ITable) => (
               <MenuItem key={table.id} value={table.id}>
                 {table.name}
               </MenuItem>
@@ -354,7 +357,7 @@ function BotPage() {
                 className="mb-2"
                 select
               >
-                {botItems.data?.getBotItems.map((item) => (
+                {botItems.data?.getBotItems.map((item: IBotItem) => (
                   <MenuItem key={item.id} value={item.id}>
                     {item.title}
                   </MenuItem>
@@ -369,7 +372,7 @@ function BotPage() {
                 onChange={(value) => handleButtonChange(index, 'triggerCode', value!)}
               />
             )}
-            <Button variant="outlined" color="error" onClick={() => handleDeleteButton(button.id)}>
+            <Button variant="outlined" color="error" onClick={() => handleDeleteButton(button.id!)}>
               Удалить кнопку
             </Button>
           </div>
