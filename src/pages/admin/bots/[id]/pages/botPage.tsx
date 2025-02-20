@@ -324,9 +324,6 @@ function BotPage() {
         )}
         {/* <TextField label="tableRowId" name="tableRowId"
         value={botItem.tableRowId} onChange={handleInputChange} fullWidth /> */}
-        <Button variant="contained" color="primary" type="submit">
-          {id ? 'Сохранить' : 'Создать'}
-        </Button>
       </form>
 
       <div className="mt-8">
@@ -386,6 +383,11 @@ function BotPage() {
           Добавить кнопку
         </Button>
       </div>
+      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <Button variant="contained" color="primary" type="submit">
+          {id ? 'Сохранить' : 'Создать'}
+        </Button>
+      </form>
     </div>
   );
 }
