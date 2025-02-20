@@ -115,7 +115,7 @@ function BotPage() {
   const { pageId: id, id: botId } = router.query;
   const { enqueueSnackbar } = useSnackbar();
 
-  const { data, loading, error } = useQuery(GET_BOT_ITEM, {
+  const { data, loading, refetch } = useQuery(GET_BOT_ITEM, {
     variables: { id },
     skip: !id,
   });
@@ -194,7 +194,6 @@ function BotPage() {
           tableId: botItem.tableId,
         } });
         newPageId = res.data.createBotItem.id;
-        router.push(`/admin/bots/${botId}/pages/${newPageId}`);
       } else {
         await editBotItem({ variables: { id,
           input: {
@@ -236,6 +235,12 @@ function BotPage() {
             },
           });
         }
+      }
+
+      refetch();
+
+      if (!id) {
+        router.push(`/admin/bots/${botId}/pages/${newPageId}`);
       }
 
       enqueueSnackbar(`Страница ${id ? 'изменена' : 'создана'}`, { variant: 'success' });
