@@ -2,55 +2,71 @@ import {
   gql, useQuery,
 } from '@apollo/client';
 import { useRouter } from 'next/router';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { MaterialReactTable } from 'material-react-table';
-import TableEditor from '@/components/table-editor';
+import Link from 'next/link';
 
 function BotsPage() {
   const router = useRouter();
-  const { loading, data, refetch } = useQuery(gql`
-    query {
-      getBots {
-        name
-        title
-      }
-    }
-  `);
+  const { loading, error, data } = useQuery(gql`
+       query {
+        getBots {
+           id
+           name
+           title
+           favicon
+           url
+           apiKey
+           platformID
+           idInPlatform
+           clientId
+        }
+       }
+   `);
 
   const columns = useMemo(
     () => [
       {
+        accessorKey: 'id',
+        header: 'ID бота',
+        size: 150,
+        Cell: ({ row }: { row: any }) => (<Link href={`bots/${row.original.id}`} className="cursor-pointer">{row.original.id}</Link>),
+      },
+      {
         accessorKey: 'name',
         header: 'Логин бота',
         size: 150,
+        Cell: ({ row }: { row: any }) => (<Link href={`bots/${row.original.id}`} className="cursor-pointer">{row.original.name}</Link>),
       },
       {
         accessorKey: 'title',
         header: 'Имя бота',
         size: 150,
+        Cell: ({ row }: { row: any }) => (<Link href={`bots/${row.original.id}`} className="cursor-pointer">{row.original.title}</Link>),
       },
     ],
     [router],
   );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  return (
-    <div className="rounded p-4 shadow-lg bg-white">
-      <TableEditor
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          refetch();
-          setIsModalOpen(false);
-        }}
-        mode="create"
-      />
+  if (error) {
+    return (
+      <div>
+        Error:
+        {error.message}
+      </div>
+    );
+  }
 
+  if (!data || !data.getBots) {
+    return <div>No data available</div>;
+  }
+
+  return (
+    <div className="relative rounded p-4 shadow-lg bg-white">
       <MaterialReactTable
         columns={columns}
         data={data.getBots}
@@ -71,6 +87,14 @@ function BotsPage() {
           </div>
         )}
       />
+
+      <button
+        type="button"
+        className="fixed bottom-4 right-4 bg-green-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+        onClick={() => router.push('/admin/bots/add-bot')}
+      >
+        Создать бот
+      </button>
     </div>
   );
 }
