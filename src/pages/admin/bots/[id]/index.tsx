@@ -24,7 +24,10 @@ const GET_BOT = gql`
       apiKey
       platformID
       idInPlatform
-      clientId
+      client {
+        id
+        secret
+      }
     }
   }
 `;
@@ -50,7 +53,6 @@ const EDIT_BOT = gql`
       apiKey
       platformID
       idInPlatform
-      clientId
     }
   }
 `;
@@ -86,9 +88,9 @@ function EditBotPage() {
     favicon: null,
     url: null,
     apiKey: null,
-    platformID: null,
-    idInPlatform: null,
-    clientId: null,
+    // platformID: null,
+    // idInPlatform: null,
+    // clientId: null,
   });
 
   useEffect(() => {
@@ -99,9 +101,9 @@ function EditBotPage() {
         favicon: data.getBot.favicon || null,
         url: data.getBot.url || null,
         apiKey: data.getBot.apiKey || null,
-        platformID: data.getBot.platformID || null,
-        idInPlatform: data.getBot.idInPlatform || null,
-        clientId: data.getBot.clientId || null,
+        // platformID: data.getBot.platformID || null,
+        // idInPlatform: data.getBot.idInPlatform || null,
+        // clientId: data.getBot.clientId || null,
       });
     }
   }, [data]);
@@ -186,7 +188,7 @@ function EditBotPage() {
           onChange={handleInputChange}
           fullWidth
         />
-        <TextField
+        {/* <TextField
           label="Platform ID"
           name="platformID"
           value={bot.platformID}
@@ -199,13 +201,27 @@ function EditBotPage() {
           value={bot.idInPlatform}
           onChange={handleInputChange}
           fullWidth
+        /> */}
+        <TextField
+          label="Bot ID"
+          name="botId"
+          value={data.getBot.id}
+          fullWidth
+          disabled
         />
         <TextField
           label="Client ID"
           name="clientId"
-          value={bot.clientId}
-          onChange={handleInputChange}
+          value={data.getBot.client.id}
           fullWidth
+          disabled
+        />
+        <TextField
+          label="Client Secret"
+          name="clientSecret"
+          value={data.getBot.client.secret}
+          fullWidth
+          disabled
         />
         <Button variant="contained" color="primary" type="submit">
           Сохранить

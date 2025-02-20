@@ -27,9 +27,9 @@ function AddBotPage() {
     favicon: '',
     url: '',
     apiKey: '',
-    platformID: '',
-    idInPlatform: '',
-    clientId: '',
+    // platformID: '',
+    // idInPlatform: '',
+    // clientId: '',
   });
 
   const [createBot, { loading, error }] = useMutation(CREATE_BOT_MUTATION);
@@ -100,7 +100,7 @@ function AddBotPage() {
           value={formData.apiKey}
           onChange={handleChange}
         />
-        <TextField
+        {/* <TextField
           fullWidth
           margin="normal"
           label="ID платформы"
@@ -123,7 +123,7 @@ function AddBotPage() {
           name="clientId"
           value={formData.clientId}
           onChange={handleChange}
-        />
+        /> */}
         <Box className="mt-2 flex justify-between">
           <Button
             variant="contained"
