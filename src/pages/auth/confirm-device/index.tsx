@@ -2,7 +2,7 @@ import UserContext from '@/components/UserContext';
 import { gql, useMutation } from '@apollo/client';
 import { Button } from '@mui/material';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { useContext, useEffect, useState } from 'react';
 
@@ -34,7 +34,7 @@ const CONFIRM_DEVICE = gql`
 `;
 function ConfirmDevice() {
   const { enqueueSnackbar } = useSnackbar();
-  const router = useRouter();
+  // const router = useRouter();
   const [confirmDevice] = useMutation(CONFIRM_DEVICE);
   const [code, setCode] = useState<string | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
