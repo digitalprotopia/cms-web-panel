@@ -37,6 +37,7 @@ function ConfirmDevice() {
   const router = useRouter();
   const [confirmDevice] = useMutation(CONFIRM_DEVICE);
   const [code, setCode] = useState<string | null>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   useEffect(() => {
     const urlCode = new URLSearchParams(window.location.search).get('code');
@@ -58,8 +59,9 @@ function ConfirmDevice() {
       });
 
       if (data.confirmDevice) {
-        enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
-        router.push('/');
+        // enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
+        // router.push('/');
+        setIsConfirmed(true);
       } else {
         enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
       }
@@ -78,6 +80,18 @@ function ConfirmDevice() {
             Войдите, чтобы привязать аккаунт
           </Button>
         </Link>
+      </div>
+    );
+  }
+  if (isConfirmed) {
+    return (
+      <div style={styles.container}>
+        <h1>
+          Устройство успешно подтверждено
+          <br />
+          <br />
+          Зайдите в телеграмме в бота и введите повторно в боте команду /start
+        </h1>
       </div>
     );
   }
