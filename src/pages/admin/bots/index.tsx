@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 function BotsPage() {
   const router = useRouter();
-  const { loading, error, data, refetch } = useQuery(gql`
+  const { loading, error, data } = useQuery(gql`
        query {
         getBots {
            id

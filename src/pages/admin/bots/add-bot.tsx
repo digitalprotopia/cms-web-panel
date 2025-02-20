@@ -39,7 +39,7 @@ function AddBotPage() {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     const input = Object.fromEntries(
       Object.entries(formData).filter(([, value]) => value !== ''),

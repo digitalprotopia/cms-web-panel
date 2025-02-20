@@ -162,15 +162,15 @@ function BotPage() {
         type: button.type,
         targetBotItemId: button.targetBotItemId,
         triggerCode: (button as any).targetTrigger?.serverScript?.code || '',
-      })
-         || []));
+      }))
+      || []);
     }
   }, [data]);
 
   if (loading) return <p>Loading...</p>;
   // if (error) return <p>Error loading bot item.</p>;
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: any) => {
     const { name, value, type, checked } = e.target;
     setBotItem((prev) => ({
       ...prev,
@@ -178,7 +178,7 @@ function BotPage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
       let newPageId = id;
