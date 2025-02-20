@@ -1,7 +1,10 @@
+import UserContext from '@/components/UserContext';
 import { gql, useMutation } from '@apollo/client';
+import { Button } from '@mui/material';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 const styles = {
   container: {
@@ -43,6 +46,7 @@ function ConfirmDevice() {
       enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' });
     }
   }, []);
+  const user = useContext(UserContext);
   const handleConfirm = async () => {
     if (!code) {
       enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' });
@@ -65,6 +69,17 @@ function ConfirmDevice() {
   };
   if (!global.window) {
     return null;
+  }
+  if (!user.user?.id) {
+    return (
+      <div style={styles.container}>
+        <Link href="/auth/login">
+          <Button variant="contained">
+            Войдите, чтобы привязать аккаунт
+          </Button>
+        </Link>
+      </div>
+    );
   }
   return (
     <div style={styles.container}>
