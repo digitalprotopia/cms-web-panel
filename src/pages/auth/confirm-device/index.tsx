@@ -1,10 +1,10 @@
-import UserContext from '@/components/UserContext';
-import { gql, useMutation } from '@apollo/client';
-import { Button } from '@mui/material';
-import Link from 'next/link';
-// import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
-import { useContext, useEffect, useState } from 'react';
+import UserContext from '@/components/UserContext'
+import { gql, useMutation } from '@apollo/client'
+import { Button } from '@mui/material'
+import Link from 'next/link'
+// import { useRouter } from 'next/router'
+import { useSnackbar } from 'notistack'
+import { useContext, useEffect, useState } from 'react'
 
 const styles = {
   container: {
@@ -33,25 +33,27 @@ const CONFIRM_DEVICE = gql`
     }
 `;
 function ConfirmDevice() {
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar()
   // const router = useRouter();
-  const [confirmDevice] = useMutation(CONFIRM_DEVICE);
-  const [code, setCode] = useState<string | null>(null);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [confirmDevice] = useMutation(CONFIRM_DEVICE)
+  const [code, setCode] = useState<string | null>(null)
+  const [isConfirmed, setIsConfirmed] = useState(false)
 
   useEffect(() => {
-    const urlCode = new URLSearchParams(window.location.search).get('code');
-    if (urlCode) {
-      setCode(urlCode);
+    const urlCode = new URLSearchParams(window.location.search).get('code')
+    if (urlCode) {  
+      const [confirmationCode, botId] = urlCode.split('|')
+      setCode(confirmationCode)
+      // setBotId(botId)
     } else {
-      enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' });
+      enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' })
     }
-  }, []);
-  const user = useContext(UserContext);
+  }, [])
+  const user = useContext(UserContext)
   const handleConfirm = async () => {
     if (!code) {
-      enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' });
-      return;
+      enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' })
+      return
     }
     try {
       const { data } = await confirmDevice({
@@ -59,18 +61,18 @@ function ConfirmDevice() {
       });
 
       if (data.confirmDevice) {
-        // enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
-        // router.push('/');
-        setIsConfirmed(true);
+        // enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' })
+        // router.push('/')
+        setIsConfirmed(true)
       } else {
-        enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
+        enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' })
       }
     } catch (error) {
-      enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
+      enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' })
     }
-  };
+  }
   if (!global.window) {
-    return null;
+    return null
   }
   if (!user.user?.id) {
     return (
@@ -81,7 +83,7 @@ function ConfirmDevice() {
           </Button>
         </Link>
       </div>
-    );
+    )
   }
   if (isConfirmed) {
     return (
@@ -93,13 +95,13 @@ function ConfirmDevice() {
           Зайдите в телеграмме в бота и введите повторно в боте команду /start
         </h1>
       </div>
-    );
+    )
   }
   return (
     <div style={styles.container}>
       <button onClick={handleConfirm} style={styles.button} type="button">Подтвердить</button>
     </div>
-  );
+  )
 }
 
-export default ConfirmDevice;
+export default ConfirmDevice
