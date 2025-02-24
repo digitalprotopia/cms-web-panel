@@ -25,39 +25,50 @@ const styles = {
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'background-color 0.3s',
   },
-};
+}
 
 const CONFIRM_DEVICE = gql`
-    mutation ($code: ID!) {
-        confirmDevice(code: $code)
-    }
-`;
+  mutation ($code: ID!, $botId: ID!) {
+      confirmDevice(code: $code, botId: $botId)
+  }
+`
+// const SEND_MESSAGE_TO_USER = sql `
+//   mutation ($botID!, $botId: String) {
+//     sendConfirmMessage(botId: $botId)
+//   }
+// `
+
 function ConfirmDevice() {
   const { enqueueSnackbar } = useSnackbar()
   // const router = useRouter();
   const [confirmDevice] = useMutation(CONFIRM_DEVICE)
   const [code, setCode] = useState<string | null>(null)
+  const [botId, setBotId] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState(false)
 
   useEffect(() => {
     const urlCode = new URLSearchParams(window.location.search).get('code')
+    console.log('URL_CODE------------------->',urlCode)
     if (urlCode) {  
       const [confirmationCode, botId] = urlCode.split('|')
       setCode(confirmationCode)
-      // setBotId(botId)
+      setBotId(botId)
+      console.log('BOT_ID!!!!!!!!!!' ,botId)
+      console.log('code_ID!!!!!!!!!!' ,confirmationCode)
+      
     } else {
       enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' })
     }
   }, [])
   const user = useContext(UserContext)
   const handleConfirm = async () => {
-    if (!code) {
+    if (!code || !botId) {
       enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' })
       return
     }
     try {
       const { data } = await confirmDevice({
-        variables: { code },
+        variables: { code, botId },
       });
 
       if (data.confirmDevice) {
