@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react';
 import { MaterialReactTable } from 'material-react-table';
 import { TextInput } from '@mantine/core';
 import { IFile } from '../entities/IFile';
+// eslint-disable-next-line import/no-cycle
 import { toBase64 } from '../form';
 
 function FileDialog(props: {

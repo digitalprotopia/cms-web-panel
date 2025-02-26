@@ -65,6 +65,7 @@ import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templat
 import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/templates/content';
 // eslint-disable-next-line import/no-cycle
 import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blocks/postBlock';
+// eslint-disable-next-line import/no-cycle
 import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blocks/imageBlock';
 
 export const ClassStyle = createReactStyleSpec(
