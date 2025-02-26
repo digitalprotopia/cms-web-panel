@@ -63,7 +63,9 @@ import { BlockEditorCssView, insertBlockEditorCssView } from './blocks/templates
 import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templates/head';
 // eslint-disable-next-line import/no-cycle
 import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/templates/content';
+// eslint-disable-next-line import/no-cycle
 import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blocks/postBlock';
+import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blocks/imageBlock';
 
 export const ClassStyle = createReactStyleSpec(
   {
@@ -592,6 +594,7 @@ const schema = BlockNoteSchema.create({
     'head-view': BlockEditorHeadView,
     'content-view': BlockEditorContentView,
     post: BlockEditorPostBlock,
+    'cms-image': BlockEditorImageBlock,
   },
   styleSpecs: {
     ...defaultStyleSpecs,
@@ -759,6 +762,7 @@ function BlockEditor({
                 [
                   insertBlockEditorHtmlView(editor as any),
                   insertBlockEditorPostBlock(editor as any),
+                  insertBlockEditorImageBlock(editor as any),
                   ...(type === 'template' ? templateInserts : []),
                   ...combineByGroup(
                     getDefaultReactSlashMenuItems(editor),
