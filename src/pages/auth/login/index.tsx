@@ -45,7 +45,15 @@ export function Login() {
         enqueueSnackbar('Вы вошли', { variant: 'success' });
         localStorage.setItem('token', data.signIn);
         await user.refetch();
-        router.push('/admin');
+
+        const storedCode = localStorage.getItem('code');
+        const storedBotId = localStorage.getItem('botId');
+
+        if (storedCode && storedBotId) {
+         router.push(`/auth/confirm-device?code=${storedCode}&botId=${storedBotId}`);
+        } else {
+         router.push('/admin');
+        }
       }
     } catch (error) {
       enqueueSnackbar((error as Error).message, { variant: 'error' });

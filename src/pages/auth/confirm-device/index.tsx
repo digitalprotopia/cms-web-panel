@@ -28,40 +28,53 @@ const styles = {
 }
 
 const CONFIRM_DEVICE = gql`
-  mutation ($code: ID!, $botId: ID!) {
-      confirmDevice(code: $code, botId: $botId)
+  mutation ($code: ID!) {
+      confirmDevice(code: $code)
   }
 `
-// const SEND_MESSAGE_TO_USER = sql `
-//   mutation ($botID!, $botId: String) {
-//     sendConfirmMessage(botId: $botId)
-//   }
-// `
+const SEND_MESSAGE_TO_USER = gql `
+  mutation ($botId: ID!) {
+    sendConfirmMessage(botId: $botId)
+  }
+`
 
 function ConfirmDevice() {
   const { enqueueSnackbar } = useSnackbar()
   // const router = useRouter();
   const [confirmDevice] = useMutation(CONFIRM_DEVICE)
+  const [sendConfirmMessage] = useMutation(SEND_MESSAGE_TO_USER)
   const [code, setCode] = useState<string | null>(null)
   const [botId, setBotId] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState(false)
 
-  useEffect(() => {
-    const urlCode = new URLSearchParams(window.location.search).get('code')
-    console.log('URL_CODE------------------->',urlCode)
-    if (urlCode) {  
-      const [confirmationCode, botId] = urlCode.split('|')
-      setCode(confirmationCode)
-      setBotId(botId)
-      console.log('BOT_ID!!!!!!!!!!' ,botId)
-      console.log('code_ID!!!!!!!!!!' ,confirmationCode)
-      
-    } else {
-      enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' })
-    }
-  }, [])
   const user = useContext(UserContext)
-  const handleConfirm = async () => {
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const codeFromUrl = urlParams.get('code')
+    const botIdFromUrl = urlParams.get('botId')
+    if (codeFromUrl && botIdFromUrl) {
+      setCode(codeFromUrl)
+      setBotId(botIdFromUrl)
+      localStorage.setItem('code', codeFromUrl)
+      localStorage.setItem('botId', botIdFromUrl)
+     } else {
+      enqueueSnackbar('Неверные параметры подтверждения устройства', { variant: 'error' });
+     }
+ }, [])
+
+ useEffect(() => {
+  if (user.user?.id && !isConfirmed) {
+   const storedCode = localStorage.getItem('code');
+   const storedBotId = localStorage.getItem('botId');
+
+   if (storedCode && storedBotId) {
+      handleConfirm(storedCode, storedBotId)
+   }
+  }
+}, [user.user?.id])
+
+  const handleConfirm = async (code: string, botId: string) => {
     if (!code || !botId) {
       enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' })
       return
@@ -69,12 +82,17 @@ function ConfirmDevice() {
     try {
       const { data } = await confirmDevice({
         variables: { code, botId },
-      });
+      })
 
       if (data.confirmDevice) {
         // enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' })
         // router.push('/')
         setIsConfirmed(true)
+        await sendConfirmMessage({
+          variables: { botId },
+        })
+        localStorage.removeItem('code')
+        localStorage.removeItem('botId')
       } else {
         enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' })
       }
@@ -110,7 +128,7 @@ function ConfirmDevice() {
   }
   return (
     <div style={styles.container}>
-      <button onClick={handleConfirm} style={styles.button} type="button">Подтвердить</button>
+      <button onClick={() => handleConfirm(code!, botId!)} style={styles.button} type="button">Подтвердить</button>
     </div>
   )
 }
