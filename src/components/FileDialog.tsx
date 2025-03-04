@@ -1,12 +1,39 @@
 import React, { useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
-import { gql, useQuery } from '@apollo/client';
+import { Button, Dialog, DialogContent, Snackbar } from '@mui/material';
+import { gql, useQuery, useMutation } from '@apollo/client';
+import { MaterialReactTable } from 'material-react-table';
+import { toBase64 } from './form';
 
 const GET_FILES = gql`
     query GetFiles {
-        files {
+        getFiles {
             id
             name
+            size
+            extension
+            createdAt
+            updatedAt
+        }
+    }
+`;
+
+const GET_FILE = gql`
+    query GetFile($id: ID!) {
+        getFile(id: $id) {
+            id
+            name
+            size
+            extension
+            createdAt
+            updatedAt
+        }
+    }
+`;
+
+const CREATE_FILE = gql`
+    mutation CreateFile($input: FileInput!) {
+        createFile(input: $input) {
+            id
         }
     }
 `;
@@ -18,49 +45,114 @@ interface FileDialogProps {
 
 const FileDialog: React.FC<FileDialogProps> = ({ fileId, onChange }) => {
     const [open, setOpen] = useState(false);
-    const { data, loading, error } = useQuery(GET_FILES);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-    const handleOpen = () => {
-        setOpen(true);
-    };
+    const { data: filesData, loading, refetch } = useQuery(GET_FILES, { skip: !open });
 
-    const handleClose = () => {
-        setOpen(false);
-    };
+    const { data: fileData } = useQuery(GET_FILE, {
+        variables: { id: fileId },
+        skip: !fileId,
+    });
+
+    const [createFile] = useMutation(CREATE_FILE);
+    const [file, setFile] = useState<{ name: string; content: string } | null>(null);
+
+    const columns = [
+        { accessorKey: 'name', header: 'Имя', size: 150 },
+        { accessorKey: 'size', header: 'Размер', size: 150 },
+        {
+            accessorKey: 'actions',
+            header: 'Действия',
+            size: 300,
+            Cell: ({ row }: { row: any }) => (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp'].includes(row.original.extension) && (
+                        <img
+                            src={`${window.config.server}/download/?id=${row.original.id}`}
+                            alt={row.original.name}
+                            style={{ width: 50, height: 50, marginRight: 10 }}
+                        />
+                    )}
+                    <Button onClick={() => handleSelectFile(row.original.id)}>
+                        Выбрать
+                    </Button>
+                </div>
+            ),
+        },
+    ];
 
     const handleSelectFile = (id: string) => {
         onChange(id);
-        handleClose();
+        setOpen(false);
+    };
+
+    const handleFileUpload = async () => {
+        if (file) {
+            await createFile({
+                variables: {
+                    input: {
+                        file: file.content,
+                        name: file.name,
+                    },
+                },
+            });
+            refetch();
+            setSnackbarOpen(true);
+        }
     };
 
     return (
         <div>
-            <Button variant="outlined" onClick={handleOpen}>
+            {fileData && (
+                <div>
+                    <p>Выбранный файл: {fileData.getFile.name}</p>
+                </div>
+            )}
+            <Button variant="outlined" onClick={() => setOpen(true)}>
                 {fileId ? 'Изменить файл' : 'Выбрать файл'}
             </Button>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Выберите файл</DialogTitle>
+            <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
                 <DialogContent>
-                    {loading && <p>Загрузка...</p>}
-                    {error && <p>Ошибка загрузки файлов.</p>}
-                    {data && (
-                        <List>
-                            {data.files.map((file: { id: string; name: string }) => (
-                                <ListItem key={file.id}>
-                                    <ListItemButton onClick={() => handleSelectFile(file.id)}>
-                                        <ListItemText primary={file.name} />
-                                    </ListItemButton>
-                                </ListItem>
-                            ))}
-                        </List>
-                    )}
+                    <div>
+                        Добавить файл:
+                        <input
+                            type="file"
+                            onChange={async (e) => {
+                                if (e.target.files?.[0]) {
+                                    setFile({
+                                        name: e.target.files[0].name,
+                                        content: await toBase64(e.target.files[0]),
+                                    });
+                                }
+                            }}
+                        />
+                        <Button onClick={handleFileUpload}>
+                            Загрузить
+                        </Button>
+                    </div>
+                    <MaterialReactTable
+                        columns={columns}
+                        data={filesData?.getFiles || []}
+                        enableColumnResizing
+                        enableFullScreenToggle={false}
+                        enableDensityToggle
+                        enableColumnFilters
+                        enablePagination
+                        enableSorting
+                        muiTableProps={{
+                            sx: {
+                                tableLayout: 'fixed',
+                            },
+                        }}
+                    />
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} color="primary">
-                        Отмена
-                    </Button>
-                </DialogActions>
             </Dialog>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={() => setSnackbarOpen(false)}
+                message="Файл добавлен"
+            />
         </div>
     );
 };
