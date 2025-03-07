@@ -88,9 +88,13 @@ function Header() {
                       horizontal: 'right',
                     }}
                   >
-                    <MenuItem onClick={() => router.push('/admin')}>
-                      Админпанель
-                    </MenuItem>
+                    {user.user.role.name === 'admin' && (
+                      <MenuItem
+                        onClick={() => router.push('/admin')}
+                      >
+                        Админпанель
+                      </MenuItem>
+                    )}
                     <MenuItem onClick={handleLogout}>Выйти</MenuItem>
                   </Menu>
                 </div>
