@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { BotButtonType, IBotButton } from '@/components/entities/IBotButton';
 import { BotItemType, IBotItem } from '@/components/entities/IBotItem';
 import { ITable } from '@/components/entities/ITable';
-import FileDialog from '@/components/FileDialog'; 
+import FileDialog from '@/components/FileDialog';
 
 const GET_BOT_ITEM = gql`
   query GetBotItem($id: ID!) {
@@ -333,13 +333,10 @@ function BotPage() {
         )}
         {/* <TextField label="tableRowId" name="tableRowId"
         value={botItem.tableRowId} onChange={handleInputChange} fullWidth /> */}
-         <FileDialog
+        {botItem.type === BotItemType.Static && (<FileDialog
           fileId={botItem.fileId}
           onChange={(fileId) => setBotItem((prev) => ({ ...prev, fileId }))}
-        />
-        <Button variant="contained" color="primary" type="submit">
-          {id ? 'Сохранить' : 'Создать'}
-        </Button>
+        />)}
       </form>
 
       <div className="mt-8">
@@ -399,6 +396,11 @@ function BotPage() {
           Добавить кнопку
         </Button>
       </div>
+      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <Button variant="contained" color="primary" type="submit">
+          {id ? 'Сохранить' : 'Создать'}
+        </Button>
+      </form>
     </div>
   );
 }

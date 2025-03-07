@@ -16,5 +16,5 @@ export interface IBotItem extends IEntity {
   tableViewId: string
   tableRowId: string
   botId: string
-  fileId: string
+  fileId: string | null
 }
