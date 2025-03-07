@@ -8,9 +8,15 @@ import { useRouter } from 'next/router';
 import UserContext from '@/components/UserContext';
 
 const SIGN_IN = gql`
-  mutation SignIn($password: String!, $email: String!) {
+mutation SignIn($password: String!, $email: String!) {
     signIn(email: $email, password: $password)
-  }
+}
+`;
+
+const CONFIRM_DEVICE = gql`
+mutation ($code: ID! $botId: ID) {
+    confirmDevice(code: $code botId: $botId)
+}
 `;
 
 interface LoginFormData {
@@ -28,6 +34,7 @@ export function Login() {
   });
 
   const [signIn] = useMutation<{ signIn: string }>(SIGN_IN);
+  const [confirmDevice] = useMutation(CONFIRM_DEVICE);
 
   const user = useContext(UserContext);
 
@@ -45,6 +52,24 @@ export function Login() {
         enqueueSnackbar('Вы вошли', { variant: 'success' });
         localStorage.setItem('token', data.signIn);
         await user.refetch();
+
+        const storedCode = localStorage.getItem('code');
+        const storedBotId = localStorage.getItem('botId');
+        console.log('Stored Code:', storedCode);
+        console.log('Stored BotId:', storedBotId);
+
+        if (storedCode && storedBotId) {
+          const confirmResult = await confirmDevice({ variables: {
+            code: storedCode,
+            botId: storedBotId,
+          } });
+          if (confirmResult.data.confirmDevice) {
+            enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
+          } else {
+            enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
+          }
+        }
+
         router.push('/admin');
       }
     } catch (error) {

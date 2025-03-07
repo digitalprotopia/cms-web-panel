@@ -2,7 +2,7 @@ import UserContext from '@/components/UserContext';
 import { gql, useMutation } from '@apollo/client';
 import { Button } from '@mui/material';
 import Link from 'next/link';
-// import { useRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { useContext, useEffect, useState } from 'react';
 
@@ -28,40 +28,48 @@ const styles = {
 };
 
 const CONFIRM_DEVICE = gql`
-    mutation ($code: ID!) {
-        confirmDevice(code: $code)
-    }
+  mutation ($code: ID! $botId: ID) {
+      confirmDevice(code: $code botId: $botId)
+  }
 `;
+
 function ConfirmDevice() {
   const { enqueueSnackbar } = useSnackbar();
-  // const router = useRouter();
   const [confirmDevice] = useMutation(CONFIRM_DEVICE);
-  const [code, setCode] = useState<string | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
-  useEffect(() => {
-    const urlCode = new URLSearchParams(window.location.search).get('code');
-    if (urlCode) {
-      setCode(urlCode);
-    } else {
-      enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' });
-    }
-  }, []);
   const user = useContext(UserContext);
+  const router = useRouter();
+
+  useEffect(() => {
+    const { code, botId } = router.query;
+
+    if (code && botId) {
+      localStorage.setItem('code', code as string);
+      localStorage.setItem('botId', botId as string);
+      console.log('DATA FROM DEVICEconfirmPAGE---->', code, botId);
+    }
+  }, [router.query]);
+
   const handleConfirm = async () => {
-    if (!code) {
+    const storedCode = localStorage.getItem('code');
+    const storedBotId = localStorage.getItem('botId');
+
+    console.log('local storage from confirm page', storedCode);
+
+    if (!storedCode || !storedBotId) {
       enqueueSnackbar('Неверный код подтверждения устройства', { variant: 'error' });
       return;
     }
+
     try {
       const { data } = await confirmDevice({
-        variables: { code },
+        variables: { code: storedCode, botId: storedBotId },
       });
 
       if (data.confirmDevice) {
-        // enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
-        // router.push('/');
         setIsConfirmed(true);
+        enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
       } else {
         enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
       }
@@ -69,9 +77,7 @@ function ConfirmDevice() {
       enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
     }
   };
-  if (!global.window) {
-    return null;
-  }
+
   if (!user.user?.id) {
     return (
       <div style={styles.container}>
@@ -83,21 +89,24 @@ function ConfirmDevice() {
       </div>
     );
   }
+
   if (isConfirmed) {
     return (
       <div style={styles.container}>
         <h1>
           Устройство успешно подтверждено
-          <br />
-          <br />
+
           Зайдите в телеграмме в бота и введите повторно в боте команду /start
         </h1>
       </div>
     );
   }
+
   return (
     <div style={styles.container}>
-      <button onClick={handleConfirm} style={styles.button} type="button">Подтвердить</button>
+      <button onClick={handleConfirm} style={styles.button} type="button">
+        Подтвердить
+      </button>
     </div>
   );
 }
