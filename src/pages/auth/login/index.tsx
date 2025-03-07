@@ -70,7 +70,7 @@ export function Login() {
           }
         }
 
-        router.push('/admin');
+        router.push('/');
       }
     } catch (error) {
       enqueueSnackbar((error as Error).message, { variant: 'error' });

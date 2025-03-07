@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { BotButtonType, IBotButton } from '@/components/entities/IBotButton';
 import { BotItemType, IBotItem } from '@/components/entities/IBotItem';
 import { ITable } from '@/components/entities/ITable';
+import FileDialog from '@/components/FileDialog';
 
 const GET_BOT_ITEM = gql`
   query GetBotItem($id: ID!) {
@@ -31,6 +32,7 @@ const GET_BOT_ITEM = gql`
       }
       tableRowId
       botId
+      fileId
       buttons {
         id
         title
@@ -139,6 +141,7 @@ function BotPage() {
     tableId: undefined,
     tableRowId: undefined,
     botId: botId as string,
+    fileId: undefined,
   });
 
   const [buttons, setButtons] = useState<Partial<IBotButton & { triggerCode: string }>[]>([]);
@@ -155,6 +158,7 @@ function BotPage() {
         tableId: fetched.tableView?.tableId || null,
         tableRowId: fetched.tableRowId || null,
         botId: fetched.botId || null,
+        fileId: fetched.fileId || null,
       });
       setButtons(fetched.buttons?.map((button: IBotButton) => ({
         id: button.id,
@@ -192,6 +196,7 @@ function BotPage() {
             type: botItem.type,
             isStart: botItem.isStart,
             botId,
+            fileId: botItem.fileId,
           },
           tableId: botItem.tableId,
         } });
@@ -204,6 +209,7 @@ function BotPage() {
             filterScript: botItem.filterScript,
             type: botItem.type,
             isStart: botItem.isStart,
+            fileId: botItem.fileId,
           },
           tableId: botItem.tableId } });
       }
@@ -327,9 +333,10 @@ function BotPage() {
         )}
         {/* <TextField label="tableRowId" name="tableRowId"
         value={botItem.tableRowId} onChange={handleInputChange} fullWidth /> */}
-        <Button variant="contained" color="primary" type="submit">
-          {id ? 'Сохранить' : 'Создать'}
-        </Button>
+        {botItem.type === BotItemType.Static && (<FileDialog
+          fileId={botItem.fileId}
+          onChange={(fileId) => setBotItem((prev) => ({ ...prev, fileId }))}
+        />)}
       </form>
 
       <div className="mt-8">
@@ -389,6 +396,11 @@ function BotPage() {
           Добавить кнопку
         </Button>
       </div>
+      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <Button variant="contained" color="primary" type="submit">
+          {id ? 'Сохранить' : 'Создать'}
+        </Button>
+      </form>
     </div>
   );
 }
