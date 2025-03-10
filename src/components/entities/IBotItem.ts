@@ -4,6 +4,8 @@ export enum BotItemType {
   Static = 'static',
   List = 'list',
   Single = 'single',
+  FormAdd = 'formAdd',
+  FormSearch = 'formSearch',
 }
 
 export interface IBotItem extends IEntity {
@@ -16,5 +18,6 @@ export interface IBotItem extends IEntity {
   tableViewId: string
   tableRowId: string
   botId: string
-  fileId: string
+  fileId: string | null
+  formId: string | null
 }

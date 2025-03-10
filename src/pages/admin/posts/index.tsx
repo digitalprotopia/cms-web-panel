@@ -21,6 +21,7 @@ const GET_POSTS = gql`
     getPosts {
       id
       title
+      slug
       content
       blockContent
       preview
@@ -70,6 +71,7 @@ function PostCard({
     <Card>
       <CardHeader
         title={post.title}
+        subheader={post.slug}
         action={(
           <div>
             <Link href={`/admin/posts/${post.id}`}>
