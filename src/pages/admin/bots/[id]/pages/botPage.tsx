@@ -16,6 +16,7 @@ import { BotButtonType, IBotButton } from '@/components/entities/IBotButton';
 import { BotItemType, IBotItem } from '@/components/entities/IBotItem';
 import { ITable } from '@/components/entities/ITable';
 import FileDialog from '@/components/FileDialog';
+import { IField } from '@/components/entities/IField';
 
 const GET_BOT_ITEM = gql`
   query GetBotItem($id: ID!) {
@@ -34,6 +35,8 @@ const GET_BOT_ITEM = gql`
       botId
       fileId
       formId
+      isCustomGraphql
+      customGraphql
       buttons {
         id
         title
@@ -63,6 +66,10 @@ const GET_BOT_ITEMS = gql`
     getTables {
       id
       name
+      fields {
+        id
+        dbName
+      }
     }
     getAllForms {
       id
@@ -147,6 +154,8 @@ function BotPage() {
     tableRowId: undefined,
     botId: botId as string,
     fileId: undefined,
+    customGraphql: '',
+    isCustomGraphql: false,
   });
 
   const [buttons, setButtons] = useState<Partial<IBotButton & { triggerCode: string }>[]>([]);
@@ -165,6 +174,8 @@ function BotPage() {
         botId: fetched.botId || null,
         fileId: fetched.fileId || null,
         formId: fetched.formId || null,
+        isCustomGraphql: fetched.isCustomGraphql || false,
+        customGraphql: fetched.customGraphql || '',
       });
       setButtons(fetched.buttons?.map((button: IBotButton) => ({
         id: button.id,
@@ -204,6 +215,8 @@ function BotPage() {
             botId,
             fileId: botItem.fileId,
             formId: botItem.formId,
+            isCustomGraphql: botItem.isCustomGraphql,
+            customGraphql: botItem.customGraphql,
           },
           tableId: botItem.tableId,
         } });
@@ -218,6 +231,8 @@ function BotPage() {
             isStart: botItem.isStart,
             fileId: botItem.fileId,
             formId: botItem.formId,
+            isCustomGraphql: botItem.isCustomGraphql,
+            customGraphql: botItem.customGraphql,
           },
           tableId: botItem.tableId } });
       }
@@ -317,6 +332,32 @@ function BotPage() {
         />
         <TextField label="Название" name="title" value={botItem.title} onChange={handleInputChange} fullWidth />
         <TextField label="Контент" name="content" value={botItem.content} onChange={handleInputChange} fullWidth multiline rows={4} />
+        {(botItem.type === BotItemType.List || botItem.type === BotItemType.FormSearch)
+        && !botItem.isCustomGraphql
+        && (
+        <div className="flex flex-wrap gap-2">
+          {botItems.data?.getTables
+            .find((table: ITable) => table.id === botItem.tableId)
+            ?.fields.map((field: IField) => (
+              <Button
+                key={field.id}
+                variant="contained"
+                color="primary"
+                onClick={() => setBotItem({
+                  ...botItem,
+                  content: `${botItem.content}{${field.dbName}}`,
+                })}
+              >
+                {`{${field.dbName}}`}
+              </Button>
+            ))}
+          {botItems.data?.getTables
+            .find((table: ITable) => table.id === botItem.tableId)
+            ?.fields.length === 0 && (
+            <span>В таблице нет полей</span>
+          )}
+        </div>
+        )}
         <TextField label="Фильтр-скрипт" name="filterScript" value={botItem.filterScript} onChange={handleInputChange} fullWidth />
         <TextField select label="Тип" name="type" value={botItem.type} onChange={handleInputChange} fullWidth>
           <MenuItem value="static">Текст</MenuItem>
@@ -326,20 +367,39 @@ function BotPage() {
           <MenuItem value="formSearch">Форма поиска</MenuItem>
         </TextField>
         {(botItem.type === 'list' || botItem.type === 'formSearch') && (
-          <TextField
-            label="Таблица"
-            name="tableId"
-            value={botItem.tableId}
-            onChange={handleInputChange}
-            fullWidth
-            select
-          >
-            {botItems.data?.getTables.map((table: ITable) => (
-              <MenuItem key={table.id} value={table.id}>
-                {table.name}
-              </MenuItem>
-            ))}
-          </TextField>
+          <>
+            <TextField
+              label="Таблица"
+              name="tableId"
+              value={botItem.tableId}
+              onChange={handleInputChange}
+              fullWidth
+              select
+            >
+              {botItems.data?.getTables.map((table: ITable) => (
+                <MenuItem key={table.id} value={table.id}>
+                  {table.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <FormControlLabel
+              control={
+              (<Checkbox
+                checked={botItem.isCustomGraphql}
+                onChange={handleInputChange}
+                name="isCustomGraphql"
+              />)
+            }
+              label="Пользовательский GraphQL"
+            />
+            {botItem.isCustomGraphql
+            && (<Editor
+              height={200}
+              defaultLanguage="graphql"
+              value={botItem.customGraphql}
+              onChange={(value) => setBotItem((prev) => ({ ...prev, customGraphql: value! }))}
+            />)}
+          </>
         )}
         {/* <TextField label="tableRowId" name="tableRowId"
         value={botItem.tableRowId} onChange={handleInputChange} fullWidth /> */}
