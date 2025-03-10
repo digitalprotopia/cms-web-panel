@@ -34,6 +34,8 @@ const GET_BOT_ITEM = gql`
       botId
       fileId
       formId
+      isCustomGraphql
+      customGraphql
       buttons {
         id
         title
@@ -147,6 +149,8 @@ function BotPage() {
     tableRowId: undefined,
     botId: botId as string,
     fileId: undefined,
+    customGraphql: '',
+    isCustomGraphql: false,
   });
 
   const [buttons, setButtons] = useState<Partial<IBotButton & { triggerCode: string }>[]>([]);
@@ -165,6 +169,8 @@ function BotPage() {
         botId: fetched.botId || null,
         fileId: fetched.fileId || null,
         formId: fetched.formId || null,
+        isCustomGraphql: fetched.isCustomGraphql || false,
+        customGraphql: fetched.customGraphql || '',
       });
       setButtons(fetched.buttons?.map((button: IBotButton) => ({
         id: button.id,
@@ -204,6 +210,8 @@ function BotPage() {
             botId,
             fileId: botItem.fileId,
             formId: botItem.formId,
+            isCustomGraphql: botItem.isCustomGraphql,
+            customGraphql: botItem.customGraphql,
           },
           tableId: botItem.tableId,
         } });
@@ -218,6 +226,8 @@ function BotPage() {
             isStart: botItem.isStart,
             fileId: botItem.fileId,
             formId: botItem.formId,
+            isCustomGraphql: botItem.isCustomGraphql,
+            customGraphql: botItem.customGraphql,
           },
           tableId: botItem.tableId } });
       }
@@ -326,20 +336,39 @@ function BotPage() {
           <MenuItem value="formSearch">Форма поиска</MenuItem>
         </TextField>
         {(botItem.type === 'list' || botItem.type === 'formSearch') && (
-          <TextField
-            label="Таблица"
-            name="tableId"
-            value={botItem.tableId}
-            onChange={handleInputChange}
-            fullWidth
-            select
-          >
-            {botItems.data?.getTables.map((table: ITable) => (
-              <MenuItem key={table.id} value={table.id}>
-                {table.name}
-              </MenuItem>
-            ))}
-          </TextField>
+          <>
+            <TextField
+              label="Таблица"
+              name="tableId"
+              value={botItem.tableId}
+              onChange={handleInputChange}
+              fullWidth
+              select
+            >
+              {botItems.data?.getTables.map((table: ITable) => (
+                <MenuItem key={table.id} value={table.id}>
+                  {table.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <FormControlLabel
+              control={
+              (<Checkbox
+                checked={botItem.isCustomGraphql}
+                onChange={handleInputChange}
+                name="isCustomGraphql"
+              />)
+            }
+              label="Пользовательский GraphQL"
+            />
+            {botItem.isCustomGraphql
+            && (<Editor
+              height={200}
+              defaultLanguage="graphql"
+              value={botItem.customGraphql}
+              onChange={(value) => setBotItem((prev) => ({ ...prev, customGraphql: value! }))}
+            />)}
+          </>
         )}
         {/* <TextField label="tableRowId" name="tableRowId"
         value={botItem.tableRowId} onChange={handleInputChange} fullWidth /> */}

@@ -18,6 +18,8 @@ export interface IBotItem extends IEntity {
   tableViewId: string
   tableRowId: string
   botId: string
-  fileId: string | null
-  formId: string | null
+  fileId: string
+  formId: string
+  isCustomGraphql: boolean
+  customGraphql: string
 }
