@@ -323,8 +323,9 @@ function BotPage() {
           <MenuItem value="list">Список записей</MenuItem>
           <MenuItem value="single">Одна запись</MenuItem>
           <MenuItem value="formAdd">Форма добавления</MenuItem>
+          <MenuItem value="formSearch">Форма поиска</MenuItem>
         </TextField>
-        {botItem.type === 'list' && (
+        {(botItem.type === 'list' || botItem.type === 'formSearch') && (
           <TextField
             label="Таблица"
             name="tableId"
@@ -346,7 +347,7 @@ function BotPage() {
           fileId={botItem.fileId}
           onChange={(fileId) => setBotItem((prev) => ({ ...prev, fileId }))}
         />)}
-        {botItem.type === BotItemType.FormAdd && (
+        {(botItem.type === BotItemType.FormAdd || botItem.type === BotItemType.FormSearch) && (
           <TextField
             label="Форма"
             name="formId"

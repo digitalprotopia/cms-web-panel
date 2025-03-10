@@ -5,6 +5,7 @@ export enum BotItemType {
   List = 'list',
   Single = 'single',
   FormAdd = 'formAdd',
+  FormSearch = 'formSearch',
 }
 
 export interface IBotItem extends IEntity {
