@@ -33,6 +33,7 @@ const GET_BOT_ITEM = gql`
       tableRowId
       botId
       fileId
+      formId
       buttons {
         id
         title
@@ -62,6 +63,10 @@ const GET_BOT_ITEMS = gql`
     getTables {
       id
       name
+    }
+    getAllForms {
+      id
+      title
     }
 }
 `;
@@ -151,14 +156,15 @@ function BotPage() {
       const fetched = data.getBotItem;
       setBotItem({
         isStart: fetched.isStart || false,
-        title: fetched.title || null,
-        content: fetched.content || null,
+        title: fetched.title || '',
+        content: fetched.content || '',
         filterScript: fetched.filterScript || null,
         type: fetched.type || null,
         tableId: fetched.tableView?.tableId || null,
         tableRowId: fetched.tableRowId || null,
         botId: fetched.botId || null,
         fileId: fetched.fileId || null,
+        formId: fetched.formId || null,
       });
       setButtons(fetched.buttons?.map((button: IBotButton) => ({
         id: button.id,
@@ -197,6 +203,7 @@ function BotPage() {
             isStart: botItem.isStart,
             botId,
             fileId: botItem.fileId,
+            formId: botItem.formId,
           },
           tableId: botItem.tableId,
         } });
@@ -210,6 +217,7 @@ function BotPage() {
             type: botItem.type,
             isStart: botItem.isStart,
             fileId: botItem.fileId,
+            formId: botItem.formId,
           },
           tableId: botItem.tableId } });
       }
@@ -311,11 +319,13 @@ function BotPage() {
         <TextField label="Контент" name="content" value={botItem.content} onChange={handleInputChange} fullWidth multiline rows={4} />
         <TextField label="Фильтр-скрипт" name="filterScript" value={botItem.filterScript} onChange={handleInputChange} fullWidth />
         <TextField select label="Тип" name="type" value={botItem.type} onChange={handleInputChange} fullWidth>
-          <MenuItem value="static">static</MenuItem>
-          <MenuItem value="list">list</MenuItem>
-          <MenuItem value="single">single</MenuItem>
+          <MenuItem value="static">Текст</MenuItem>
+          <MenuItem value="list">Список записей</MenuItem>
+          <MenuItem value="single">Одна запись</MenuItem>
+          <MenuItem value="formAdd">Форма добавления</MenuItem>
+          <MenuItem value="formSearch">Форма поиска</MenuItem>
         </TextField>
-        {botItem.type === 'list' && (
+        {(botItem.type === 'list' || botItem.type === 'formSearch') && (
           <TextField
             label="Таблица"
             name="tableId"
@@ -337,6 +347,22 @@ function BotPage() {
           fileId={botItem.fileId}
           onChange={(fileId) => setBotItem((prev) => ({ ...prev, fileId }))}
         />)}
+        {(botItem.type === BotItemType.FormAdd || botItem.type === BotItemType.FormSearch) && (
+          <TextField
+            label="Форма"
+            name="formId"
+            value={botItem.formId}
+            onChange={handleInputChange}
+            fullWidth
+            select
+          >
+            {botItems.data?.getAllForms.map((form: any) => (
+              <MenuItem key={form.id} value={form.id}>
+                {form.title}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
       </form>
 
       <div className="mt-8">
