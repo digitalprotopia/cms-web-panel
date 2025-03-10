@@ -16,6 +16,7 @@ import { BotButtonType, IBotButton } from '@/components/entities/IBotButton';
 import { BotItemType, IBotItem } from '@/components/entities/IBotItem';
 import { ITable } from '@/components/entities/ITable';
 import FileDialog from '@/components/FileDialog';
+import { IField } from '@/components/entities/IField';
 
 const GET_BOT_ITEM = gql`
   query GetBotItem($id: ID!) {
@@ -65,6 +66,10 @@ const GET_BOT_ITEMS = gql`
     getTables {
       id
       name
+      fields {
+        id
+        dbName
+      }
     }
     getAllForms {
       id
@@ -327,6 +332,32 @@ function BotPage() {
         />
         <TextField label="Название" name="title" value={botItem.title} onChange={handleInputChange} fullWidth />
         <TextField label="Контент" name="content" value={botItem.content} onChange={handleInputChange} fullWidth multiline rows={4} />
+        {(botItem.type === BotItemType.List || botItem.type === BotItemType.FormSearch)
+        && !botItem.isCustomGraphql
+        && (
+        <div className="flex flex-wrap gap-2">
+          {botItems.data?.getTables
+            .find((table: ITable) => table.id === botItem.tableId)
+            ?.fields.map((field: IField) => (
+              <Button
+                key={field.id}
+                variant="contained"
+                color="primary"
+                onClick={() => setBotItem({
+                  ...botItem,
+                  content: `${botItem.content}{${field.dbName}}`,
+                })}
+              >
+                {`{${field.dbName}}`}
+              </Button>
+            ))}
+          {botItems.data?.getTables
+            .find((table: ITable) => table.id === botItem.tableId)
+            ?.fields.length === 0 && (
+            <span>В таблице нет полей</span>
+          )}
+        </div>
+        )}
         <TextField label="Фильтр-скрипт" name="filterScript" value={botItem.filterScript} onChange={handleInputChange} fullWidth />
         <TextField select label="Тип" name="type" value={botItem.type} onChange={handleInputChange} fullWidth>
           <MenuItem value="static">Текст</MenuItem>
