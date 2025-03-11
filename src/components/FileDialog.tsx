@@ -127,7 +127,7 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
         </div>
       )}
       <Button variant="outlined" onClick={() => setOpen(true)}>
-        {fileId ? 'Изменить файл' : 'Выбрать файл'}
+        {fileId ? 'Изменить файл' : 'Выбрать картинку'}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
         <DialogContent>
