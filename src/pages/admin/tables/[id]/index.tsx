@@ -42,6 +42,7 @@ import {
   IFieldOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
+import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
 import useTable, {
   TableField,
@@ -831,11 +832,66 @@ function TablePage() {
   }
   if (!meta || !data) return null;
 
+  const handleExportCSV = () => {
+    if (!meta || !data) return;
+
+    const csvRows = data.map((row: any) => {
+      const result: any = {};
+      result.id = row.id;
+      meta.fields.forEach((field: TableField) => {
+        const value = row[field.dbName];
+
+        switch (field.type) {
+          case FieldType.DATE_TIME:
+            result[field.name] = `${dayjs(value).format('YYYY-MM-DD HH:mm')}`;
+            return;
+          case FieldType.ONE_TO_MANY_ONE:
+            result[field.name] = `${value?._cms_title || ''}`;
+            return;
+          case FieldType.MANY_TO_MANY_FIRST:
+          case FieldType.MANY_TO_MANY_SECOND:
+          case FieldType.ONE_TO_MANY_MANY:
+            result[field.name] = `${(value || []).map((item: any) => item?._cms_title).join(', ')}`;
+            return;
+          case FieldType.USER:
+          case FieldType.USER_CREATOR:
+            result[field.name] = `${value?.name || ''}`;
+            return;
+          default:
+            result[field.name] = `${value || ''}`;
+        }
+      });
+      result.createdAt = `${dayjs(row.createdAt).format('YYYY-MM-DD HH:mm')}`;
+      result.updatedAt = `${dayjs(row.updatedAt).format('YYYY-MM-DD HH:mm')}`;
+      result.createdBy = `${row.createdBy?.name || ''}`;
+      result.updatedBy = `${row.updatedBy?.name || ''}`;
+      return result;
+    });
+
+    const csvConfig = mkConfig({
+      fieldSeparator: ',',
+      decimalSeparator: '.',
+      useKeysAsHeaders: true,
+      filename: `${meta.dbName}-export-${dayjs().format('YYYY-MM-DD')}`,
+    });
+
+    const csv = generateCsv(csvConfig)(csvRows);
+    download(csvConfig)(csv);
+  };
+
   return (
     <div className="rounded-lg p-4 shadow-lg bg-white">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">{meta?.name}</h2>
         <div className="flex gap-4">
+          <Button
+            variant="contained"
+            onClick={handleExportCSV}
+            className="normal-case"
+            startIcon={<Download />}
+          >
+            Экспорт CSV
+          </Button>
           {/* <Button
             variant="contained"
             onClick={() => setIsEditModalOpen(true)}
