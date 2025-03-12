@@ -831,11 +831,69 @@ function TablePage() {
   }
   if (!meta || !data) return null;
 
+  const handleExportCSV = () => {
+    if (!meta || !data) return;
+
+    const headers = [
+      'id',
+      ...meta.fields.map((field: IField) => field.name),
+      'createdAt',
+      'updatedAt',
+      'createdBy',
+      'updatedBy',
+    ].join(',');
+
+    const csvRows = data.map((row: any) => [
+      `"${row.id}"`,
+      ...meta.fields.map((field: TableField) => {
+        const value = row[field.dbName];
+
+        switch (field.type) {
+          case FieldType.DATE_TIME:
+            return `${dayjs(value).format('YYYY-MM-DD HH:mm')}`;
+          case FieldType.ONE_TO_MANY_ONE:
+            return `${value?._cms_title || ''}`;
+          case FieldType.MANY_TO_MANY_FIRST:
+          case FieldType.MANY_TO_MANY_SECOND:
+          case FieldType.ONE_TO_MANY_MANY:
+            return `${(value || []).map((item: any) => item?._cms_title).join(', ')}`;
+          case FieldType.USER:
+          case FieldType.USER_CREATOR:
+            return `${value?.name || ''}`;
+          default:
+            return `${JSON.stringify(value || '')}`;
+        }
+      }),
+      `"${dayjs(row.createdAt).format('YYYY-MM-DD HH:mm')}"`,
+      `"${dayjs(row.updatedAt).format('YYYY-MM-DD HH:mm')}"`,
+      `"${row.createdBy?.name || ''}"`,
+      `"${row.updatedBy?.name || ''}"`,
+    ].join(',')).join('\n');
+
+    const blob = new Blob([`${headers}\n${csvRows}`], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${meta.dbName}-export-${dayjs().format('YYYY-MM-DD')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="rounded-lg p-4 shadow-lg bg-white">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">{meta?.name}</h2>
         <div className="flex gap-4">
+          <Button
+            variant="contained"
+            onClick={handleExportCSV}
+            className="normal-case"
+            startIcon={<Download />}
+          >
+            Экспорт CSV
+          </Button>
           {/* <Button
             variant="contained"
             onClick={() => setIsEditModalOpen(true)}
