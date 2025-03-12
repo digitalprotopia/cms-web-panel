@@ -42,6 +42,7 @@ import {
   IFieldOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
+import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
 import useTable, {
   TableField,
@@ -843,42 +844,48 @@ function TablePage() {
       'updatedBy',
     ].join(',');
 
-    const csvRows = data.map((row: any) => [
-      `"${row.id}"`,
-      ...meta.fields.map((field: TableField) => {
+    const csvRows = data.map((row: any) => {
+      const result: any = {};
+      result.id = row.id;
+      meta.fields.forEach((field: TableField) => {
         const value = row[field.dbName];
 
         switch (field.type) {
           case FieldType.DATE_TIME:
-            return `${dayjs(value).format('YYYY-MM-DD HH:mm')}`;
+            result[field.name] = `${dayjs(value).format('YYYY-MM-DD HH:mm')}`;
+            return;
           case FieldType.ONE_TO_MANY_ONE:
-            return `${value?._cms_title || ''}`;
+            result[field.name] = `${value?._cms_title || ''}`;
+            return;
           case FieldType.MANY_TO_MANY_FIRST:
           case FieldType.MANY_TO_MANY_SECOND:
           case FieldType.ONE_TO_MANY_MANY:
-            return `${(value || []).map((item: any) => item?._cms_title).join(', ')}`;
+            result[field.name] = `${(value || []).map((item: any) => item?._cms_title).join(', ')}`;
+            return;
           case FieldType.USER:
           case FieldType.USER_CREATOR:
-            return `${value?.name || ''}`;
+            result[field.name] = `${value?.name || ''}`;
+            return;
           default:
-            return `${JSON.stringify(value || '')}`;
+            result[field.name] = `${value || ''}`;
         }
-      }),
-      `"${dayjs(row.createdAt).format('YYYY-MM-DD HH:mm')}"`,
-      `"${dayjs(row.updatedAt).format('YYYY-MM-DD HH:mm')}"`,
-      `"${row.createdBy?.name || ''}"`,
-      `"${row.updatedBy?.name || ''}"`,
-    ].join(',')).join('\n');
+      });
+      result.createdAt = `${dayjs(row.createdAt).format('YYYY-MM-DD HH:mm')}`;
+      result.updatedAt = `${dayjs(row.updatedAt).format('YYYY-MM-DD HH:mm')}`;
+      result.createdBy = `${row.createdBy?.name || ''}`;
+      result.updatedBy = `${row.updatedBy?.name || ''}`;
+      return result;
+    });
 
-    const blob = new Blob([`${headers}\n${csvRows}`], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${meta.dbName}-export-${dayjs().format('YYYY-MM-DD')}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    const csvConfig = mkConfig({
+      fieldSeparator: ',',
+      decimalSeparator: '.',
+      useKeysAsHeaders: true,
+      filename: `${meta.dbName}-export-${dayjs().format('YYYY-MM-DD')}`,
+    });
+
+    const csv = generateCsv(csvConfig)(csvRows);
+    download(csvConfig)(csv);
   };
 
   return (
