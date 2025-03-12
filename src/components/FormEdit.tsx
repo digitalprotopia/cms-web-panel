@@ -102,7 +102,6 @@ function FormEdit({ id, onClose }: {
     tableId: string;
     fields: any[];
     cssClass: string;
-    fileId?: string;
   }>({
     name: '',
     title: '',
@@ -110,7 +109,6 @@ function FormEdit({ id, onClose }: {
     tableId: '',
     fields: [],
     cssClass: '',
-    fileId: '',
   });
 
   const tables = useQuery(gql`
@@ -215,7 +213,6 @@ function FormEdit({ id, onClose }: {
               },
             }) : undefined,
           })),
-          fileId: formData.fileId,
         });
       },
     },
@@ -234,7 +231,6 @@ function FormEdit({ id, onClose }: {
         type: form.type,
         tableId: form.tableId,
         cssClass: form.cssClass,
-        fileId: form.fileId,
       },
       fields: form.fields,
     };
