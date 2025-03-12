@@ -835,15 +835,6 @@ function TablePage() {
   const handleExportCSV = () => {
     if (!meta || !data) return;
 
-    const headers = [
-      'id',
-      ...meta.fields.map((field: IField) => field.name),
-      'createdAt',
-      'updatedAt',
-      'createdBy',
-      'updatedBy',
-    ].join(',');
-
     const csvRows = data.map((row: any) => {
       const result: any = {};
       result.id = row.id;
