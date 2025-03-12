@@ -5,6 +5,10 @@ import React, { useState } from 'react';
 import {
   Button,
   Card,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   IconButton,
   InputLabel,
@@ -17,9 +21,74 @@ import { Delete } from '@mui/icons-material';
 import useTable, { TableField } from './use-table';
 import FormField from './form';
 import { ITable } from './entities/ITable';
-import { IField } from './entities/IField';
+import { FieldType, IField } from './entities/IField';
 import DndComponent from './guiElements/DndComponent';
 import { FormType } from './entities/IForm';
+
+interface FieldRangeDialogProps {
+  open: boolean;
+  onClose: () => void;
+  fields: IField[];
+  minFieldId?: string;
+  maxFieldId?: string;
+  onAdd: (minFieldId: string, maxFieldId: string) => void;
+}
+
+function FieldRangeDialog(props: FieldRangeDialogProps) {
+  const [minFieldId, setMinFieldId] = useState(props.minFieldId || '');
+  const [maxFieldId, setMaxFieldId] = useState(props.maxFieldId || '');
+
+  return (
+    <Dialog open={props.open} onClose={props.onClose}>
+      <DialogTitle>Добавление поля типа &quot;диапазон&quot;</DialogTitle>
+      <DialogContent>
+        <FormControl fullWidth>
+          <InputLabel>Минимальное значение</InputLabel>
+          <Select
+            value={minFieldId}
+            onChange={(e) => setMinFieldId(e.target.value as string)}
+            label="Минимальное значение"
+          >
+            {props.fields
+              .filter((field) => field.type === FieldType.NUMBER)
+              .map((field) => (
+                <MenuItem key={field.id} value={field.id}>
+                  {field.name}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth>
+          <InputLabel>Максимальное значение</InputLabel>
+          <Select
+            value={maxFieldId}
+            onChange={(e) => setMaxFieldId(e.target.value as string)}
+            label="Максимальное значение"
+          >
+            {props.fields
+              .filter((field) => field.type === FieldType.NUMBER)
+              .map((field) => (
+                <MenuItem key={field.id} value={field.id}>
+                  {field.name}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose}>Отмена</Button>
+        <Button
+          onClick={() => {
+            props.onAdd(minFieldId, maxFieldId);
+            props.onClose();
+          }}
+        >
+          Добавить
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 function FormEdit({ id, onClose }: {
   id?: string;
@@ -137,6 +206,11 @@ function FormEdit({ id, onClose }: {
       },
     },
   );
+
+  const [fieldRangeDialog, setFieldRangeDialog] = useState({
+    open: false,
+    formFieldIndex: -1,
+  });
 
   const handleSave = async () => {
     const variables = {
@@ -333,6 +407,17 @@ function FormEdit({ id, onClose }: {
                     {field.name}
                   </Button>
                 ))}
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setFieldRangeDialog({
+                      open: true,
+                      formFieldIndex: -1,
+                    });
+                  }}
+                >
+                  Диапазон
+                </Button>
               </div>
             </div>
           )}
@@ -349,6 +434,36 @@ function FormEdit({ id, onClose }: {
           {id ? 'Сохранить' : 'Создать'}
         </Button>
       </div>
+      <FieldRangeDialog
+        open={fieldRangeDialog.open}
+        onClose={() => setFieldRangeDialog({
+          open: false,
+          formFieldIndex: -1,
+        })}
+        fields={table.meta?.fields || []}
+        minFieldId={form.fields[fieldRangeDialog.formFieldIndex]?.tableFieldId}
+        maxFieldId={form.fields[fieldRangeDialog.formFieldIndex]?.options?.rangeField?.maxFieldId}
+        onAdd={(minFieldId, maxFieldId) => {
+          if (fieldRangeDialog.formFieldIndex !== -1) {
+            //
+          } else {
+            const newFields = [...form.fields];
+            newFields.push({
+              name: 'range',
+              title: 'Диапазон',
+              formFieldType: 'range',
+              tableFieldId: minFieldId,
+              position: form.fields.length,
+              options: {
+                rangeField: {
+                  maxFieldId,
+                },
+              },
+            });
+            setForm((prev) => ({ ...prev, fields: newFields }));
+          }
+        }}
+      />
     </div>
   );
 }
