@@ -18,6 +18,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
+import FileDialog from '@/components/FileDialog';
 import useTable, { TableField } from './use-table';
 import FormField from './form';
 import { ITable } from './entities/ITable';
@@ -94,48 +95,48 @@ function FormEdit({ id, onClose }: {
   id?: string;
   onClose: () => void;
 }) {
-  const [form, setForm] = useState<
-  {
+  const [form, setForm] = useState<{
     name: string;
     title: string;
     type: FormType;
     tableId: string;
     fields: any[];
     cssClass: string;
-  }
-  >({
+    fileId?: string;
+  }>({
     name: '',
     title: '',
     type: FormType.CREATE,
     tableId: '',
     fields: [],
     cssClass: '',
+    fileId: '',
   });
 
   const tables = useQuery(gql`
-    query {
-      getTables {
-        id
-        name
-      }
-    }
-  `);
+       query {
+        getTables {
+           id
+           name
+        }
+       }
+   `);
 
   const [createForm] = useMutation(gql`
-    mutation ($input: FormInput!, $fields: [FormFieldInput]!) {
-      createForm(input: $input, fields: $fields) {
-        id
-      }
-    }
-  `);
+       mutation ($input: FormInput!, $fields: [FormFieldInput]!) {
+        createForm(input: $input, fields: $fields) {
+           id
+        }
+       }
+   `);
 
   const [editForm] = useMutation(gql`
-    mutation ($id: ID!, $input: FormInput!, $fields: [FormFieldInput]!) {
-      editForm(id: $id, input: $input, fields: $fields) {
-        id
-      }
-    }
-  `);
+       mutation ($id: ID!, $input: FormInput!, $fields: [FormFieldInput]!) {
+        editForm(id: $id, input: $input, fields: $fields) {
+           id
+        }
+       }
+   `);
 
   const table = useTable(form.tableId, {
     onMetaLoaded: (meta) => {
@@ -157,31 +158,37 @@ function FormEdit({ id, onClose }: {
 
   useQuery(
     gql`
-      query ($id: ID!) {
-        getForm(id: $id) {
-          id
-          name
-          title
-          type
-          cssClass
-          createdAt
-          table {
+        query ($id: ID!) {
+           getForm(id: $id) {
             id
             name
-            dbName
-          }
-          fields {
-            name
             title
-            description
+            type
             cssClass
-            position
-            formFieldType
-            tableFieldId
-          }
+            createdAt
+            table {
+               id
+               name
+               dbName
+            }
+            fields {
+               name
+               title
+               description
+               cssClass
+               position
+               formFieldType
+               tableFieldId
+               fileId
+               options {
+                  rangeField {
+                    maxFieldId
+                  }
+               }
+            }
+           }
         }
-      }
-    `,
+       `,
     {
       variables: { id },
       skip: !id,
@@ -201,7 +208,14 @@ function FormEdit({ id, onClose }: {
             tableFieldId: field.tableFieldId,
             position: field.position,
             cssClass: field.cssClass,
+            fileId: field.fileId,
+            options: field.options?.rangeField ? ({
+              rangeField: {
+                maxFieldId: field.options.rangeField.maxFieldId,
+              },
+            }) : undefined,
           })),
+          fileId: formData.fileId,
         });
       },
     },
@@ -220,6 +234,7 @@ function FormEdit({ id, onClose }: {
         type: form.type,
         tableId: form.tableId,
         cssClass: form.cssClass,
+        fileId: form.fileId,
       },
       fields: form.fields,
     };
@@ -277,32 +292,31 @@ function FormEdit({ id, onClose }: {
       </div>
 
       {!id && (
-        <FormControl fullWidth>
-          <InputLabel>Таблица</InputLabel>
-          <Select
-            value={form.tableId}
-            onChange={(e) => setForm((prev) => ({ ...prev, tableId: e.target.value }))}
-            label="Таблица"
-          >
-            {tables.data?.getTables.map((_table: ITable) => (
-              <MenuItem key={_table.id} value={_table.id}>
-                {_table.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <FormControl fullWidth>
+        <InputLabel>Таблица</InputLabel>
+        <Select
+          value={form.tableId}
+          onChange={(e) => setForm((prev) => ({ ...prev, tableId: e.target.value }))}
+          label="Таблица"
+        >
+          {tables.data?.getTables.map((_table: ITable) => (
+            <MenuItem key={_table.id} value={_table.id}>
+              {_table.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
       )}
 
       {form.tableId && (
-        <>
-          <Typography variant="h6" className="mt-4">
-            Поля формы
-          </Typography>
+      <>
+        <Typography variant="h6" className="mt-4">
+          Поля формы
+        </Typography>
 
-          <div className="grid grid-cols-1 gap-4">
-            <DndComponent
-              items={
-            fields.map((field, index) => {
+        <div className="grid grid-cols-1 gap-4">
+          <DndComponent
+            items={fields.map((field, index) => {
               const tableField = table.meta?.fields.find(
                 (f: IField) => f.id === field.tableFieldId,
               );
@@ -361,21 +375,28 @@ function FormEdit({ id, onClose }: {
                         fullWidth
                       />
                     </div>
+                    <FileDialog
+                      fileId={field.fileId || ''}
+                      onChange={(fileId) => {
+                        const newFields = [...fields];
+                        newFields[index] = { ...field, fileId };
+                        setForm((prev) => ({ ...prev, fields: newFields }));
+                      }}
+                    />
                   </Card>
                 ),
               };
-            })
-}
-              onDrop={(newIndexes) => {
-                const newFields: any[] = [];
-                newIndexes.forEach((index) => {
-                  newFields.push(fields[parseInt(index, 10)]);
-                  newFields[newFields.length - 1].position = newFields.length - 1;
-                });
-                setForm((prev) => ({ ...prev, fields: newFields }));
-              }}
-            />
-          </div>
+            })}
+            onDrop={(newIndexes) => {
+              const newFields: any[] = [];
+              newIndexes.forEach((index) => {
+                newFields.push(fields[parseInt(index, 10)]);
+                newFields[newFields.length - 1].position = newFields.length - 1;
+              });
+              setForm((prev) => ({ ...prev, fields: newFields }));
+            }}
+          />
+        </div>
 
           {table.meta?.fields && (
             <div className="mt-4">
@@ -421,7 +442,7 @@ function FormEdit({ id, onClose }: {
               </div>
             </div>
           )}
-        </>
+      </>
       )}
 
       <div className="flex justify-end gap-2 mt-4">
