@@ -445,7 +445,7 @@ function FormEdit({ id, onClose }: {
         maxFieldId={form.fields[fieldRangeDialog.formFieldIndex]?.options?.rangeField?.maxFieldId}
         onAdd={(minFieldId, maxFieldId) => {
           if (fieldRangeDialog.formFieldIndex !== -1) {
-
+            //
           } else {
             const newFields = [...form.fields];
             newFields.push({
