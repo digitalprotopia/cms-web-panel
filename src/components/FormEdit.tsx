@@ -21,7 +21,7 @@ import { Delete } from '@mui/icons-material';
 import useTable, { TableField } from './use-table';
 import FormField from './form';
 import { ITable } from './entities/ITable';
-import { IField } from './entities/IField';
+import { FieldType, IField } from './entities/IField';
 import DndComponent from './guiElements/DndComponent';
 import { FormType } from './entities/IForm';
 
@@ -49,11 +49,13 @@ function FieldRangeDialog(props: FieldRangeDialogProps) {
             onChange={(e) => setMinFieldId(e.target.value as string)}
             label="Минимальное значение"
           >
-            {props.fields.map((field) => (
-              <MenuItem key={field.id} value={field.id}>
-                {field.name}
-              </MenuItem>
-            ))}
+            {props.fields
+              .filter((field) => field.type === FieldType.NUMBER)
+              .map((field) => (
+                <MenuItem key={field.id} value={field.id}>
+                  {field.name}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
         <FormControl fullWidth>
@@ -63,11 +65,13 @@ function FieldRangeDialog(props: FieldRangeDialogProps) {
             onChange={(e) => setMaxFieldId(e.target.value as string)}
             label="Максимальное значение"
           >
-            {props.fields.map((field) => (
-              <MenuItem key={field.id} value={field.id}>
-                {field.name}
-              </MenuItem>
-            ))}
+            {props.fields
+              .filter((field) => field.type === FieldType.NUMBER)
+              .map((field) => (
+                <MenuItem key={field.id} value={field.id}>
+                  {field.name}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
       </DialogContent>
@@ -436,8 +440,8 @@ function FormEdit({ id, onClose }: {
           open: false,
           formFieldIndex: -1,
         })}
-        fields={form.fields}
-        minFieldId={form.fields[fieldRangeDialog.formFieldIndex].tableFieldId}
+        fields={table.meta?.fields || []}
+        minFieldId={form.fields[fieldRangeDialog.formFieldIndex]?.tableFieldId}
         maxFieldId={form.fields[fieldRangeDialog.formFieldIndex]?.options?.rangeField?.maxFieldId}
         onAdd={(minFieldId, maxFieldId) => {
           if (fieldRangeDialog.formFieldIndex !== -1) {
@@ -456,6 +460,7 @@ function FormEdit({ id, onClose }: {
                 },
               },
             });
+            setForm((prev) => ({ ...prev, fields: newFields }));
           }
         }}
       />
