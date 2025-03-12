@@ -32,7 +32,7 @@ export interface IFormField extends IEntity {
   description: string;
   tableFieldId: string;
   formId: string;
-  formFieldType: FormFieldType; 
+  formFieldType: FormFieldType;
   position: number;
   cssClass: string;
   options?: {
