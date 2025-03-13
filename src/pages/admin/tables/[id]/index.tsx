@@ -886,6 +886,14 @@ function TablePage() {
         <div className="flex gap-4">
           <Button
             variant="contained"
+            color="primary"
+            onClick={() => router.push(`/tables/${id}/privileges`)}
+            className="normal-case"
+         >
+            Настроить права
+         </Button>
+          <Button
+            variant="contained"
             onClick={handleExportCSV}
             className="normal-case"
             startIcon={<Download />}
