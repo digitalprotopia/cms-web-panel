@@ -39,18 +39,15 @@ import {
 // import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
-  DashboardOutlined, WidgetsOutlined, Html,
-  Visibility,
+  DashboardOutlined,
 } from '@mui/icons-material';
 import {
-  Button, IconButton,
+  Button,
   Tooltip,
 } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
-import { Editor } from '@monaco-editor/react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
-import { IWidget } from './entities/IWidget';
 
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
@@ -63,7 +60,8 @@ import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/t
 import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blocks/postBlock';
 // eslint-disable-next-line import/no-cycle
 import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blocks/imageBlock';
-import { BlockEditorForm, BlockEditorWidget } from './blocks/blockEditorWidget';
+import { BlockEditorForm, BlockEditorWidget, insertBlockEditorWidgets } from './blocks/blockEditorWidget';
+import BlockEditorHtmlView from './blocks/blockEditorHtmlView';
 
 export const ClassStyle = createReactStyleSpec(
   {
@@ -203,80 +201,6 @@ export const BlockEditorPosts = createReactBlockSpec(
   },
 );
 
-export const BlockEditorHtmlView = createReactBlockSpec(
-  {
-    type: 'html-view',
-    propSchema: {
-      html: {
-        default: '',
-        type: 'string',
-      },
-    },
-    content: 'none',
-    isSelectable: false,
-  },
-  {
-    render: (props) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [isShow, setIsShow] = useState(false);
-
-      return (
-        <div data-widget-type="html-view">
-          <div>
-            {props.editor.isEditable ? (
-              <div>
-                <IconButton
-                  onClick={() => setIsShow(!isShow)}
-                >
-                  <Visibility />
-                </IconButton>
-              </div>
-            ) : null}
-            {(props.editor.isEditable && !isShow)
-              ? (
-                <div>
-                  <Editor
-                    height={200}
-                    width={800}
-                    defaultLanguage="html"
-                    defaultValue={props.block.props.html}
-                    onChange={(value) => {
-                      props.editor.updateBlock(props.block, {
-                        type: 'html-view',
-                        props: { html: value },
-                      });
-                    }}
-                  />
-                </div>
-              )
-              : (
-                <div dangerouslySetInnerHTML={{ __html: props.block.props.html }} />
-              )}
-          </div>
-        </div>
-      );
-    },
-  },
-);
-
-export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
-  widgets.map((widget) => ({
-    title: widget.title,
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'widget' as any,
-        props: {
-          type: widget.name,
-        } as any,
-      });
-    },
-    aliases: [
-      widget.name,
-    ],
-    group: 'Виджеты',
-    icon: <WidgetsOutlined />,
-  })));
-
 export const insertBlockEditorForms = (editor: BlockNoteEditor, widgets: IForm[]) => (
   widgets.map((form) => ({
     title: form.title,
@@ -311,24 +235,6 @@ export const insertBlockEditorPosts = (editor: BlockNoteEditor) => (
     ],
     group: 'Посты',
     icon: <DashboardOutlined />,
-  }
-);
-
-export const insertBlockEditorHtmlView = (editor: BlockNoteEditor) => (
-  {
-    title: 'HTML блок',
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'html-view' as any,
-        props: {
-        } as any,
-      });
-    },
-    aliases: [
-      'html-view',
-    ],
-    group: 'Базовые блоки',
-    icon: <Html />,
   }
 );
 
