@@ -1,15 +1,11 @@
 import { gql, useQuery } from '@apollo/client';
-import {
-  BlockNoteSchema,
+import { BlockNoteSchema,
   defaultBlockSpecs, filterSuggestionItems,
   locales,
   combineByGroup,
   Block,
   defaultStyleSpecs,
-  CustomBlockConfig,
-  InlineContentSchema,
-  StyleSchema,
-} from '@blocknote/core';
+  CustomBlockConfig, InlineContentSchema, StyleSchema } from '@blocknote/core';
 import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
 
   useBlockNoteEditor,
@@ -20,7 +16,6 @@ import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlock
   RemoveBlockItem,
   BlockColorsItem,
   DragHandleMenuProps,
-  createReactStyleSpec,
   FormattingToolbarController,
   FormattingToolbar,
   BlockTypeSelect,
@@ -39,16 +34,6 @@ import {
 } from '@blocknote/xl-multi-column';
 // import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  TextField,
-  Tooltip,
-} from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
@@ -56,6 +41,7 @@ import dayjs from 'dayjs';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { MoreVert } from '@mui/icons-material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField } from '@mui/material';
 import { BlockEditorCssView, insertBlockEditorCssView } from './blockEditor/blocks/templates/css';
 import { BlockEditorHeadView, insertBlockEditorHeadView } from './blockEditor/blocks/templates/head';
 // eslint-disable-next-line import/no-cycle
@@ -72,45 +58,41 @@ import { BlockEditorForm, insertBlockEditorForms } from './blockEditor/blocks/bl
 // eslint-disable-next-line import/no-cycle
 import { BlockEditorPosts, insertBlockEditorPosts } from './blockEditor/blocks/blockEditorPosts';
 
-export const ClassStyle = createReactStyleSpec(
-  {
-    type: 'class',
-    propSchema: 'string',
-  },
-  {
-    render: (props) => (
-      <span className={props.value} ref={props.contentRef} />
-    ),
-  },
-);
-
-function SetClassButton() {
-  const editor = useBlockNoteEditor<
-    typeof schema.blockSchema,
-    typeof schema.inlineContentSchema,
-    typeof schema.styleSchema
-  >();
-
-  if (!editor.isEditable) {
-    return null;
-  }
+export function BlockSettings(
+  props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
+) {
+  const [dialog, setDialog] = useState(false);
 
   return (
-    <Button
-      onClick={(values) => {
-        console.log(values);
-        const fontName = prompt('Укажите класс', editor.getActiveStyles().class);
-        if (fontName !== null) {
-          editor.addStyles({
-            class: fontName,
-          });
-        }
-      }}
-    >
-      <Tooltip title={editor.getActiveStyles().class}>
-        <span>CSS Class</span>
-      </Tooltip>
-    </Button>
+    <>
+      <IconButton
+        size="small"
+        onClick={() => {
+          setDialog(true);
+        }}
+      >
+        <MoreVert />
+      </IconButton>
+      <Dialog open={dialog} onClose={() => setDialog(false)}>
+        <DialogTitle>Настройки блока</DialogTitle>
+        <DialogContent>
+          <TextField
+            title="CSS class"
+            label="CSS class"
+            value={props.block.props.cssClass}
+            onChange={(e) => {
+              props.editor.updateBlock(props.block, {
+                props: { cssClass: e.target.value },
+              });
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialog(false)}>Закрыть</Button>
+        </DialogActions>
+
+      </Dialog>
+    </>
   );
 }
 
@@ -156,44 +138,6 @@ export function Posts(props: {
         </div>
       ))}
     </div>
-  );
-}
-
-export function BlockSettings(
-  props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
-) {
-  const [dialog, setDialog] = useState(false);
-
-  return (
-    <>
-      <IconButton
-        size="small"
-        onClick={() => {
-          setDialog(true);
-        }}
-      >
-        <MoreVert />
-      </IconButton>
-      <Dialog open={dialog} onClose={() => setDialog(false)}>
-        <DialogTitle>Настройки блока</DialogTitle>
-        <DialogContent>
-          <TextField
-            title="CSS class"
-            label="CSS class"
-            value={props.block.props.cssClass}
-            onChange={(e) => {
-              props.editor.updateBlock(props.block, {
-                props: { cssClass: e.target.value },
-              });
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialog(false)}>Закрыть</Button>
-        </DialogActions>
-
-      </Dialog>
-    </>
   );
 }
 
@@ -285,7 +229,7 @@ export function AddBlocksItem(props: DragHandleMenuProps) {
   );
 }
 
-const schema = BlockNoteSchema.create({
+export const schema = BlockNoteSchema.create({
   blockSpecs: {
     // Adds all default blocks.
     ...defaultBlockSpecs,
