@@ -7,7 +7,7 @@ import { MaterialReactTable } from 'material-react-table';
 import { ITemplate, TemplateType } from './entities/ITemplate';
 import { IFile } from './entities/IFile';
 import { toBase64 } from './form';
-import TemplateBlocks from './blocks/templates/TemplateBlocks';
+import TemplateBlocks from './blockEditor/blocks/templates/TemplateBlocks';
 
 function TemplateFile(props: {
   fileId?: string,

@@ -2,7 +2,7 @@ import { createReactBlockSpec } from '@blocknote/react';
 import { TextInput } from '@mantine/core';
 import { BlockNoteEditor, insertOrUpdateBlock } from '@blocknote/core';
 import { DashboardOutlined } from '@mui/icons-material';
-import { Posts } from '../BlockEditor';
+import { Posts } from '../../BlockEditor';
 
 export const BlockEditorPosts = createReactBlockSpec(
   {

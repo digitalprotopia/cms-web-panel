@@ -3,9 +3,10 @@ import { createReactBlockSpec } from '@blocknote/react';
 import { gql, useQuery } from '@apollo/client';
 import { Menu } from '@mantine/core';
 import { DashboardOutlined } from '@mui/icons-material';
-import { IForm } from '../entities/IForm';
-import { FormWidget } from '../ParseWidgets';
-import { BlockSettings } from '../BlockEditor';
+import { IForm } from '../../entities/IForm';
+// eslint-disable-next-line import/no-cycle
+import { FormWidget } from '../../ParseWidgets';
+import { BlockSettings } from '../../BlockEditor';
 
 export const BlockEditorForm = createReactBlockSpec(
   {

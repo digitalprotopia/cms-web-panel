@@ -3,9 +3,10 @@ import { BlockNoteEditor, defaultProps, insertOrUpdateBlock } from '@blocknote/c
 import { createReactBlockSpec } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import { WidgetsOutlined } from '@mui/icons-material';
-import { IWidget } from '../entities/IWidget';
-import { PageWidget } from '../ParseWidgets';
-import { BlockSettings } from '../BlockEditor';
+import { IWidget } from '../../entities/IWidget';
+// eslint-disable-next-line import/no-cycle
+import { PageWidget } from '../../ParseWidgets';
+import { BlockSettings } from '../../BlockEditor';
 
 export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
   widgets.map((widget) => ({

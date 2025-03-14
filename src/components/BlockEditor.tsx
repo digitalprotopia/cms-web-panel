@@ -56,18 +56,21 @@ import dayjs from 'dayjs';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { MoreVert } from '@mui/icons-material';
-import { BlockEditorCssView, insertBlockEditorCssView } from './blocks/templates/css';
-import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templates/head';
+import { BlockEditorCssView, insertBlockEditorCssView } from './blockEditor/blocks/templates/css';
+import { BlockEditorHeadView, insertBlockEditorHeadView } from './blockEditor/blocks/templates/head';
 // eslint-disable-next-line import/no-cycle
-import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/templates/content';
+import { BlockEditorContentView, insertBlockEditorContentView } from './blockEditor/blocks/templates/content';
 // eslint-disable-next-line import/no-cycle
-import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blocks/postBlock';
+import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blockEditor/blocks/postBlock';
 // eslint-disable-next-line import/no-cycle
-import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blocks/imageBlock';
-import { BlockEditorWidget, insertBlockEditorWidgets } from './blocks/blockEditorWidget';
-import BlockEditorHtmlView, { insertBlockEditorHtmlView } from './blocks/blockEditorHtmlView';
-import { BlockEditorForm, insertBlockEditorForms } from './blocks/blockEditorForm';
-import { BlockEditorPosts, insertBlockEditorPosts } from './blocks/blockEditorPosts';
+import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blockEditor/blocks/imageBlock';
+// eslint-disable-next-line import/no-cycle
+import { BlockEditorWidget, insertBlockEditorWidgets } from './blockEditor/blocks/blockEditorWidget';
+import BlockEditorHtmlView, { insertBlockEditorHtmlView } from './blockEditor/blocks/blockEditorHtmlView';
+// eslint-disable-next-line import/no-cycle
+import { BlockEditorForm, insertBlockEditorForms } from './blockEditor/blocks/blockEditorForm';
+// eslint-disable-next-line import/no-cycle
+import { BlockEditorPosts, insertBlockEditorPosts } from './blockEditor/blocks/blockEditorPosts';
 
 export const ClassStyle = createReactStyleSpec(
   {
