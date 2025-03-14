@@ -1,33 +1,15 @@
-import { gql, useQuery } from '@apollo/client';
 import { BlockNoteEditor, defaultProps, insertOrUpdateBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
+import { gql, useQuery } from '@apollo/client';
 import { Menu } from '@mantine/core';
-import { WidgetsOutlined } from '@mui/icons-material';
-import { IWidget } from '../entities/IWidget';
-import { PageWidget } from '../ParseWidgets';
+import { DashboardOutlined } from '@mui/icons-material';
+import { IForm } from '../entities/IForm';
+import { FormWidget } from '../ParseWidgets';
 import { BlockSettings } from '../BlockEditor';
 
-export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
-  widgets.map((widget) => ({
-    title: widget.title,
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'widget' as any,
-        props: {
-          type: widget.name,
-        } as any,
-      });
-    },
-    aliases: [
-      widget.name,
-    ],
-    group: 'Виджеты',
-    icon: <WidgetsOutlined />,
-  })));
-
-export const BlockEditorWidget = createReactBlockSpec(
+export const BlockEditorForm = createReactBlockSpec(
   {
-    type: 'widget',
+    type: 'form',
     propSchema: {
       textAlignment: defaultProps.textAlignment,
       textColor: defaultProps.textColor,
@@ -47,14 +29,14 @@ export const BlockEditorWidget = createReactBlockSpec(
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const snippets = useQuery(
         gql`
-              query {
-              getAllWidgets {
-              id
-              name
-              title
-              createdAt
-              }
-              }`,
+                query {
+                getAllForms {
+                id
+                name
+                title
+                createdAt
+                }
+                }`,
         { skip: !props.editor.isEditable },
       );
 
@@ -68,7 +50,7 @@ export const BlockEditorWidget = createReactBlockSpec(
                   <Menu.Target>
                     <div contentEditable={false}>
                       <Menu.Item>
-                        {snippets.data?.getAllWidgets?.find((w: IWidget) => w.name === props.block.props.type)?.title || 'Выберете виджет'}
+                        {snippets.data?.getAllForms?.find((f: IForm) => f.name === props.block.props.type)?.title || 'Выберете форму'}
                       </Menu.Item>
                     </div>
                   </Menu.Target>
@@ -76,15 +58,15 @@ export const BlockEditorWidget = createReactBlockSpec(
                   <Menu.Dropdown>
                     <Menu.Label>Виджет</Menu.Label>
                     <Menu.Divider />
-                    {(snippets.data?.getAllWidgets || []).map((widget: IWidget) => (
+                    {(snippets.data?.getAllForms || []).map((form: IForm) => (
                       <Menu.Item
-                        key={widget.name}
+                        key={form.name}
                         onClick={() => props.editor.updateBlock(props.block, {
-                          type: 'widget',
-                          props: { type: widget.name },
+                          type: 'form',
+                          props: { type: form.name },
                         })}
                       >
-                        {widget.title}
+                        {form.title}
                       </Menu.Item>
                     ))}
                   </Menu.Dropdown>
@@ -93,17 +75,29 @@ export const BlockEditorWidget = createReactBlockSpec(
               </>
             )
             : null}
-          <div
-            style={{
-              flex: 1,
-              pointerEvents: props.editor.isEditable ? 'none' : undefined,
-            }}
-            className={props.block.props.cssClass || undefined}
-          >
-            {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
+          <div style={{ flex: 1 }} className={props.block.props.cssClass || undefined}>
+            {props.block.props.type ? <FormWidget formName={props.block.props.type} /> : null}
           </div>
         </div>
       );
     },
   },
 );
+
+export const insertBlockEditorForms = (editor: BlockNoteEditor, widgets: IForm[]) => (
+  widgets.map((form) => ({
+    title: form.title,
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: 'form' as any,
+        props: {
+          type: form.name,
+        } as any,
+      });
+    },
+    aliases: [
+      form.name,
+    ],
+    group: 'Формы',
+    icon: <DashboardOutlined />,
+  })));

@@ -1,14 +1,16 @@
 import { gql, useQuery } from '@apollo/client';
 import {
-  BlockNoteEditor, insertOrUpdateBlock, BlockNoteSchema,
+  BlockNoteSchema,
   defaultBlockSpecs, filterSuggestionItems,
   locales,
   combineByGroup,
   Block,
   defaultStyleSpecs,
+  CustomBlockConfig,
+  InlineContentSchema,
+  StyleSchema,
 } from '@blocknote/core';
-import {
-  createReactBlockSpec, getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
+import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
 
   useBlockNoteEditor,
   useComponentsContext,
@@ -30,8 +32,7 @@ import {
   NestBlockButton,
   UnnestBlockButton,
   CreateLinkButton,
-} from '@blocknote/react';
-import { TextInput } from '@mantine/core';
+  ReactCustomBlockRenderProps } from '@blocknote/react';
 import {
   multiColumnDropCursor, withMultiColumn,
   locales as multiColumnLocales, getMultiColumnSlashMenuItems,
@@ -39,19 +40,22 @@ import {
 // import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
-  DashboardOutlined,
-} from '@mui/icons-material';
-import {
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  TextField,
   Tooltip,
 } from '@mui/material';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
-import { IForm } from './entities/IForm';
+import { MoreVert } from '@mui/icons-material';
 import { BlockEditorCssView, insertBlockEditorCssView } from './blocks/templates/css';
 import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templates/head';
 // eslint-disable-next-line import/no-cycle
@@ -60,8 +64,10 @@ import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/t
 import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blocks/postBlock';
 // eslint-disable-next-line import/no-cycle
 import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blocks/imageBlock';
-import { BlockEditorForm, BlockEditorWidget, insertBlockEditorWidgets } from './blocks/blockEditorWidget';
-import BlockEditorHtmlView from './blocks/blockEditorHtmlView';
+import { BlockEditorWidget, insertBlockEditorWidgets } from './blocks/blockEditorWidget';
+import BlockEditorHtmlView, { insertBlockEditorHtmlView } from './blocks/blockEditorHtmlView';
+import { BlockEditorForm, insertBlockEditorForms } from './blocks/blockEditorForm';
+import { BlockEditorPosts, insertBlockEditorPosts } from './blocks/blockEditorPosts';
 
 export const ClassStyle = createReactStyleSpec(
   {
@@ -150,93 +156,43 @@ export function Posts(props: {
   );
 }
 
-export const BlockEditorPosts = createReactBlockSpec(
-  {
-    type: 'posts',
-    propSchema: {
-      urlPrefix: {
-        default: '/posts/',
-        type: 'string',
-      },
-    },
-    content: 'none',
-    isSelectable: false,
-  },
-  {
-    render: (props) => (
-      <div data-widget-type="posts" className="flex gap-2">
-        {
-            props.editor.isEditable && (
-              <div>
-                <div>
-                  <TextInput
-                    size="small"
-                    label="Префикс ссылки на посты"
-                    value={props.block.props.urlPrefix}
-                    onChange={(e) => {
-                      props.editor.updateBlock(
-                        props.block,
-                        { props: {
-                          ...props.block.props,
-                          urlPrefix: e.target.value,
-                        } },
-                      );
-                    }}
-                  />
-                </div>
-              </div>
-            )
-          }
-        <div>
-          {props.editor.isEditable
-            ? (
-              <div style={{ pointerEvents: 'none' }}>
-                <Posts urlPrefix={props.block.props.urlPrefix} />
-              </div>
-            )
-            : <Posts urlPrefix={props.block.props.urlPrefix} />}
-        </div>
-      </div>
-    ),
-  },
-);
+export function BlockSettings(
+  props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
+) {
+  const [dialog, setDialog] = useState(false);
 
-export const insertBlockEditorForms = (editor: BlockNoteEditor, widgets: IForm[]) => (
-  widgets.map((form) => ({
-    title: form.title,
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'form' as any,
-        props: {
-          type: form.name,
-        } as any,
-      });
-    },
-    aliases: [
-      form.name,
-    ],
-    group: 'Формы',
-    icon: <DashboardOutlined />,
-  })));
+  return (
+    <>
+      <IconButton
+        size="small"
+        onClick={() => {
+          setDialog(true);
+        }}
+      >
+        <MoreVert />
+      </IconButton>
+      <Dialog open={dialog} onClose={() => setDialog(false)}>
+        <DialogTitle>Настройки блока</DialogTitle>
+        <DialogContent>
+          <TextField
+            title="CSS class"
+            label="CSS class"
+            value={props.block.props.cssClass}
+            onChange={(e) => {
+              props.editor.updateBlock(props.block, {
+                props: { cssClass: e.target.value },
+              });
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialog(false)}>Закрыть</Button>
+        </DialogActions>
 
-export const insertBlockEditorPosts = (editor: BlockNoteEditor) => (
-  {
-    title: 'Посты',
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'posts' as any,
-        props: {
-          urlPrefix: '/posts/',
-        } as any,
-      });
-    },
-    aliases: [
-      'posts',
-    ],
-    group: 'Посты',
-    icon: <DashboardOutlined />,
-  }
-);
+      </Dialog>
+    </>
+  );
+}
 
 interface BlockEditorProps {
   initialData: any;
