@@ -1,13 +1,31 @@
 import { gql, useQuery } from '@apollo/client';
-import { CustomBlockConfig, defaultProps, InlineContentSchema, StyleSchema } from '@blocknote/core';
+import { BlockNoteEditor, CustomBlockConfig, defaultProps, InlineContentSchema, insertOrUpdateBlock, StyleSchema } from '@blocknote/core';
 import { createReactBlockSpec, ReactCustomBlockRenderProps } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import { useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField } from '@mui/material';
-import { MoreVert } from '@mui/icons-material';
+import { MoreVert, WidgetsOutlined } from '@mui/icons-material';
 import { IWidget } from '../entities/IWidget';
 import { FormWidget, PageWidget } from '../ParseWidgets';
 import { IForm } from '../entities/IForm';
+
+export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
+  widgets.map((widget) => ({
+    title: widget.title,
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: 'widget' as any,
+        props: {
+          type: widget.name,
+        } as any,
+      });
+    },
+    aliases: [
+      widget.name,
+    ],
+    group: 'Виджеты',
+    icon: <WidgetsOutlined />,
+  })));
 
 function BlockSettings(
   props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
