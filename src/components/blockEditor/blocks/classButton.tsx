@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 
 import { createReactStyleSpec, useBlockNoteEditor } from '@blocknote/react';
+// eslint-disable-next-line import/no-cycle
 import { schema } from '@/components/BlockEditor';
 
 export const ClassStyle = createReactStyleSpec(

@@ -57,6 +57,8 @@ import BlockEditorHtmlView, { insertBlockEditorHtmlView } from './blockEditor/bl
 import { BlockEditorForm, insertBlockEditorForms } from './blockEditor/blocks/blockEditorForm';
 // eslint-disable-next-line import/no-cycle
 import { BlockEditorPosts, insertBlockEditorPosts } from './blockEditor/blocks/blockEditorPosts';
+// eslint-disable-next-line import/no-cycle
+import { ClassStyle, SetClassButton } from './blockEditor/blocks/classButton';
 
 export function BlockSettings(
   props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
