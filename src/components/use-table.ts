@@ -51,6 +51,7 @@ export const GET_TABLE_BY_ID = gql`
       name
       dbName
       createdAt
+      isSystem
       fields {
         id
         name
@@ -84,6 +85,7 @@ export const GET_TABLE_BY_DB_NAME = gql`
       id
       name
       dbName
+      isSystem
       createdAt
       fields {
         id
@@ -115,8 +117,12 @@ export const GET_TABLE_BY_DB_NAME = gql`
 export const generateGetTableDataQuery = (
   tableName: string,
   fields: TableField[],
+  isSystem = false,
 ) => {
   const tables: string[] = [];
+  if (isSystem) {
+    tableName = `SystemTable${tableName}`;
+  }
   fields.forEach((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE
       && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
@@ -232,24 +238,24 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
 
     tableMeta?.fields.forEach((field: IField) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE) {
-        data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+        data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
           row[field.dbName] = objects[row[`${field.dbName}Id`]];
         });
       }
       if (field.type === FieldType.ONE_TO_MANY_MANY || field.type === FieldType.MANY_TO_MANY_FIRST
         || field.type === FieldType.MANY_TO_MANY_SECOND) {
-        data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+        data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
           row[field.dbName] = row[`${field.dbName}Ids`].map((id: string) => objects[id]);
         });
       }
     });
 
-    data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+    data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
       row.createdBy = data.getUsers.find((user: any) => user.id === row.createdById);
       row.updatedBy = data.getUsers.find((user: any) => user.id === row.updatedById);
     });
 
-    return data[`getAll${tableMeta!.dbName}`];
+    return data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`];
   };
 
   const {
@@ -258,7 +264,7 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
     error: dataError,
     refetch: refetchData,
   } = useQuery(
-    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
+    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || [], tableMeta?.isSystem),
     {
       skip: !tableMeta?.dbName || !tableMeta?.fields,
       onCompleted: (data) => {
