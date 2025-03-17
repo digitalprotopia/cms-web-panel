@@ -9,23 +9,33 @@ import {
   TextField,
 } from '@mui/material';
 import { ICategory } from '@/components/entities/ICategory';
+import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 
 function CategoriesPage() {
   const router = useRouter();
   const [form, setForm] = useState<Partial<ICategory>>({
     title: '',
+    parentCategoryId: '',
   });
   const [createCategory] = useMutation(gql`
     mutation CreateCategory($input: CategoryInput!) {
       createCategory(input: $input) {
         title
+        parentCategoryId
         slug
       }
   }`);
-  const { loading, data, refetch } = useQuery(gql`
+  const { loading, data, refetch } = useQuery<{
+    getCategories: ICategory[];
+  }>(gql`
     query {
       getCategories {
+        id
         title
+        parentCategory {
+          id
+          title
+        }
         slug
       }
     }
@@ -43,11 +53,17 @@ function CategoriesPage() {
         header: 'Адрес',
         size: 150,
       },
+      {
+        accessorKey: 'parentCategory.title',
+        header: 'Родительская категория',
+        size: 250,
+      },
     ],
     [router],
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const categories = data?.getCategories || [];
 
   if (loading) {
     return <div>Loading...</div>;
@@ -71,7 +87,7 @@ function CategoriesPage() {
 
       <MaterialReactTable
         columns={columns}
-        data={data.getCategories}
+        data={categories}
         enableColumnResizing
         enableFullScreenToggle={false}
         enableDensityToggle
@@ -96,6 +112,16 @@ function CategoriesPage() {
             label="Название"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+        </DialogContent>
+        <DialogContent>
+          <S3Autocomplete
+            options={categories.map((category: { title: string; id: string; }) => ({
+              name: category.title,
+              id: category.id,
+            }))}
+            value={form.parentCategoryId}
+            onChange={(newValue) => setForm({ ...form, parentCategoryId: newValue as string })}
           />
         </DialogContent>
         <DialogActions>
