@@ -12,6 +12,7 @@ import { DndProvider } from 'react-dnd'; import {
   Tree,
   getBackendOptions,
   MultiBackend,
+  TreeProps,
 } from '@minoru/react-dnd-treeview';
 
 function CategoriesPage() {
@@ -25,6 +26,12 @@ function CategoriesPage() {
         title
         parentCategoryId
         slug
+      }
+  }`);
+  const [editCategory] = useMutation(gql`
+    mutation EditCategory($id: ID!, $input: CategoryInput!) {
+      editCategory(id: $id, input: $input) {
+        parentCategoryId
       }
   }`);
   const { loading, data, refetch } = useQuery<{
@@ -55,6 +62,18 @@ function CategoriesPage() {
     parent: category.parentCategory?.id || 0,
   }));
 
+  const handleDrop: TreeProps['onDrop'] = async (newTree, { dragSourceId, dropTargetId }) => {
+    await editCategory({
+      variables: {
+        id: dragSourceId,
+        input: {
+          parentCategoryId: dropTargetId === 0 ? null : dropTargetId,
+        },
+      },
+    });
+    refetch();
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -74,35 +93,45 @@ function CategoriesPage() {
           Добавить категорию
         </Button>
       </div>
-      <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-        <div
-          className="rounded p-4 shadow-lg bg-white"
-        >
-          <div className="px-4 py-2">
-            <h1 className="text-xl font-bold">Категории</h1>
-          </div>
-          <Tree
-            tree={treeData}
-            rootId={0}
-            render={(node, { depth, isOpen, onToggle }) => (
-              <div className="flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
-                <div>
-                  {node.droppable && (
-                    <span onClick={onToggle}>{isOpen ? '[-]' : '[+]'}</span>
-                  )}
-                </div>
-                <div className="flex-1">
-                  {node.text}
-                </div>
-                <div className="flex-1">
-                  {node.data?.slug || ''}
-                </div>
-              </div>
-            )}
-            onDrop={((_) => _)}
-          />
+      <div className="rounded shadow-lg">
+        <div className="px-4 py-2">
+          <h1 className="text-xl font-bold">Категории</h1>
         </div>
-      </DndProvider>
+        <style>
+          {`
+        .treeContainer > ul {
+          padding-left: 40px;
+          padding-right: 0px;
+          padding-bottom: 10px;
+          padding-top: 10px;
+        }
+        `}
+        </style>
+        <div className="treeContainer">
+          <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+            <Tree
+              tree={treeData}
+              rootId={0}
+              render={(node, { depth, isOpen, onToggle }) => (
+                <div className="flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
+                  <div>
+                    {node.droppable && (
+                    <span onClick={onToggle}>{isOpen ? '[-]' : '[+]'}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    {node.text}
+                  </div>
+                  <div className="flex-1">
+                    {node.data?.slug || ''}
+                  </div>
+                </div>
+              )}
+              onDrop={handleDrop}
+            />
+          </DndProvider>
+        </div>
+      </div>
 
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>Добавить категорию</DialogTitle>
