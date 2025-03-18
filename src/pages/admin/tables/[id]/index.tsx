@@ -222,7 +222,7 @@ function CellEdit({
   });
 
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const editRow = useEditRow(meta.dbName);
+  const editRow = useEditRow(meta.isSystem ? `SystemTable${meta.dbName}` : meta.dbName);
 
   if (field.type === FieldType.USER_CREATOR) {
     return null;

@@ -14,18 +14,22 @@ type TableField = IField & {
   dbName: string;
   oneToManyLinkOneTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
   oneToManyLinkManyTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
   manyToManyLinkFirstTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
   manyToManyLinkSecondTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
 };
@@ -35,6 +39,7 @@ interface TableMeta {
   name: string;
   dbName: string;
   createdAt: string;
+  isSystem: boolean;
   fields: TableField[];
 }
 
@@ -60,18 +65,22 @@ export const GET_TABLE_BY_ID = gql`
         position
         oneToManyLinkOneTable {
           id
+          isSystem
           dbName
         }
         oneToManyLinkManyTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkFirstTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkSecondTable {
           id
+          isSystem
           dbName
         }
       }
@@ -95,24 +104,39 @@ export const GET_TABLE_BY_DB_NAME = gql`
         position
         oneToManyLinkOneTable {
           id
+          isSystem
           dbName
         }
         oneToManyLinkManyTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkFirstTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkSecondTable {
           id
+          isSystem
           dbName
         }
       }
     }
   }
 `;
+
+const getDbName = (table: {
+  id: string;
+  isSystem: boolean;
+  dbName: string;
+}) => {
+  if (table.isSystem) {
+    return `SystemTable${table.dbName}`;
+  }
+  return table.dbName;
+};
 
 export const generateGetTableDataQuery = (
   tableName: string,
@@ -125,20 +149,20 @@ export const generateGetTableDataQuery = (
   }
   fields.forEach((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE
-      && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
-      tables.push(field.oneToManyLinkManyTable!.dbName);
+      && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
+      tables.push(getDbName(field.oneToManyLinkManyTable!));
     }
     if (field.type === FieldType.ONE_TO_MANY_MANY
-      && !tables.includes(field.oneToManyLinkOneTable!.dbName)) {
-      tables.push(field.oneToManyLinkOneTable!.dbName);
+      && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
+      tables.push(getDbName(field.oneToManyLinkOneTable!));
     }
     if (field.type === FieldType.MANY_TO_MANY_FIRST
-      && !tables.includes(field.manyToManyLinkSecondTable!.dbName)) {
-      tables.push(field.manyToManyLinkSecondTable!.dbName);
+      && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
+      tables.push(getDbName(field.manyToManyLinkSecondTable!));
     }
     if (field.type === FieldType.MANY_TO_MANY_SECOND
-      && !tables.includes(field.manyToManyLinkFirstTable!.dbName)) {
-      tables.push(field.manyToManyLinkFirstTable!.dbName);
+      && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
+      tables.push(getDbName(field.manyToManyLinkFirstTable!));
     }
   });
   return gql`
@@ -213,20 +237,20 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
     const tables: string[] = [];
     tableMeta?.fields.forEach((field: any) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE
-        && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
-        tables.push(field.oneToManyLinkManyTable!.dbName);
+        && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
+        tables.push(getDbName(field.oneToManyLinkManyTable!));
       }
       if (field.type === FieldType.ONE_TO_MANY_MANY
-        && !tables.includes(field.oneToManyLinkOneTable!.dbName)) {
-        tables.push(field.oneToManyLinkOneTable!.dbName);
+        && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
+        tables.push(getDbName(field.oneToManyLinkOneTable!));
       }
       if (field.type === FieldType.MANY_TO_MANY_FIRST
-        && !tables.includes(field.manyToManyLinkSecondTable!.dbName)) {
-        tables.push(field.manyToManyLinkSecondTable!.dbName);
+        && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
+        tables.push(getDbName(field.manyToManyLinkSecondTable!));
       }
       if (field.type === FieldType.MANY_TO_MANY_SECOND
-        && !tables.includes(field.manyToManyLinkFirstTable!.dbName)) {
-        tables.push(field.manyToManyLinkFirstTable!.dbName);
+        && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
+        tables.push(getDbName(field.manyToManyLinkFirstTable!));
       }
     });
     const objects: any = {};
