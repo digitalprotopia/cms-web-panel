@@ -1,18 +1,20 @@
 import {
   gql, useMutation, useQuery,
 } from '@apollo/client';
-import { useRouter } from 'next/router';
-import { useState, useMemo } from 'react';
-import { MaterialReactTable } from 'material-react-table';
+import { useState } from 'react';
 import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle,
   TextField,
 } from '@mui/material';
 import { ICategory } from '@/components/entities/ICategory';
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
+import { DndProvider } from 'react-dnd'; import {
+  Tree,
+  getBackendOptions,
+  MultiBackend,
+} from '@minoru/react-dnd-treeview';
 
 function CategoriesPage() {
-  const router = useRouter();
   const [form, setForm] = useState<Partial<ICategory>>({
     title: '',
     parentCategoryId: '',
@@ -41,29 +43,17 @@ function CategoriesPage() {
     }
   `);
 
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: 'title',
-        header: 'Название',
-        size: 150,
-      },
-      {
-        accessorKey: 'slug',
-        header: 'Адрес',
-        size: 150,
-      },
-      {
-        accessorKey: 'parentCategory.title',
-        header: 'Родительская категория',
-        size: 250,
-      },
-    ],
-    [router],
-  );
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const categories = data?.getCategories || [];
+  const treeData = categories.map((category: ICategory) => ({
+    id: category.id,
+    text: category.title,
+    data: {
+      slug: category.slug,
+    },
+    droppable: true,
+    parent: category.parentCategory?.id || 0,
+  }));
 
   if (loading) {
     return <div>Loading...</div>;
@@ -84,27 +74,36 @@ function CategoriesPage() {
           Добавить категорию
         </Button>
       </div>
-
-      <MaterialReactTable
-        columns={columns}
-        data={categories}
-        enableColumnResizing
-        enableFullScreenToggle={false}
-        enableDensityToggle
-        enableColumnFilters
-        enablePagination
-        enableSorting
-        muiTableProps={{
-          sx: {
-            tableLayout: 'fixed',
-          },
-        }}
-        renderTopToolbarCustomActions={() => (
+      <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+        <div
+          className="rounded p-4 shadow-lg bg-white"
+        >
           <div className="px-4 py-2">
             <h1 className="text-xl font-bold">Категории</h1>
           </div>
-        )}
-      />
+          <Tree
+            tree={treeData}
+            rootId={0}
+            render={(node, { depth, isOpen, onToggle }) => (
+              <div className="flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
+                <div>
+                  {node.droppable && (
+                    <span onClick={onToggle}>{isOpen ? '[-]' : '[+]'}</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  {node.text}
+                </div>
+                <div className="flex-1">
+                  {node.data?.slug || ''}
+                </div>
+              </div>
+            )}
+            onDrop={((_) => _)}
+          />
+        </div>
+      </DndProvider>
+
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>Добавить категорию</DialogTitle>
         <DialogContent>
