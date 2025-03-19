@@ -649,7 +649,9 @@ function TablePage() {
           );
         },
         Cell: ({ cell, row }) => {
-          const [editMode, setEditMode] = useState(false);
+          const [editMode, setEditMode] = useState(!field.isSystem
+            && [FieldType.HTML, FieldType.BLOCK]
+              .includes(field.type));
           if (!field.isSystem && (editMode || field.type === FieldType.BOOLEAN)) {
             return (
               <CellEdit
@@ -704,6 +706,9 @@ function TablePage() {
               </div>
             );
           }
+          if (field.type === FieldType.BLOCK) {
+            cellValue = 'Блочный контент';
+          }
           if (field.type === FieldType.ONE_TO_MANY_ONE) {
             cellValue = cellValue?._cms_title;
           }
@@ -743,8 +748,6 @@ function TablePage() {
               </div>
             ) : null;
           }
-
-          if ([FieldType.HTML, FieldType.BLOCK].includes(field.type)) setEditMode(true);
 
           if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;

@@ -7,6 +7,7 @@ import { BlockNoteEditor, insertOrUpdateBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
 import { Editor } from '@monaco-editor/react';
 import { Article } from '@mui/icons-material';
+import Head from 'next/head';
 import { useContext } from 'react';
 
 const GET_SITEITEM = gql`
@@ -78,6 +79,9 @@ export const BlockEditorContentView = createReactBlockSpec(
             text-decoration: underline;
           }`}
           </style>
+          <Head>
+            <title>{siteItem?.getSiteItem?.title || ''}</title>
+          </Head>
           <ParsePage
             html={props.block.props.html}
             args={{
