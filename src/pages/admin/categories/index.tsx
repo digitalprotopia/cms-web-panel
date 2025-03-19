@@ -88,6 +88,10 @@ function CategoriesPage() {
     return <div>Loading...</div>;
   }
 
+  const categoryExists = categories.some(
+    (category: { title: string; }) => category.title === form.title,
+  );
+
   return (
     <div className="rounded p-4 shadow-lg bg-white">
       <div>
@@ -181,6 +185,11 @@ function CategoriesPage() {
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
+          <div style={{ color: 'red' }}>
+            {(form.title === '' && 'Название не может быть пустым')
+              || (categoryExists && 'Категория с таким названием уже существует.')
+              || ''}
+          </div>
         </DialogContent>
         <DialogContent>
           <S3Autocomplete
@@ -194,6 +203,10 @@ function CategoriesPage() {
         </DialogContent>
         <DialogActions>
           <Button
+            disabled={
+              form.title === ''
+              || categoryExists
+            }
             onClick={async () => {
               await createCategory({ variables: { input: form } });
               refetch();
