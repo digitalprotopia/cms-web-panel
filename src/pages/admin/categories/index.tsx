@@ -7,7 +7,9 @@ import {
   IconButton,
   TextField,
 } from '@mui/material';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { ICategory } from '@/components/entities/ICategory';
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 import { DndProvider } from 'react-dnd'; import {
@@ -16,7 +18,6 @@ import { DndProvider } from 'react-dnd'; import {
   MultiBackend,
   TreeProps,
 } from '@minoru/react-dnd-treeview';
-import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 
 function CategoriesPage() {
   const [form, setForm] = useState<Partial<ICategory>>({
@@ -38,6 +39,11 @@ function CategoriesPage() {
         parentCategoryId
       }
   }`);
+  const [deleteCategory] = useMutation(gql`
+    mutation DeleteCategory($id: ID!) {
+      deleteCategory(id: $id)
+    }
+  `);
   const { loading, data, refetch } = useQuery<{
     getCategories: ICategory[];
   }>(gql`
@@ -75,6 +81,11 @@ function CategoriesPage() {
         },
       },
     });
+    refetch();
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteCategory({ variables: { id } });
     refetch();
   };
 
@@ -247,6 +258,13 @@ function CategoriesPage() {
                         }}
                       >
                         <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => {
+                          handleDelete(node.id as string);
+                        }}
+                      >
+                        <DeleteIcon />
                       </IconButton>
                     </div>
                   </div>
