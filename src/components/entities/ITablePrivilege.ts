@@ -15,6 +15,6 @@ export enum Privilege {
 
 export interface ITablePrivilege extends IEntity {
     tableId: string;
-    roleId: Role;
+    roleId: string;
     privilege: Privilege[];
 }

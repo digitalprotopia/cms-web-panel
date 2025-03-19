@@ -887,7 +887,7 @@ function TablePage() {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => router.push(`/tables/${id}/privileges`)}
+            onClick={() => router.push(`/admin/tables/${id}/privileges`)}
             className="normal-case"
          >
             Настроить права
