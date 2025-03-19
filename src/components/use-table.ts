@@ -62,6 +62,7 @@ export const GET_TABLE_BY_ID = gql`
         name
         type
         dbName
+        isSystem
         position
         oneToManyLinkOneTable {
           id
@@ -101,6 +102,7 @@ export const GET_TABLE_BY_DB_NAME = gql`
         name
         type
         dbName
+        isSystem
         position
         oneToManyLinkOneTable {
           id

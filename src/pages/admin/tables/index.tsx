@@ -3,10 +3,12 @@ import {
 } from '@apollo/client';
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   TextField,
 } from '@mui/material';
 import { useRouter } from 'next/router';
@@ -23,6 +25,7 @@ function TablesPage() {
         id
         name
         dbName
+        isSystem
         createdAt
       }
     }
@@ -34,6 +37,9 @@ function TablesPage() {
     name: '',
     dbName: '',
   });
+
+  const [showSystem, setShowSystem] = useState(false);
+
   const [editTable] = useMutation(gql`
     mutation ($id: ID!, $input: TableInput!) {
       updateTable(id: $id, input: $input) {
@@ -99,16 +105,29 @@ function TablesPage() {
     return <div>Loading...</div>;
   }
 
+  let filteredData = data?.getTables || [];
+
+  if (!showSystem) {
+    filteredData = filteredData.filter((table: ITable) => !table.isSystem);
+  }
+
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <div className="mb-4">
+      <div className="mb-8 flex items-center gap-4">
         <Button
           variant="contained"
           onClick={() => setIsModalOpen(true)}
-          className="mb-4 normal-case"
+          className="normal-case"
         >
           Добавить таблицу
         </Button>
+        <FormControlLabel
+          control={(<Checkbox
+            checked={showSystem}
+            onChange={(e) => setShowSystem(e.target.checked)}
+          />)}
+          label="Показать системные таблицы"
+        />
       </div>
 
       <TableEditor
@@ -123,7 +142,7 @@ function TablesPage() {
 
       <MaterialReactTable
         columns={columns}
-        data={data.getTables}
+        data={filteredData}
         enableColumnResizing
         enableFullScreenToggle={false}
         enableDensityToggle

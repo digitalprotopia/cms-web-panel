@@ -253,6 +253,9 @@ function CellEdit({
         <Checkbox
           checked={!!cell.getValue()}
           onChange={(e) => {
+            if (field.isSystem) {
+              return;
+            }
             editRow(row.original.id, {
               [field.dbName]: e.target.checked,
             });
@@ -572,16 +575,18 @@ function TablePage() {
               }}
             >
               {field.name}
-              <IconButton
-                ref={dropDownRef as any}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setDropDownOpen(true);
-                }}
-              >
-                <ArrowDropDown />
-              </IconButton>
+              {!field.isSystem && (
+                <IconButton
+                  ref={dropDownRef as any}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setDropDownOpen(true);
+                  }}
+                >
+                  <ArrowDropDown />
+                </IconButton>
+              )}
               <Popover
                 anchorEl={dropDownRef.current}
                 open={dropDownOpen}
@@ -645,7 +650,7 @@ function TablePage() {
         },
         Cell: ({ cell, row }) => {
           const [editMode, setEditMode] = useState(false);
-          if (editMode || field.type === FieldType.BOOLEAN) {
+          if (!field.isSystem && (editMode || field.type === FieldType.BOOLEAN)) {
             return (
               <CellEdit
                 cell={cell}

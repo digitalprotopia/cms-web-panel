@@ -45,4 +45,5 @@ export interface IField extends IEntity {
   type: FieldType;
   options?: IFieldOptions;
   position: number;
+  isSystem: boolean;
 }
