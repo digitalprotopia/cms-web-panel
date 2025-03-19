@@ -4,8 +4,10 @@ import {
 import { useState } from 'react';
 import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  IconButton,
   TextField,
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import { ICategory } from '@/components/entities/ICategory';
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 import { DndProvider } from 'react-dnd'; import {
@@ -18,6 +20,7 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 
 function CategoriesPage() {
   const [form, setForm] = useState<Partial<ICategory>>({
+    id: '',
     title: '',
     parentCategoryId: '',
   });
@@ -88,8 +91,75 @@ function CategoriesPage() {
     return <div>Loading...</div>;
   }
 
-  const categoryExists = categories.some(
-    (category: { title: string; }) => category.title === form.title,
+  let categoryExists = false;
+  if (form.id) {
+    categoryExists = categories.some(
+      (category: ICategory) => (category.title === form.title) && (category.id !== form.id),
+    );
+  } else {
+    categoryExists = categories.some(
+      (category: ICategory) => category.title === form.title,
+    );
+  }
+
+  const dialogType = form.id ? 'Редактировать' : 'Добавить';
+  const categoriesDialog = (
+    <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <DialogTitle>
+        {dialogType}
+        {' '}
+        категорию
+      </DialogTitle>
+      <DialogContent>
+        <TextField
+          label="Название"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+        />
+        <div style={{ color: 'red' }}>
+          {(form.title === '' && 'Название не может быть пустым')
+          || (categoryExists && 'Категория с таким названием уже существует.')
+          || ''}
+        </div>
+      </DialogContent>
+      <DialogContent>
+        <S3Autocomplete
+          options={categories.map((category: { title: string; id: string; }) => ({
+            name: category.title,
+            id: category.id,
+          }))}
+          value={form.parentCategoryId}
+          onChange={(newValue) => setForm({ ...form, parentCategoryId: newValue as string })}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button
+          disabled={
+          form.title === ''
+          || categoryExists
+        }
+          onClick={async () => {
+            if (form.id) {
+              await editCategory({ variables: { id: form.id,
+                input: { title: form.title, parentCategoryId: form.parentCategoryId } } });
+            } else {
+              await createCategory({ variables: { input: form } });
+            }
+            refetch();
+            setIsModalOpen(false);
+          }}
+        >
+          {dialogType}
+        </Button>
+        <Button
+          onClick={() => {
+            setIsModalOpen(false);
+          }}
+        >
+          Отмена
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 
   return (
@@ -122,7 +192,6 @@ function CategoriesPage() {
 
         .root {
           align-items: center;
-          display: grid;
           grid-template-columns: auto auto 1fr auto;
           height: 32px;
           padding-inline-end: 8px;
@@ -169,6 +238,20 @@ function CategoriesPage() {
                   <div>
                     {node.data?.slug || ''}
                   </div>
+                  <div>
+                    <IconButton
+                      onClick={() => {
+                        setForm({
+                          id: node.id as string,
+                          title: node.text,
+                          parentCategoryId: node.parent as string || undefined,
+                        });
+                        setIsModalOpen(true);
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </div>
                 </div>
               )}
               onDrop={handleDrop}
@@ -176,54 +259,7 @@ function CategoriesPage() {
           </DndProvider>
         </div>
       </div>
-
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <DialogTitle>Добавить категорию</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Название"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-          />
-          <div style={{ color: 'red' }}>
-            {(form.title === '' && 'Название не может быть пустым')
-              || (categoryExists && 'Категория с таким названием уже существует.')
-              || ''}
-          </div>
-        </DialogContent>
-        <DialogContent>
-          <S3Autocomplete
-            options={categories.map((category: { title: string; id: string; }) => ({
-              name: category.title,
-              id: category.id,
-            }))}
-            value={form.parentCategoryId}
-            onChange={(newValue) => setForm({ ...form, parentCategoryId: newValue as string })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            disabled={
-              form.title === ''
-              || categoryExists
-            }
-            onClick={async () => {
-              await createCategory({ variables: { input: form } });
-              refetch();
-              setIsModalOpen(false);
-            }}
-          >
-            Добавить
-          </Button>
-          <Button
-            onClick={() => {
-              setIsModalOpen(false);
-            }}
-          >
-            Отмена
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {categoriesDialog}
     </div>
   );
 }
