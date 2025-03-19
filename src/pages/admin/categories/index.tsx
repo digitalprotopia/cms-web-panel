@@ -14,6 +14,7 @@ import { DndProvider } from 'react-dnd'; import {
   MultiBackend,
   TreeProps,
 } from '@minoru/react-dnd-treeview';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 
 function CategoriesPage() {
   const [form, setForm] = useState<Partial<ICategory>>({
@@ -74,6 +75,15 @@ function CategoriesPage() {
     refetch();
   };
 
+  const handleToggle = (
+    e: React.MouseEvent,
+    onToggle: (id: number | string) => void,
+    id: number | string,
+  ) => {
+    e.stopPropagation();
+    onToggle(id);
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -105,24 +115,54 @@ function CategoriesPage() {
           padding-bottom: 10px;
           padding-top: 10px;
         }
+
+        .root {
+          align-items: center;
+          display: grid;
+          grid-template-columns: auto auto 1fr auto;
+          height: 32px;
+          padding-inline-end: 8px;
+        }
+
+        .expandIconWrapper {
+          align-items: center;
+          font-size: 0;
+          cursor: pointer;
+          display: flex;
+          height: 24px;
+          justify-content: center;
+          width: 24px;
+          transition: transform linear .1s;
+          transform: rotate(0deg);
+        }
+
+        .expandIconWrapper.isOpen {
+          transform: rotate(90deg);
+        }
         `}
         </style>
         <div className="treeContainer">
           <DndProvider backend={MultiBackend} options={getBackendOptions()}>
             <Tree
+              initialOpen
               tree={treeData}
               rootId={0}
               render={(node, { depth, isOpen, onToggle }) => (
-                <div className="flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
-                  <div>
+                <div className="root flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
+                  <div
+                    className={`expandIconWrapper ${isOpen ? 'isOpen' : ''
+                    }`}
+                  >
                     {node.droppable && (
-                    <span onClick={onToggle}>{isOpen ? '[-]' : '[+]'}</span>
+                      <div onClick={(e) => handleToggle(e, onToggle, node.id)}>
+                        <ArrowRightIcon />
+                      </div>
                     )}
                   </div>
-                  <div className="flex-1">
+                  <div>
                     {node.text}
                   </div>
-                  <div className="flex-1">
+                  <div>
                     {node.data?.slug || ''}
                   </div>
                 </div>
