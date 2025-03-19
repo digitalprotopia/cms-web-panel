@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
-import { MaterialReactTable } from 'material-react-table';
+import { MaterialReactTable, MRT_ColumnDef, MRT_RowData } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
 import { ITable } from '@/components/entities/ITable';
 
@@ -49,7 +49,7 @@ function TablesPage() {
     }
   `);
 
-  const columns = useMemo(
+  const columns = useMemo<MRT_ColumnDef<MRT_RowData>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -60,6 +60,14 @@ function TablesPage() {
         accessorKey: 'dbName',
         header: 'DB Name',
         size: 150,
+        Cell: ({ row }) => (
+          <div>
+            <div>
+              {row.original.dbName}
+            </div>
+            {row.original.isSystem && <div className="text-red-600">Системная таблица</div>}
+          </div>
+        ),
       },
       {
         accessorKey: 'name',
