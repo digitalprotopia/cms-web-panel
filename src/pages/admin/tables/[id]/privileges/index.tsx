@@ -20,9 +20,9 @@ mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [Pri
 
 function PrivilegesPage({ tableId }) {
    const { data, refetch } = useQuery(GET_PRIVILEGES, { variables: { tableId } });
-   const [updatePrivileges] = useMutation(UPDATE_PRIVILEGES);
+   const [updatePrivileges] = useMutation(UPDATE_PRIVILEGES, { variables: { tableId } });
 
-const handlePrivilegeChange = (roleId, newPrivileges) => {
+const handlePrivilegeChange = (roleId: any, newPrivileges: any) => {
     updatePrivileges({ variables: { tableId, roleId, privileges: newPrivileges } });
     refetch();
 };
@@ -51,7 +51,7 @@ return (
                     input={<OutlinedInput id={`select-multiple-chip-${roleId}`} label="Privileges" />}
                     renderValue={(selected) => (
                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => (
+                        {selected.map((value: boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<React.AwaitedReactNode> | React.Key | null | undefined) => (
                          <Chip key={value} label={value} />
                         ))}
                      </Box>
