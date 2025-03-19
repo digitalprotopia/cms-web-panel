@@ -1,9 +1,11 @@
-import {
-  gql, useMutation, useQuery,
-} from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { useState } from 'react';
 import {
-  Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   TextField,
 } from '@mui/material';
@@ -12,7 +14,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { ICategory } from '@/components/entities/ICategory';
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
-import { DndProvider } from 'react-dnd'; import {
+import { DndProvider } from 'react-dnd';
+import {
   Tree,
   getBackendOptions,
   MultiBackend,
@@ -32,13 +35,15 @@ function CategoriesPage() {
         parentCategoryId
         slug
       }
-  }`);
+    }
+  `);
   const [editCategory] = useMutation(gql`
     mutation EditCategory($id: ID!, $input: CategoryInput!) {
       editCategory(id: $id, input: $input) {
         parentCategoryId
       }
-  }`);
+    }
+  `);
   const [deleteCategory] = useMutation(gql`
     mutation DeleteCategory($id: ID!) {
       deleteCategory(id: $id)
@@ -72,7 +77,10 @@ function CategoriesPage() {
     parent: category.parentCategory?.id || 0,
   }));
 
-  const handleDrop: TreeProps['onDrop'] = async (newTree, { dragSourceId, dropTargetId }) => {
+  const handleDrop: TreeProps['onDrop'] = async (
+    newTree,
+    { dragSourceId, dropTargetId },
+  ) => {
     await editCategory({
       variables: {
         id: dragSourceId,
@@ -105,7 +113,7 @@ function CategoriesPage() {
   let categoryExists = false;
   if (form.id) {
     categoryExists = categories.some(
-      (category: ICategory) => (category.title === form.title) && (category.id !== form.id),
+      (category: ICategory) => category.title === form.title && category.id !== form.id,
     );
   } else {
     categoryExists = categories.some(
@@ -129,30 +137,36 @@ function CategoriesPage() {
         />
         <div style={{ color: 'red' }}>
           {(form.title === '' && 'Название не может быть пустым')
-          || (categoryExists && 'Категория с таким названием уже существует.')
-          || ''}
+            || (categoryExists && 'Категория с таким названием уже существует.')
+            || ''}
         </div>
       </DialogContent>
       <DialogContent>
         <S3Autocomplete
-          options={categories.map((category: { title: string; id: string; }) => ({
-            name: category.title,
-            id: category.id,
-          }))}
+          options={categories.map(
+            (category: { title: string; id: string }) => ({
+              name: category.title,
+              id: category.id,
+            }),
+          )}
           value={form.parentCategoryId}
           onChange={(newValue) => setForm({ ...form, parentCategoryId: newValue as string })}
         />
       </DialogContent>
       <DialogActions>
         <Button
-          disabled={
-          form.title === ''
-          || categoryExists
-        }
+          disabled={form.title === '' || categoryExists}
           onClick={async () => {
             if (form.id) {
-              await editCategory({ variables: { id: form.id,
-                input: { title: form.title, parentCategoryId: form.parentCategoryId } } });
+              await editCategory({
+                variables: {
+                  id: form.id,
+                  input: {
+                    title: form.title,
+                    parentCategoryId: form.parentCategoryId,
+                  },
+                },
+              });
             } else {
               await createCategory({ variables: { input: form } });
             }
@@ -225,9 +239,13 @@ function CategoriesPage() {
               tree={treeData}
               rootId={0}
               render={(node, { depth, isOpen, onToggle, hasChild }) => (
-                <div className="flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
+                <div
+                  className="flex items-center gap-4"
+                  style={{ marginLeft: depth * 10 }}
+                >
                   <div
-                    className={`expandIconWrapper ${isOpen ? 'isOpen' : ''
+                    className={`expandIconWrapper ${
+                      isOpen ? 'isOpen' : ''
                     } ${hasChild ? '' : 'invisible'}`}
                   >
                     {node.droppable && (
@@ -238,9 +256,7 @@ function CategoriesPage() {
                   </div>
                   <div className="flex items-center">
                     <div>
-                      <div>
-                        {node.text}
-                      </div>
+                      <div>{node.text}</div>
                       <div className="text-xs text-gray-500 ">
                         {node.data?.slug || ''}
                       </div>
@@ -252,7 +268,8 @@ function CategoriesPage() {
                           setForm({
                             id: node.id as string,
                             title: node.text,
-                            parentCategoryId: node.parent as string || undefined,
+                            parentCategoryId:
+                              (node.parent as string) || undefined,
                           });
                           setIsModalOpen(true);
                         }}
