@@ -190,13 +190,6 @@ function CategoriesPage() {
           padding-top: 10px;
         }
 
-        .root {
-          align-items: center;
-          grid-template-columns: auto auto 1fr auto;
-          height: 32px;
-          padding-inline-end: 8px;
-        }
-
         .expandIconWrapper {
           align-items: center;
           font-size: 0;
@@ -220,11 +213,11 @@ function CategoriesPage() {
               initialOpen
               tree={treeData}
               rootId={0}
-              render={(node, { depth, isOpen, onToggle }) => (
-                <div className="root flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
+              render={(node, { depth, isOpen, onToggle, hasChild }) => (
+                <div className="flex items-center gap-4" style={{ marginLeft: depth * 10 }}>
                   <div
                     className={`expandIconWrapper ${isOpen ? 'isOpen' : ''
-                    }`}
+                    } ${hasChild ? '' : 'invisible'}`}
                   >
                     {node.droppable && (
                       <div onClick={(e) => handleToggle(e, onToggle, node.id)}>
@@ -232,25 +225,30 @@ function CategoriesPage() {
                       </div>
                     )}
                   </div>
-                  <div>
-                    {node.text}
-                  </div>
-                  <div>
-                    {node.data?.slug || ''}
-                  </div>
-                  <div>
-                    <IconButton
-                      onClick={() => {
-                        setForm({
-                          id: node.id as string,
-                          title: node.text,
-                          parentCategoryId: node.parent as string || undefined,
-                        });
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
+                  <div className="flex items-center">
+                    <div>
+                      <div>
+                        {node.text}
+                      </div>
+                      <div className="text-xs text-gray-500 ">
+                        {node.data?.slug || ''}
+                      </div>
+                    </div>
+
+                    <div>
+                      <IconButton
+                        onClick={() => {
+                          setForm({
+                            id: node.id as string,
+                            title: node.text,
+                            parentCategoryId: node.parent as string || undefined,
+                          });
+                          setIsModalOpen(true);
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </div>
                   </div>
                 </div>
               )}
