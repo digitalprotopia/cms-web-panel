@@ -4,14 +4,14 @@ export interface ItemWithParentId {
   id: string;
   parentId?: string;
   title: string;
-  level: number;
+  level?: number;
 }
 
 interface IIndexedNestedItem extends ItemWithParentId {
   children?: {
     [key: string]: IIndexedNestedItem;
   };
-  level: number;
+  level?: number;
 }
 
 export class NestedItem<T extends ItemWithParentId = ItemWithParentId> {
@@ -71,7 +71,7 @@ export function makeIndexedTree<T extends ItemWithParentId>(items: T[]): IIndexe
     }
 
     const nestedParent = parent as IIndexedNestedItem;
-    item.level = nestedParent.level + 1;
+    item.level = (nestedParent.level || 0) + 1;
 
     if (!nestedParent.children) {
       nestedParent.children = {};
@@ -82,7 +82,6 @@ export function makeIndexedTree<T extends ItemWithParentId>(items: T[]): IIndexe
     }
   });
 
-  console.log(result);
   return result;
 }
 
