@@ -134,12 +134,10 @@ function CategoriesPage() {
           label="Название"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
+          variant="standard"
+          error={form.title === '' || categoryExists}
+          helperText={(form.title === '' && 'Название не может быть пустым') || (categoryExists && 'Категория с таким названием уже существует.')}
         />
-        <div style={{ color: 'red' }}>
-          {(form.title === '' && 'Название не может быть пустым')
-            || (categoryExists && 'Категория с таким названием уже существует.')
-            || ''}
-        </div>
       </DialogContent>
       <DialogContent>
         <S3Autocomplete
@@ -149,6 +147,7 @@ function CategoriesPage() {
               id: category.id,
             }),
           )}
+          label="Родительская категория"
           value={form.parentCategoryId}
           onChange={(newValue) => setForm({ ...form, parentCategoryId: newValue as string })}
         />
@@ -209,7 +208,7 @@ function CategoriesPage() {
         <style>
           {`
         .treeContainer > ul {
-          padding-left: 40px;
+          padding-left: 10px;
           padding-right: 0px;
           padding-bottom: 10px;
           padding-top: 10px;
@@ -240,7 +239,7 @@ function CategoriesPage() {
               rootId={0}
               render={(node, { depth, isOpen, onToggle, hasChild }) => (
                 <div
-                  className="flex items-center gap-4"
+                  className="flex items-center gap-2 py-2"
                   style={{ marginLeft: depth * 10 }}
                 >
                   <div
@@ -255,8 +254,8 @@ function CategoriesPage() {
                     )}
                   </div>
                   <div className="flex items-center">
-                    <div>
-                      <div>{node.text}</div>
+                    <div className="pr-4">
+                      <div className="text-lg">{node.text}</div>
                       <div className="text-xs text-gray-500 ">
                         {node.data?.slug || ''}
                       </div>
