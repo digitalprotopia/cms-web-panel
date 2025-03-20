@@ -1,8 +1,9 @@
-import { Autocomplete, TextField } from '@mui/material';
+import { Autocomplete, Box, TextField } from '@mui/material';
 
 type Option = {
   id: string;
   name: string;
+  [key: string]: any;
 };
 
 interface S3AutocompleteProps {
@@ -13,10 +14,11 @@ interface S3AutocompleteProps {
   onChange: (value: string | string[] | null) => void;
   variant?: 'standard' | 'outlined';
   getOptionLabelFromKey?: string;
+  renderOption?: (option: Option) => React.ReactNode;
 }
 
 function S3Autocomplete({
-  label, value, multiple, options, onChange, variant, getOptionLabelFromKey,
+  label, value, multiple, options, onChange, variant, getOptionLabelFromKey, renderOption,
 }: S3AutocompleteProps) {
   return (
     <Autocomplete
@@ -30,6 +32,18 @@ function S3Autocomplete({
       onChange={(e, _value) => {
         onChange(_value);
       }}
+      renderOption={renderOption ? (props, option) => {
+        const { key, ...optionProps } = props;
+        return (
+          <Box
+            key={key}
+            component="li"
+            {...optionProps}
+          >
+            {renderOption(options!.find((o) => o.id === option)!)}
+          </Box>
+        );
+      } : undefined}
       filterSelectedOptions={multiple}
       renderInput={(params) => (
         <TextField

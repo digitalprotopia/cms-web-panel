@@ -1,15 +1,17 @@
 import { useState } from 'react';
 
-interface ItemWithParentId {
+export interface ItemWithParentId {
   id: string;
   parentId?: string;
   title: string;
+  level: number;
 }
 
 interface IIndexedNestedItem extends ItemWithParentId {
   children?: {
     [key: string]: IIndexedNestedItem;
   };
+  level: number;
 }
 
 export class NestedItem<T extends ItemWithParentId = ItemWithParentId> {
@@ -55,6 +57,7 @@ export function makeIndexedTree<T extends ItemWithParentId>(items: T[]): IIndexe
   const result: IIndexedNestedItem[] = [];
   items.forEach((item) => {
     if (!item.parentId) {
+      item.level = 0;
       result.push(item);
 
       return;
@@ -68,6 +71,7 @@ export function makeIndexedTree<T extends ItemWithParentId>(items: T[]): IIndexe
     }
 
     const nestedParent = parent as IIndexedNestedItem;
+    item.level = nestedParent.level + 1;
 
     if (!nestedParent.children) {
       nestedParent.children = {};
@@ -75,6 +79,20 @@ export function makeIndexedTree<T extends ItemWithParentId>(items: T[]): IIndexe
 
     if (!nestedParent.children[item.id]) {
       nestedParent.children[item.id] = item as IIndexedNestedItem;
+    }
+  });
+
+  console.log(result);
+  return result;
+}
+
+export function flattenIndexedTree(tree: IIndexedNestedItem[]): ItemWithParentId[] {
+  const result: ItemWithParentId[] = [];
+
+  tree.forEach((item) => {
+    result.push(item);
+    if (item.children) {
+      result.push(...flattenIndexedTree(Object.values(item.children)));
     }
   });
 
