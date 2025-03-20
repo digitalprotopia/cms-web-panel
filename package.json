@@ -2,6 +2,16 @@
   "name": "cms-web-panel",
   "version": "0.1.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/digitalprotopia/cms/cms-web-panel.git"
+  },
+  "author": "",
+  "license": "Apache License",
+  "bugs": {
+    "url": "https://gitlab.com/digitalprotopia/cms/cms-web-panel/issues"
+  },
+  "homepage": "https://gitlab.com/digitalprotopia/cms/cms-web-panel#readme",
   "scripts": {
     "dev": "next dev --port 3001",
     "build": "next build",

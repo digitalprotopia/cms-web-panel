@@ -1,8 +1,8 @@
 stages:
   - lint
   # - build
-  - image
-  - deploy
+  # - image
+  # - deploy
   - release
 
 variables:
@@ -55,44 +55,44 @@ eslint:
   #     variables:
   #       CHANGED: 1
 
-dockerimage:
-  # dependencies: 
-  #   - build-job
-  image: docker
-  only: 
-    - deploy
-    - main
-    - 38-public-docker
-  stage: image
-  services:
-    - name: docker:24.0.6-dind
-      alias: thedockerhost
-  variables:
-    # Tell docker CLI how to talk to Docker daemon; see
-    # https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-in-docker-executor
-    DOCKER_HOST: tcp://thedockerhost:2375/
-    # Use the overlayfs driver for improved performance:
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  script:
-    - ls
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull || true
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+# dockerimage:
+#   # dependencies: 
+#   #   - build-job
+#   image: docker
+#   only: 
+#     - deploy
+#     - main
+#     - 38-public-docker
+#   stage: image
+#   services:
+#     - name: docker:24.0.6-dind
+#       alias: thedockerhost
+#   variables:
+#     # Tell docker CLI how to talk to Docker daemon; see
+#     # https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-in-docker-executor
+#     DOCKER_HOST: tcp://thedockerhost:2375/
+#     # Use the overlayfs driver for improved performance:
+#     DOCKER_DRIVER: overlay2
+#     DOCKER_TLS_CERTDIR: ""
+#     IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+#   script:
+#     - ls
+#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#     - docker pull || true
+#     - docker build -t $IMAGE_TAG .
+#     - docker push $IMAGE_TAG
 
-deployimage: 
-  stage: deploy
-  image: curlimages/curl
-  script: curl --fail --request POST --form token=$CI_JOB_TOKEN --form ref=main "$CI_API_V4_URL/projects/$DEPLOY_PROJECT/trigger/pipeline"
-  rules:
-    - if: $DEPLOY_PROJECT
-    - if: $CI_COMMIT_BRANCH == "deploy"
+# deployimage: 
+#   stage: deploy
+#   image: curlimages/curl
+#   script: curl --fail --request POST --form token=$CI_JOB_TOKEN --form ref=main "$CI_API_V4_URL/projects/$DEPLOY_PROJECT/trigger/pipeline"
+#   rules:
+#     - if: $DEPLOY_PROJECT
+#     - if: $CI_COMMIT_BRANCH == "deploy"
 
 publish:
   stage: release
-  image: node:latest
+  image: node:18
   cache: []
   script:
     - npm i
