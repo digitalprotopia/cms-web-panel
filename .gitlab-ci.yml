@@ -92,7 +92,7 @@ eslint:
 
 publish:
   stage: release
-  image: node:18
+  image: node:20
   cache: []
   script:
     - npm i
