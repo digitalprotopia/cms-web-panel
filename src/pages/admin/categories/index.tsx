@@ -14,6 +14,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { ICategory } from '@/components/entities/ICategory';
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
+import slugify from 'slugify';
 import { DndProvider } from 'react-dnd';
 import {
   Tree,
@@ -121,6 +122,18 @@ function CategoriesPage() {
     );
   }
 
+  let slugExists = false;
+  const slug = slugify(form.title || '');
+  if (form.id) {
+    slugExists = categories.some(
+      (category: ICategory) => category.slug === slug && category.id !== form.id,
+    );
+  } else {
+    slugExists = categories.some(
+      (category: ICategory) => category.slug === slug,
+    );
+  }
+
   const dialogType = form.id ? 'Редактировать' : 'Добавить';
   const categoriesDialog = (
     <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -135,8 +148,10 @@ function CategoriesPage() {
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           variant="standard"
-          error={form.title === '' || categoryExists}
-          helperText={(form.title === '' && 'Название не может быть пустым') || (categoryExists && 'Категория с таким названием уже существует.')}
+          error={form.title === '' || categoryExists || slugExists}
+          helperText={(form.title === '' && 'Название не может быть пустым')
+            || (categoryExists && 'Категория с таким названием уже существует.')
+            || (slugExists && 'Категория с таким адресом уже существует.')}
         />
       </DialogContent>
       <DialogContent>
@@ -154,7 +169,7 @@ function CategoriesPage() {
       </DialogContent>
       <DialogActions>
         <Button
-          disabled={form.title === '' || categoryExists}
+          disabled={form.title === '' || categoryExists || slugExists}
           onClick={async () => {
             if (form.id) {
               await editCategory({
