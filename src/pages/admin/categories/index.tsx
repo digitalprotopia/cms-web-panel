@@ -67,6 +67,7 @@ function CategoriesPage() {
   `);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeletionOpen, setIsDeletionOpen] = useState(false);
   const categories = data?.getCategories || [];
   const treeData = categories.map((category: ICategory) => ({
     id: category.id,
@@ -93,8 +94,9 @@ function CategoriesPage() {
     refetch();
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteCategory({ variables: { id } });
+  const handleDelete = async (id: string, title: string) => {
+    setForm({ ...form, id, title });
+    setIsDeletionOpen(true);
     refetch();
   };
 
@@ -200,6 +202,37 @@ function CategoriesPage() {
       </DialogActions>
     </Dialog>
   );
+  const deletionDialog = (
+    <Dialog open={isDeletionOpen} onClose={() => setIsDeletionOpen(false)}>
+      <DialogTitle>Удаление категории</DialogTitle>
+      <DialogContent>
+        Вы уверены, что хотите удалить категорию
+        {' '}
+        &quot;
+        {form.title}
+        &quot;
+        ?
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={async () => {
+            await deleteCategory({ variables: { id: form.id } });
+            refetch();
+            setIsDeletionOpen(false);
+          }}
+        >
+          Удалить
+        </Button>
+        <Button
+          onClick={() => {
+            setIsDeletionOpen(false);
+          }}
+        >
+          Отмена
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
@@ -292,7 +325,7 @@ function CategoriesPage() {
                       </IconButton>
                       <IconButton
                         onClick={() => {
-                          handleDelete(node.id as string);
+                          handleDelete(node.id as string, node.text);
                         }}
                       >
                         <DeleteIcon />
@@ -307,6 +340,7 @@ function CategoriesPage() {
         </div>
       </div>
       {categoriesDialog}
+      {deletionDialog}
     </div>
   );
 }
