@@ -93,6 +93,10 @@ function CMSLayout({
   } = useQuery<MeQueryResponse>(GET_ME);
 
   useEffect(() => {
+    document.getElementById('first-loader')?.remove();
+  }, []);
+
+  useEffect(() => {
     if (router.pathname.startsWith('/admin') || router.pathname.startsWith('/auth')) {
       setCurrentPage(null);
     }
