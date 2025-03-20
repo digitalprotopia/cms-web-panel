@@ -1,7 +1,7 @@
 import UserContext from '@/components/UserContext';
 import { KeyboardArrowDownRounded, NotificationsNoneOutlined } from '@mui/icons-material';
 import {
-  Avatar, Badge, Button, Divider, IconButton, Menu, MenuItem,
+  Avatar, Badge, Button, CircularProgress, Dialog, Divider, IconButton, Menu, MenuItem,
 } from '@mui/material';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -121,10 +121,30 @@ function Header() {
 export default function IndexLayout(props: {
   children: ReactNode
 }) {
+  const user = useContext(UserContext);
   return (
     <main className="flex-1 ">
       <Header />
       {props.children}
+      <Dialog
+        fullScreen
+        open={!user.loaded}
+        PaperProps={{ style: {
+          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+          overflow: 'hidden',
+        } }}
+      >
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        >
+          <CircularProgress size={80} />
+        </div>
+      </Dialog>
     </main>
   );
 }

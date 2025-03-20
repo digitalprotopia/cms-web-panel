@@ -86,6 +86,8 @@ function CMSLayout({
 
   const [currentPage, setCurrentPage] = useState<ISiteItem | null>(null);
 
+  const [loaded, setLoaded] = useState(false);
+
   const {
     data, refetch, error, loading,
   } = useQuery<MeQueryResponse>(GET_ME);
@@ -154,6 +156,8 @@ function CMSLayout({
               <div className="size-full flex flex-col text-base">
                 <UserContext.Provider value={{
                   user: error ? null : data?.me as IUser,
+                  loaded,
+                  setLoaded,
                   refetch: async () => {
                     await refetch();
                     await pages.refetch();
