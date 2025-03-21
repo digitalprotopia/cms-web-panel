@@ -8,6 +8,7 @@ import { IPost } from '../entities/IPost';
 import { ITag } from '../entities/ITag';
 import S3Autocomplete from '../guiElements/S3Autocomplete';
 import BlockEditor from '../BlockEditor';
+import { flattenIndexedTree, ItemWithParentId, makeIndexedTree } from '../guiElements/Tree';
 
 const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {
@@ -60,6 +61,10 @@ export default function PostForm({
       getCategories {
         id
         title
+        parentCategory {
+          id
+          title
+        }
       }
     }
   `);
@@ -109,6 +114,12 @@ export default function PostForm({
       console.error('Ошибка при обновлении поста:', error);
     },
   });
+
+  const categoriesWithParentIds: ItemWithParentId[] = linkData.data?.getCategories
+    .map((category: ICategory) => ({
+      ...category,
+      parentId: category.parentCategory?.id,
+    }));
 
   const handleCreate = async (_formData: Partial<IPost>) => {
     await createPost({ variables: { input: _formData } });
@@ -188,14 +199,20 @@ export default function PostForm({
           multiple
           label="Категории"
           value={formData.categoryIds}
-          options={linkData.data.getCategories.map((category: ICategory) => ({
+          options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds)).map((category) => ({
             id: category.id,
             name: category.title,
+            level: category.level,
           }))}
           onChange={(categoryIds) => setFormData({
             ...formData,
             categoryIds: categoryIds as string[],
           })}
+          renderOption={(option) => (
+            <div style={{ paddingLeft: option.level * 20 }}>
+              {option.name}
+            </div>
+          )}
         />
       </div>
 
