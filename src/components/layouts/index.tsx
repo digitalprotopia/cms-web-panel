@@ -128,7 +128,7 @@ export default function IndexLayout(props: {
       {props.children}
       <Dialog
         fullScreen
-        open={!user.loaded}
+        open={!user.loaded && !(location.pathname.startsWith('/account') || location.pathname.startsWith('/admin'))}
         PaperProps={{ style: {
           backgroundColor: 'rgba(255, 255, 255, 0.5)',
           overflow: 'hidden',
