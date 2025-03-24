@@ -20,6 +20,7 @@ function AccountsPage() {
           id
           name
         }
+        email
       }
       getRoles {
         id
@@ -89,6 +90,11 @@ function AccountsPage() {
             </>
           );
         },
+      },
+      {
+        accessorKey: 'email',
+        header: 'Email',
+        size: 150,
       },
     ],
     [router, data],
