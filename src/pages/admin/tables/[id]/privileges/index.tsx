@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, Box, Chip, FormControl, InputLabel, OutlinedInput, Button } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { Privilege } from '../../../../../components/entities/ITablePrivilege';
 
@@ -19,12 +19,13 @@ query GetPrivilegesByTableId($tableId: String!) {
     getPrivilegesByTableId(tableId: $tableId) {
         roleId
         privilege
+        onlyCreator
     }
 }
 `;
 
 const UPDATE_PRIVILEGES = gql`
-mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [Privilege!]!) {
+mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [PrivilegeInput!]!) {
     updatePrivileges(tableId: $tableId, roleId: $roleId, privileges: $privileges)
 }
 `;
@@ -41,11 +42,43 @@ function PrivilegesPage() {
 
     const [privilegesState, setPrivilegesState] = useState({});
 
-    const handlePrivilegeChange = (roleId, newPrivileges) => {
-        setPrivilegesState((prevState) => ({
-            ...prevState,
-            [roleId]: newPrivileges,
-        }));
+    useEffect(() => {
+        if (privilegesData) {
+            const initialState = privilegesData.getPrivilegesByTableId.reduce((acc, { roleId, privilege, onlyCreator }) => {
+                if (!acc[roleId]) {
+                    acc[roleId] = [];
+                }
+                acc[roleId].push({ privilege, onlyCreator });
+                return acc;
+            }, {});
+            setPrivilegesState(initialState);
+        }
+    }, [privilegesData]);
+
+    const handlePrivilegeChange = (roleId, privilege, checked) => {
+        setPrivilegesState((prevState) => {
+            const rolePrivileges = prevState[roleId] || [];
+            const updatedPrivileges = checked
+                ? [...rolePrivileges, { privilege, onlyCreator: false }]
+                : rolePrivileges.filter(p => p.privilege !== privilege);
+            return {
+                ...prevState,
+                [roleId]: updatedPrivileges,
+            };
+        });
+    };
+
+    const handleOnlyCreatorChange = (roleId, privilege, onlyCreator) => {
+        setPrivilegesState((prevState) => {
+            const rolePrivileges = prevState[roleId] || [];
+            const updatedPrivileges = rolePrivileges.map(p =>
+                p.privilege === privilege ? { ...p, onlyCreator } : p
+            );
+            return {
+                ...prevState,
+                [roleId]: updatedPrivileges,
+            };
+        });
     };
 
     const handleSave = async () => {
@@ -53,7 +86,7 @@ function PrivilegesPage() {
             await Promise.all(Object.entries(privilegesState).map(([roleId, privileges]) => {
                 const role = rolesData.getRoles.find(role => role.id === roleId);
                 if (role) {
-                    const validPrivileges = privileges.filter(priv => Object.values(Privilege).includes(priv));
+                    const validPrivileges = privileges.filter(priv => Object.values(Privilege).includes(priv.privilege));
                     return updatePrivileges({ variables: { tableId, roleId, privileges: validPrivileges } });
                 }
                 return Promise.resolve();
@@ -69,14 +102,6 @@ function PrivilegesPage() {
     if (rolesError) return <p>Error: {rolesError.message}</p>;
     if (privilegesError) return <p>Error: {privilegesError.message}</p>;
 
-    const groupedPrivileges = privilegesData?.getPrivilegesByTableId.reduce((acc, { roleId, privilege }) => {
-        if (!acc[roleId]) {
-            acc[roleId] = { roleId, privileges: [] };
-        }
-        acc[roleId].privileges.push(privilege);
-        return acc;
-    }, {});
-
     return (
         <div className="rounded p-4 shadow-lg bg-white">
             <TableContainer>
@@ -89,34 +114,44 @@ function PrivilegesPage() {
                     </TableHead>
                     <TableBody>
                         {rolesData.getRoles.map(({ id, title }) => {
-                            const privileges = groupedPrivileges?.[id]?.privileges || [];
+                            const privileges = privilegesState[id] || [];
                             return (
                                 <TableRow key={id}>
                                     <TableCell>{title}</TableCell>
                                     <TableCell>
-                                        <FormControl sx={{ m: 1, width: 300 }}>
-                                            <InputLabel id={`privilege-label-${id}`}>Privileges</InputLabel>
-                                            <Select
-                                                labelId={`privilege-label-${id}`}
-                                                multiple
-                                                value={privilegesState[id] || privileges}
-                                                onChange={(e) => handlePrivilegeChange(id, e.target.value)}
-                                                input={<OutlinedInput id={`select-multiple-chip-${id}`} label="Privileges" />}
-                                                renderValue={(selected) => (
-                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                        {selected.map((value) => (
-                                                            <Chip key={value} label={value} />
-                                                        ))}
-                                                    </Box>
-                                                )}
-                                            >
-                                                {Object.values(Privilege).map((priv) => (
-                                                    <MenuItem key={priv} value={priv}>
-                                                        {priv}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                        <FormGroup>
+                                            {Object.values(Privilege).map((priv) => {
+                                                const isChecked = privileges.some(p => p.privilege === priv);
+                                                const onlyCreatorChecked = privileges.some(p => p.privilege === priv && p.onlyCreator);
+                                                return (
+                                                    <div key={priv} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                        <FormControlLabel
+                                                            control={
+                                                                <Checkbox
+                                                                    checked={isChecked}
+                                                                    onChange={(e) => handlePrivilegeChange(id, priv, e.target.checked)}
+                                                                />
+                                                            }
+                                                            label={priv}
+                                                            style={{ flex: 1 }}
+                                                        />
+                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-100px' }}>
+                                                            {isChecked && (
+                                                                <FormControlLabel
+                                                                    control={
+                                                                        <Checkbox
+                                                                            checked={onlyCreatorChecked}
+                                                                            onChange={(e) => handleOnlyCreatorChange(id, priv, e.target.checked)}
+                                                                        />
+                                                                    }
+                                                                    label="Только владелец"
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </FormGroup>
                                     </TableCell>
                                 </TableRow>
                             );
