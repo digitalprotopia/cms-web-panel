@@ -388,7 +388,9 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
         size="small"
         label="Имя в базе данных"
         value={form.dbName}
-        onChange={(e) => setForm((prev) => ({ ...prev, dbName: e.target.value }))}
+        onChange={(e) => {
+          e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
+          setForm((prev) => ({ ...prev, dbName: e.target.value }));}}
       />
 
       {form.type === FieldType.ONE_TO_MANY_ONE
