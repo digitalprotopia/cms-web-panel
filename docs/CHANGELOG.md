@@ -1,3 +1,10 @@
+## [0.13.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.13.0...v0.13.1) (2025-03-24)
+
+
+### Bug Fixes
+
+* progress load ([f4ed4ff](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/f4ed4ffeaf943946e4c333752f631abb5464dbe8))
+
 # [0.13.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.12.1...v0.13.0) (2025-03-21)
 
 
