@@ -179,7 +179,7 @@ function TableEditor({
               label="Имя в базе данных"
               value={formData.dbName}
               onChange={(e) => {
-                e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]/g, '');
+                e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
                 setFormData((prev) => ({ ...prev, dbName: e.target.value }));}}
               fullWidth
               required
