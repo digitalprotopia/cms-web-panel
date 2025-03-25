@@ -1,3 +1,10 @@
+## [0.13.3](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.13.2...v0.13.3) (2025-03-25)
+
+
+### Bug Fixes
+
+* confirm devices ([470f35d](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/470f35da07eb200c43ebfab3fb4124093483c0c6))
+
 ## [0.13.2](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.13.1...v0.13.2) (2025-03-24)
 
 
