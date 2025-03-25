@@ -3,15 +3,17 @@ import {
 } from '@apollo/client';
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   TextField,
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
-import { MaterialReactTable } from 'material-react-table';
+import { MaterialReactTable, MRT_ColumnDef, MRT_RowData } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
 import { ITable } from '@/components/entities/ITable';
 
@@ -23,6 +25,7 @@ function TablesPage() {
         id
         name
         dbName
+        isSystem
         createdAt
       }
     }
@@ -34,6 +37,9 @@ function TablesPage() {
     name: '',
     dbName: '',
   });
+
+  const [showSystem, setShowSystem] = useState(false);
+
   const [editTable] = useMutation(gql`
     mutation ($id: ID!, $input: TableInput!) {
       updateTable(id: $id, input: $input) {
@@ -43,7 +49,7 @@ function TablesPage() {
     }
   `);
 
-  const columns = useMemo(
+  const columns = useMemo<MRT_ColumnDef<MRT_RowData>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -54,6 +60,14 @@ function TablesPage() {
         accessorKey: 'dbName',
         header: 'DB Name',
         size: 150,
+        Cell: ({ row }) => (
+          <div>
+            <div>
+              {row.original.dbName}
+            </div>
+            {row.original.isSystem && <div className="text-red-600">Системная таблица</div>}
+          </div>
+        ),
       },
       {
         accessorKey: 'name',
@@ -99,16 +113,29 @@ function TablesPage() {
     return <div>Loading...</div>;
   }
 
+  let filteredData = data?.getTables || [];
+
+  if (!showSystem) {
+    filteredData = filteredData.filter((table: ITable) => !table.isSystem);
+  }
+
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <div className="mb-4">
+      <div className="mb-8 flex items-center gap-4">
         <Button
           variant="contained"
           onClick={() => setIsModalOpen(true)}
-          className="mb-4 normal-case"
+          className="normal-case"
         >
           Добавить таблицу
         </Button>
+        <FormControlLabel
+          control={(<Checkbox
+            checked={showSystem}
+            onChange={(e) => setShowSystem(e.target.checked)}
+          />)}
+          label="Показать системные таблицы"
+        />
       </div>
 
       <TableEditor
@@ -123,7 +150,7 @@ function TablesPage() {
 
       <MaterialReactTable
         columns={columns}
-        data={data.getTables}
+        data={filteredData}
         enableColumnResizing
         enableFullScreenToggle={false}
         enableDensityToggle

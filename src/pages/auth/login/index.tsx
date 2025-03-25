@@ -66,8 +66,10 @@ export function Login() {
           if (confirmResult.data.confirmDevice) {
             enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
           } else {
-            enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
+            // enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
           }
+          localStorage.removeItem('code');
+          localStorage.removeItem('botId');
         }
 
         router.push('/');

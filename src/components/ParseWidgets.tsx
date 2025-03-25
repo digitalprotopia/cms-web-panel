@@ -554,6 +554,7 @@ export function PageWidget(props: {
   const table = useTable(data?.getWidgetByName?.tableView.tableId, params);
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
+    return null;
     return (
       <div
         style={{

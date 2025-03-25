@@ -8,6 +8,8 @@ export interface UserContextData {
   pages: ISiteItem[] | null
   site: ISite | any | null,
   currentPage?: ISiteItem | null
+  loaded: boolean
+  setLoaded: (loaded: boolean) => void
   setCurrentPage?: (page: ISiteItem | null) => void
   refetch:() => Promise<void>
   logout:() => void
@@ -17,6 +19,8 @@ const UserContext = createContext<UserContextData>({
   user: null,
   pages: null,
   site: null,
+  loaded: false,
+  setLoaded: () => {},
   refetch: async () => {},
   logout: () => {},
 });

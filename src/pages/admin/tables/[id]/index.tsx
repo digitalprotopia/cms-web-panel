@@ -222,7 +222,7 @@ function CellEdit({
   });
 
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const editRow = useEditRow(meta.dbName);
+  const editRow = useEditRow(meta.isSystem ? `SystemTable${meta.dbName}` : meta.dbName);
 
   if (field.type === FieldType.USER_CREATOR) {
     return null;
@@ -253,6 +253,9 @@ function CellEdit({
         <Checkbox
           checked={!!cell.getValue()}
           onChange={(e) => {
+            if (field.isSystem) {
+              return;
+            }
             editRow(row.original.id, {
               [field.dbName]: e.target.checked,
             });
@@ -575,16 +578,18 @@ function TablePage() {
               }}
             >
               {field.name}
-              <IconButton
-                ref={dropDownRef as any}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setDropDownOpen(true);
-                }}
-              >
-                <ArrowDropDown />
-              </IconButton>
+              {!field.isSystem && (
+                <IconButton
+                  ref={dropDownRef as any}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setDropDownOpen(true);
+                  }}
+                >
+                  <ArrowDropDown />
+                </IconButton>
+              )}
               <Popover
                 anchorEl={dropDownRef.current}
                 open={dropDownOpen}
@@ -650,8 +655,10 @@ function TablePage() {
           );
         },
         Cell: ({ cell, row }) => {
-          const [editMode, setEditMode] = useState(false);
-          if (editMode || field.type === FieldType.BOOLEAN) {
+          const [editMode, setEditMode] = useState(!field.isSystem
+            && [FieldType.HTML, FieldType.BLOCK]
+              .includes(field.type));
+          if (!field.isSystem && (editMode || field.type === FieldType.BOOLEAN)) {
             return (
               <CellEdit
                 cell={cell}
@@ -705,6 +712,9 @@ function TablePage() {
               </div>
             );
           }
+          if (field.type === FieldType.BLOCK) {
+            cellValue = 'Блочный контент';
+          }
           if (field.type === FieldType.ONE_TO_MANY_ONE) {
             cellValue = cellValue?._cms_title;
           }
@@ -744,8 +754,6 @@ function TablePage() {
               </div>
             ) : null;
           }
-
-          if ([FieldType.HTML, FieldType.BLOCK].includes(field.type)) setEditMode(true);
 
           if (cellValue === '' || cellValue === null || cellValue === undefined) {
             cellValue = <i>Нет значения</i>;

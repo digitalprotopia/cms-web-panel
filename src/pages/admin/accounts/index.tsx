@@ -7,7 +7,8 @@ import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
 import { IconButton, MenuItem, TextField } from '@mui/material';
 import { IRole } from '@/components/entities/IRole';
-import { Save } from '@mui/icons-material';
+import { Edit, Save } from '@mui/icons-material';
+import Link from 'next/link';
 
 function AccountsPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ function AccountsPage() {
           id
           name
         }
+        email
       }
       getRoles {
         id
@@ -45,6 +47,16 @@ function AccountsPage() {
         accessorKey: 'name',
         header: 'Имя',
         size: 150,
+        Cell: ({ row }) => (
+          <div>
+            {row.original.name}
+            <Link href={`/admin/accounts/${row.original.id}`}>
+              <IconButton size="small">
+                <Edit />
+              </IconButton>
+            </Link>
+          </div>
+        ),
       },
       {
         accessorKey: 'role.name',
@@ -90,6 +102,11 @@ function AccountsPage() {
           );
         },
       },
+      {
+        accessorKey: 'email',
+        header: 'Email',
+        size: 150,
+      },
     ],
     [router, data],
   );
@@ -121,6 +138,11 @@ function AccountsPage() {
         enableColumnFilters
         enablePagination
         enableSorting
+        initialState={{
+          columnVisibility: {
+            id: false,
+          },
+        }}
         muiTableProps={{
           sx: {
             tableLayout: 'fixed',
