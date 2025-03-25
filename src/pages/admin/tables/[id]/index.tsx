@@ -390,7 +390,8 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
         value={form.dbName}
         onChange={(e) => {
           e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
-          setForm((prev) => ({ ...prev, dbName: e.target.value }));}}
+          setForm((prev) => ({ ...prev, dbName: e.target.value }));
+        }}
       />
 
       {form.type === FieldType.ONE_TO_MANY_ONE
@@ -613,7 +614,10 @@ function TablePage() {
                   <TextField
                     label="Техническое название"
                     value={editForm.dbName}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, dbName: e.target.value }))}
+                    onChange={(e) => {
+                      e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
+                      setEditForm((prev) => ({ ...prev, dbName: e.target.value }));
+                    }}
                   />
                   <Button
                     variant="contained"

@@ -1,5 +1,5 @@
 import React, {
-  useState, useEffect, FormEventHandler
+  useState, useEffect, FormEventHandler,
 } from 'react';
 import {
   Dialog,
@@ -7,7 +7,7 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  TextField
+  TextField,
 } from '@mui/material';
 import { gql, useMutation } from '@apollo/client';
 
@@ -154,7 +154,7 @@ function TableEditor({
   // );
 
   const isEditMode = mode === 'edit';
-  
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <form onSubmit={handleSubmit}>
@@ -169,7 +169,7 @@ function TableEditor({
             <TextField
               label="Название таблицы"
               value={formData.name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value })) }
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               fullWidth
               required
               className="w-full"
@@ -180,7 +180,8 @@ function TableEditor({
               value={formData.dbName}
               onChange={(e) => {
                 e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
-                setFormData((prev) => ({ ...prev, dbName: e.target.value }));}}
+                setFormData((prev) => ({ ...prev, dbName: e.target.value }));
+              }}
               fullWidth
               required
               className="w-full"
