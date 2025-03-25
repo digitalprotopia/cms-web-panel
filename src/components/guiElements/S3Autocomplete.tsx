@@ -1,6 +1,6 @@
 import { Autocomplete, Box, TextField } from '@mui/material';
 
-type Option = {
+export type Option = {
   id: string;
   name: string;
   [key: string]: any;

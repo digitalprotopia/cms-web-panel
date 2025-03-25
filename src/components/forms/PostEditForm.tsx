@@ -6,9 +6,10 @@ import { gql, useMutation, useQuery } from '@apollo/client';
 import { ICategory } from '../entities/ICategory';
 import { IPost } from '../entities/IPost';
 import { ITag } from '../entities/ITag';
-import S3Autocomplete from '../guiElements/S3Autocomplete';
+import S3Autocomplete, { Option } from '../guiElements/S3Autocomplete';
 import BlockEditor from '../BlockEditor';
 import { flattenIndexedTree, ItemWithParentId, makeIndexedTree } from '../guiElements/Tree';
+import { IRole } from '../entities/IRole';
 
 const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {
@@ -50,6 +51,7 @@ export default function PostForm({
     preview: '',
     tags: [],
     categoryIds: [],
+    roleIds: [],
   });
 
   const linkData = useQuery(gql`
@@ -66,6 +68,10 @@ export default function PostForm({
           title
         }
       }
+      getRoles {
+        id
+        name
+      }
     }
   `);
 
@@ -79,6 +85,10 @@ export default function PostForm({
         preview
         createdAt
         categories {
+          id
+          title
+        }
+        roles {
           id
           title
         }
@@ -99,6 +109,7 @@ export default function PostForm({
         preview: data.getPost.preview,
         tags: data.getPost.tags.map((tag: ITag) => tag.title),
         categoryIds: data.getPost.categories.map((category: ICategory) => category.id),
+        roleIds: data.getPost.roles.map((role: IRole) => role.id),
       });
     },
   });
@@ -120,6 +131,13 @@ export default function PostForm({
       ...category,
       parentId: category.parentCategory?.id,
     }));
+
+  const roles: Option[] | undefined = linkData.data?.getRoles.map(
+    (role: IRole) => ({
+      id: role.id,
+      name: role.name,
+    }),
+  );
 
   const handleCreate = async (_formData: Partial<IPost>) => {
     await createPost({ variables: { input: _formData } });
@@ -171,49 +189,59 @@ export default function PostForm({
 
   return (
     <form onSubmit={handleSubmit} className="p-4">
-      <div className="grid grid-cols-2 gap-4">
-        {/* <TextField
+      <div>
+        <div className="grid p-2 grid-cols-2 gap-4">
+          {/* <TextField
             label="Название"
             fullWidth
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           /> */}
-        <TextField
-          label="Заголовок"
-          fullWidth
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-        />
-      </div>
-      <div>
-        <MuiChipsInput
-          label="Теги"
-          value={formData.tags}
-          onChange={(_tags) => setFormData({ ...formData, tags: _tags })}
-        />
-      </div>
-      <div>
-        <S3Autocomplete
-          multiple
-          label="Категории"
-          value={formData.categoryIds}
-          options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds)).map((category) => ({
-            id: category.id,
-            name: category.title,
-            level: category.level,
-          }))}
-          onChange={(categoryIds) => setFormData({
-            ...formData,
-            categoryIds: categoryIds as string[],
-          })}
-          renderOption={(option) => (
-            <div style={{ paddingLeft: option.level * 20 }}>
-              {option.name}
-            </div>
-          )}
-        />
+          <TextField
+            label="Заголовок"
+            fullWidth
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+          />
+
+          <MuiChipsInput
+            label="Теги"
+            value={formData.tags}
+            onChange={(_tags) => setFormData({ ...formData, tags: _tags })}
+          />
+        </div>
+
+        <div className="grid p-2 grid-cols-2 gap-4">
+          <S3Autocomplete
+            multiple
+            label="Категории"
+            value={formData.categoryIds}
+            options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds))
+              .map((category) => ({
+                id: category.id,
+                name: category.title,
+                level: category.level,
+              }))}
+            onChange={(categoryIds) => setFormData({
+              ...formData,
+              categoryIds: categoryIds as string[],
+            })}
+            renderOption={(option) => (
+              <div style={{ paddingLeft: option.level * 20 }}>
+                {option.name}
+              </div>
+            )}
+          />
+          <S3Autocomplete
+            value={formData.roleIds}
+            onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
+            options={roles}
+            multiple
+            label="Роли"
+          />
+        </div>
       </div>
 
       <h4>Блочный редактор</h4>
