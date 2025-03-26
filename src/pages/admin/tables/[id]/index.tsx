@@ -182,6 +182,7 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
         {meta.fields.map((field) => renderField(field))}
       </div> */}
 
+      {(!meta.isSystem) && (
       <Button
         variant="contained"
         onClick={handleSubmit}
@@ -189,7 +190,7 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
         className="mt-4 normal-case"
       >
         Добавить строку
-      </Button>
+      </Button>)}
     </div>
   );
 }
@@ -775,6 +776,7 @@ function TablePage() {
 
         return (
           <div>
+            {(!meta.isSystem) && (
             <IconButton
               ref={dropDownRef as any}
               onClick={(e) => {
@@ -784,7 +786,8 @@ function TablePage() {
               }}
             >
               <Add />
-            </IconButton>
+            </IconButton>)}
+
             <Popover
               anchorEl={dropDownRef.current}
               open={dropDownOpen}
@@ -925,7 +928,7 @@ function TablePage() {
           {/* </Link> */}
         </div>
       </div>
-
+      {meta.isSystem && <div className="text-red-600">Системная таблица</div>}
       <TableEditor
         open={isEditModalOpen}
         onClose={handleModalClose}
@@ -955,14 +958,14 @@ function TablePage() {
           handleRefetch();
         }}
         renderRowActions={({ row }) => (
+          !meta.isSystem && (
           <IconButton
             color="error"
             onClick={() => handleDeleteRow(row)}
             className="hover:bg-red-50"
           >
             <Delete />
-          </IconButton>
-        )}
+          </IconButton>))}
         state={{
           isLoading: loading,
           columnOrder: ['mrt-row-actions',
