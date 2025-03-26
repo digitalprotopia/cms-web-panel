@@ -776,7 +776,6 @@ function TablePage() {
 
         return (
           <div>
-            {(!meta.isSystem) && (
             <IconButton
               ref={dropDownRef as any}
               onClick={(e) => {
@@ -786,7 +785,7 @@ function TablePage() {
               }}
             >
               <Add />
-            </IconButton>)}
+            </IconButton>
 
             <Popover
               anchorEl={dropDownRef.current}
@@ -899,7 +898,10 @@ function TablePage() {
   return (
     <div className="rounded-lg p-4 shadow-lg bg-white">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">{meta?.name}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-semibold">{meta?.name}</h2>
+          {meta.isSystem && <div className="text-red-600">Системная таблица</div>}
+        </div>
         <div className="flex gap-4">
           <Button
             variant="contained"
@@ -910,9 +912,9 @@ function TablePage() {
             Экспорт CSV
           </Button>
           {/* <Button
-            variant="contained"
-            onClick={() => setIsEditModalOpen(true)}
-            className="normal-case"
+          variant="contained"
+          onClick={() => setIsEditModalOpen(true)}
+          className="normal-case"
           >
             Редактировать таблицу
           </Button> */}
@@ -928,7 +930,6 @@ function TablePage() {
           {/* </Link> */}
         </div>
       </div>
-      {meta.isSystem && <div className="text-red-600">Системная таблица</div>}
       <TableEditor
         open={isEditModalOpen}
         onClose={handleModalClose}
