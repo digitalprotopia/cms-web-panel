@@ -1,5 +1,5 @@
 import {
-  useMemo, useState, useCallback, useRef,
+  useMemo, useState, useCallback, useRef, useEffect
 } from 'react';
 import {
   MaterialReactTable,
@@ -17,7 +17,14 @@ import {
   Popover,
   MenuItem,
   Select,
-  InputLabel, DialogTitle, DialogContent, Dialog, DialogActions, Box
+  InputLabel, 
+  DialogTitle, 
+  DialogContent, 
+  Dialog, 
+  DialogActions, 
+  Box,
+  CircularProgress, // Добавляем
+  Typography // Добавляем
 } from '@mui/material';
 import {
   Add,
@@ -1013,8 +1020,56 @@ function FieldPrivilegesDialog({
   onClose: () => void;
   field: IField | null;
 }) {
-  const [privileges, setPrivileges] = useState<{role: string; permission: string}[]>([]);
-  const roles = ['admin', 'editor', 'viewer']; // Замените на реальные роли из вашей системы
+  const [privileges, setPrivileges] = useState<{roleId: string; privilege: Privilege}[]>([]);
+  const [roles, setRoles] = useState<{id: string; name: string}[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Загрузка ролей и текущих прав при открытии диалога
+  useEffect(() => {
+    if (!open) return;
+
+    const loadData = async () => {
+      try {
+        // 1. Загружаем список всех ролей
+        const rolesData = await fetchRoles(); // Замените на ваш запрос
+        setRoles(rolesData);
+        
+        // 2. Загружаем текущие права для поля
+        if (field?.id) {
+          const privs = await fetchFieldPrivileges(field.id); // Замените на ваш запрос
+          setPrivileges(privs);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [open, field]);
+
+  const handlePrivilegeChange = (roleId: string, newPrivilege: Privilege) => {
+    setPrivileges(prev => {
+      const existing = prev.find(p => p.roleId === roleId);
+      if (existing) {
+        return prev.map(p => 
+          p.roleId === roleId ? {...p, privilege: newPrivilege} : p
+        );
+      }
+      return [...prev, {roleId, privilege: newPrivilege}];
+    });
+  };
+
+  const handleSave = async () => {
+    if (!field?.id) return;
+    
+    try {
+      // Отправляем обновленные права на сервер
+      await updateFieldPrivileges(field.id, privileges); // Замените на ваш запрос
+      onClose();
+    } catch (error) {
+      console.error('Ошибка сохранения прав:', error);
+    }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -1022,69 +1077,45 @@ function FieldPrivilegesDialog({
         Права доступа для поля: <strong>{field?.name}</strong>
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ marginTop: 2 }}>
-          <MaterialReactTable
-            columns={[
-              {
-                accessorKey: 'role',
-                header: 'Роль',
-                Cell: ({ cell }) => (
+        {loading ? (
+          <Box display="flex" justifyContent="center" p={4}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ marginTop: 2 }}>
+            {roles.map(role => {
+              const currentPrivilege = privileges.find(p => p.roleId === role.id)?.privilege || 'none';
+              
+              return (
+                <Box key={role.id} mb={2}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    {role.name}
+                  </Typography>
                   <FormControl fullWidth size="small">
                     <Select
-                      value={cell.getValue() as string}
-                      onChange={(e) => {
-                        // Логика обновления роли
-                      }}
+                      value={currentPrivilege}
+                      onChange={(e) => handlePrivilegeChange(role.id, e.target.value as Privilege)}
+                      displayEmpty
                     >
-                      {roles.map((role) => (
-                        <MenuItem key={role} value={role}>
-                          {role}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                ),
-              },
-              {
-                accessorKey: 'permission',
-                header: 'Право',
-                Cell: ({ cell }) => (
-                  <FormControl fullWidth size="small">
-                    <Select
-                      value={cell.getValue() as string}
-                      onChange={(e) => {
-                        // Логика обновления права
-                      }}
-                    >
-                      <MenuItem value="read">Чтение</MenuItem>
-                      <MenuItem value="edit">Редактирование</MenuItem>
                       <MenuItem value="none">Нет доступа</MenuItem>
+                      <MenuItem value={Privilege.READ}>Чтение</MenuItem>
+                      <MenuItem value={Privilege.CREATE}>Создание</MenuItem>
+                      <MenuItem value={Privilege.EDIT}>Редактирование</MenuItem>
+                      <MenuItem value={Privilege.DELETE}>Удаление</MenuItem>
                     </Select>
                   </FormControl>
-                ),
-              },
-            ]}
-            data={privileges}
-            enableTopToolbar={false}
-            renderTopToolbarCustomActions={() => (
-              <Button
-                variant="contained"
-                onClick={() => setPrivileges([...privileges, { role: '', permission: '' }])}
-              >
-                Добавить правило
-              </Button>
-            )}
-          />
-        </Box>
+                </Box>
+              );
+            })}
+          </Box>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
         <Button 
           variant="contained" 
-          onClick={() => {
-            // Логика сохранения прав
-            onClose();
-          }}
+          onClick={handleSave}
+          disabled={loading}
         >
           Сохранить
         </Button>
