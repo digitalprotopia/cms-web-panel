@@ -23,8 +23,8 @@ import {
   Dialog, 
   DialogActions, 
   Box,
-  CircularProgress, // Добавляем
-  Typography // Добавляем
+  CircularProgress,
+  Typography
 } from '@mui/material';
 import {
   Add,
@@ -60,6 +60,34 @@ import useTable, {
   useEditField,
   useEditRow,
 } from '../../../../components/use-table';
+import '../../../../components/entities/IFieldPrivilege'
+import { Privilege } from '@/components/entities/ITablePrivilege';
+import { useSnackbar } from 'notistack';
+
+const GET_ROLES = gql`
+query GetRoles {
+    getRoles {
+        id
+        title
+        name
+    }
+}
+`;
+
+const GET_PRIVILEGES = gql`
+query GetPrivilegesByFieldId($fieldId: String!) {
+    getPrivilegesByFieldId(fieldId: $fieldId) {
+        roleId
+        privilege
+    }
+}
+`;
+
+const UPDATE_PRIVILEGES = gql`
+mutation UpdateFieldPrivileges($fieldId: String!, $roleId: String!, $privilege: PrivilegeInput!) {
+    updateFieldPrivileges(fieldId: $fieldId, roleId: $roleId, privilege: $privilege)
+}
+`;
 
 interface AddRowFormProps {
   meta: TableMeta;
@@ -1020,56 +1048,111 @@ function FieldPrivilegesDialog({
   onClose: () => void;
   field: IField | null;
 }) {
-  const [privileges, setPrivileges] = useState<{roleId: string; privilege: Privilege}[]>([]);
-  const [roles, setRoles] = useState<{id: string; name: string}[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { enqueueSnackbar } = useSnackbar();
+  const [privileges, setPrivileges] = useState<Record<string, Privilege>>({});
+  
+  const { 
+    data: rolesData, 
+    loading: rolesLoading, 
+    error: rolesError 
+  } = useQuery(GET_ROLES);
 
-  // Загрузка ролей и текущих прав при открытии диалога
+  const { 
+    data: privilegesData, 
+    loading: privilegesLoading, 
+    error: privilegesError, 
+    refetch: refetchPrivileges 
+  } = useQuery(GET_PRIVILEGES, { 
+    variables: { fieldId: field?.id },
+    skip: !field?.id || !open
+  });
+
+  // Используем useMutation для обновления привилегий
+  const [updatePrivilege] = useMutation(UPDATE_PRIVILEGES, {
+    onCompleted: () => {
+      enqueueSnackbar('Права успешно обновлены!', { variant: 'success' });
+      refetchPrivileges();
+    },
+    onError: (error) => {
+      enqueueSnackbar(`Ошибка при обновлении прав: ${error.message}`, { variant: 'error' });
+    }
+  });
+
+  // Инициализация состояния привилегий
   useEffect(() => {
-    if (!open) return;
+    if (privilegesData) {
+      const newPrivileges = privilegesData.getPrivilegesByFieldId.reduce((acc, { roleId, privilege }) => {
+        acc[roleId] = privilege;
+        return acc;
+      }, {});
+      setPrivileges(newPrivileges);
+      console.log('###################', newPrivileges)
+      console.log('###################', setPrivileges(newPrivileges))
 
-    const loadData = async () => {
-      try {
-        // 1. Загружаем список всех ролей
-        const rolesData = await fetchRoles(); // Замените на ваш запрос
-        setRoles(rolesData);
-        
-        // 2. Загружаем текущие права для поля
-        if (field?.id) {
-          const privs = await fetchFieldPrivileges(field.id); // Замените на ваш запрос
-          setPrivileges(privs);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [open, field]);
+    }
+  }, [privilegesData]);
 
   const handlePrivilegeChange = (roleId: string, newPrivilege: Privilege) => {
-    setPrivileges(prev => {
-      const existing = prev.find(p => p.roleId === roleId);
-      if (existing) {
-        return prev.map(p => 
-          p.roleId === roleId ? {...p, privilege: newPrivilege} : p
-        );
-      }
-      return [...prev, {roleId, privilege: newPrivilege}];
-    });
+    setPrivileges(prev => ({
+      ...prev,
+      [roleId]: newPrivilege
+    }));
   };
 
   const handleSave = async () => {
     if (!field?.id) return;
-    
+
     try {
-      // Отправляем обновленные права на сервер
-      await updateFieldPrivileges(field.id, privileges); // Замените на ваш запрос
+      // Обновляем привилегии для каждой роли
+      await Promise.all(
+        Object.entries(privileges).map(([roleId, privilege]) => {
+          return updatePrivilege({
+            variables: {
+              fieldId: field.id,
+              roleId,
+              privilege: { privilege }
+            }
+          });
+        })
+      );
       onClose();
     } catch (error) {
-      console.error('Ошибка сохранения прав:', error);
+      console.error('Error saving privileges:', error);
     }
   };
+
+  if (rolesLoading || privilegesLoading) {
+    return (
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Права доступа для поля: <strong>{field?.name}</strong>
+        </DialogTitle>
+        <DialogContent>
+          <Box display="flex" justifyContent="center" p={4}>
+            <CircularProgress />
+          </Box>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (rolesError || privilegesError) {
+    return (
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Права доступа для поля: <strong>{field?.name}</strong>
+        </DialogTitle>
+        <DialogContent>
+          <Typography color="error">
+            Ошибка загрузки данных: {rolesError?.message || privilegesError?.message}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Закрыть</Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -1077,45 +1160,33 @@ function FieldPrivilegesDialog({
         Права доступа для поля: <strong>{field?.name}</strong>
       </DialogTitle>
       <DialogContent>
-        {loading ? (
-          <Box display="flex" justifyContent="center" p={4}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Box sx={{ marginTop: 2 }}>
-            {roles.map(role => {
-              const currentPrivilege = privileges.find(p => p.roleId === role.id)?.privilege || 'none';
-              
-              return (
-                <Box key={role.id} mb={2}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    {role.name}
-                  </Typography>
-                  <FormControl fullWidth size="small">
-                    <Select
-                      value={currentPrivilege}
-                      onChange={(e) => handlePrivilegeChange(role.id, e.target.value as Privilege)}
-                      displayEmpty
-                    >
-                      <MenuItem value="none">Нет доступа</MenuItem>
-                      <MenuItem value={Privilege.READ}>Чтение</MenuItem>
-                      <MenuItem value={Privilege.CREATE}>Создание</MenuItem>
-                      <MenuItem value={Privilege.EDIT}>Редактирование</MenuItem>
-                      <MenuItem value={Privilege.DELETE}>Удаление</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-              );
-            })}
-          </Box>
-        )}
+        <Box sx={{ marginTop: 2 }}>
+          {rolesData?.getRoles?.map((role) => (
+            <Box key={role.id} mb={3}>
+              <Typography variant="subtitle1" gutterBottom>
+                {role.title || role.name}
+              </Typography>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={privileges[role.id] || Privilege.READ}
+                  onChange={(e) => handlePrivilegeChange(role.id, e.target.value as Privilege)}
+                >
+                  <MenuItem value={Privilege.READ}>Чтение</MenuItem>
+                  <MenuItem value={Privilege.CREATE}>Создание</MenuItem>
+                  <MenuItem value={Privilege.EDIT}>Редактирование</MenuItem>
+                  <MenuItem value={Privilege.DELETE}>Удаление</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          ))}
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
         <Button 
           variant="contained" 
           onClick={handleSave}
-          disabled={loading}
+          disabled={rolesLoading || privilegesLoading}
         >
           Сохранить
         </Button>
