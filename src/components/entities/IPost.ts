@@ -8,4 +8,5 @@ export interface IPost extends IEntity {
   blockContent: any;
   tags?: string[];
   categoryIds?: string[];
+  roleIds?: string[];
 }
