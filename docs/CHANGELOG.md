@@ -1,3 +1,10 @@
+# [0.14.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.13.3...v0.14.0) (2025-03-31)
+
+
+### Features
+
+* роли для Записей, по аналогии со Страницами ([cc0303e](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/cc0303e8244ffe13935f0cd30c36d7632d9737f1))
+
 ## [0.13.3](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.13.2...v0.13.3) (2025-03-25)
 
 
