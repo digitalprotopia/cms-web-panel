@@ -58,16 +58,13 @@ const menuItems: ISidebarItem[] = [
     icon: ArticleOutlined,
     label: 'Записи',
     href: '/admin/posts',
-  },
-  {
-    icon: ArticleOutlined,
-    label: 'Категории',
-    href: '/admin/categories',
-  },
-  {
-    icon: ArticleOutlined,
-    label: 'Теги',
-    href: '/admin/tags',
+    BelowPages: () => (
+      <div className="pl-4 underline">
+        <div><Link href="/admin/categories">Категории</Link></div>
+        <div><Link href="/admin/tags">Теги</Link></div>
+        <div><Link href="/admin/feed-targets">Ленты публикаций</Link></div>
+      </div>
+    ),
   },
   {
     icon: TableChartOutlined,
