@@ -1,5 +1,3 @@
-// показать табличкой, в табличке "репостнуть в ленту публикаций"
-
 import React, { useMemo, useState } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
@@ -10,9 +8,7 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import {
-  Edit, AccessTime, Delete, Repeat,
-} from '@mui/icons-material';
+import { Edit, AccessTime, Delete, Repeat } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
@@ -58,18 +54,21 @@ function PostsPost() {
   const { enqueueSnackbar } = useSnackbar();
   const { data, loading, refetch, error: loadingError } = useQuery(GET_POSTS);
 
-  const [deletePost] = useMutation(gql`
-    mutation DeletePost($id: ID!) {
-      deletePost(id: $id)
-    }
-  `, {
-    onCompleted: () => {
-      refetch();
+  const [deletePost] = useMutation(
+    gql`
+      mutation DeletePost($id: ID!) {
+        deletePost(id: $id)
+      }
+    `,
+    {
+      onCompleted: () => {
+        refetch();
+      },
+      onError: (error) => {
+        console.error('Ошибка при удалении поста:', error);
+      },
     },
-    onError: (error) => {
-      console.error('Ошибка при удалении поста:', error);
-    },
-  });
+  );
 
   const handleDelete = (id: string) => {
     if (window.confirm('Вы уверены, что хотите удалить эту запись?')) {
@@ -77,22 +76,29 @@ function PostsPost() {
     }
   };
 
-  const [repostPost] = useMutation(gql`
-    mutation RepostPost($id: ID!, $feedId: ID!) {
-      repostPost(id: $id, feedId: $feedId)
-    }`, {
-    onCompleted: () => {
-      refetch();
+  const [repostPost] = useMutation(
+    gql`
+      mutation RepostPost($id: ID!, $feedId: ID!) {
+        repostPost(id: $id, feedId: $feedId)
+      }
+    `,
+    {
+      onCompleted: () => {
+        refetch();
+      },
+      onError: (error) => {
+        console.error('Ошибка при переслании поста:', error);
+      },
     },
-    onError: (error) => {
-      console.error('Ошибка при переслании поста:', error);
-    },
-  });
+  );
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, postId: string) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    postId: string,
+  ) => {
     setAnchorEl(event.currentTarget);
     setSelectedPostId(postId);
   };
@@ -119,7 +125,9 @@ function PostsPost() {
       handleMenuClose();
     } catch (error) {
       console.error('Repost failed:', error);
-      enqueueSnackbar('Ошибка при попытке переслать запись', { variant: 'error' });
+      enqueueSnackbar('Ошибка при попытке переслать запись', {
+        variant: 'error',
+      });
     }
   };
 
@@ -134,11 +142,7 @@ function PostsPost() {
         accessorKey: 'title',
         header: 'Заголовок',
         size: 150,
-        Cell: ({ row }) => (
-          <div>
-            {row.original.title}
-          </div>
-        ),
+        Cell: ({ row }) => <div>{row.original.title}</div>,
       },
       {
         accessorKey: 'slug',
@@ -218,10 +222,7 @@ function PostsPost() {
       }}
     >
       {feedOptions.map((feed: IFeedTarget) => (
-        <MenuItem
-          key={feed.id}
-          onClick={() => handleRepost(feed.id)}
-        >
+        <MenuItem key={feed.id} onClick={() => handleRepost(feed.id)}>
           {feed.title}
           {' '}
           {feed.url}
@@ -235,11 +236,7 @@ function PostsPost() {
       <div className="flex items-center gap-4 mb-4">
         <Typography variant="h4">Посты</Typography>
         <Link href="/admin/posts/add">
-          <Button
-            variant="contained"
-          >
-            Добавить пост
-          </Button>
+          <Button variant="contained">Добавить пост</Button>
         </Link>
       </div>
 
