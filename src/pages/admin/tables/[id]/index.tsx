@@ -42,6 +42,7 @@ import {
   IFieldOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
 import useTable, {
@@ -356,6 +357,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
     options = manyToManyOptions!;
   }
   const addField = useAddField(meta.id, form.type!);
+  const { enqueueSnackbar } = useSnackbar();
   const tables = useQuery(gql`
     query {
       getTables {
@@ -471,6 +473,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
           );
           onClose();
           setTimeout(() => refetch(), 2000);
+          enqueueSnackbar(`Поле ${form.name} добавлено`, { variant: 'success', autoHideDuration: 3000 });
         }}
         disabled={!form.name || !form.dbName || !form.type}
         className="mt-2"

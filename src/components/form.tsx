@@ -496,6 +496,7 @@ export default function FormField(props: FormFieldProps) {
         label={props.title}
         value={props.value || ''}
         onChange={(e) => props.onChange(e.target.value)}
+        inputProps={FieldType.STRING ? { maxLength: 255 } : {}}
         className="min-w-48"
       />
     );
