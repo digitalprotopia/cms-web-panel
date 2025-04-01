@@ -1,20 +1,23 @@
 // показать табличкой, в табличке "репостнуть в ленту публикаций"
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Button,
   IconButton,
   Typography,
   CircularProgress,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import {
   Edit, AccessTime, Delete, Repeat,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import { IPost } from '@/components/entities/IPost';
 import Link from 'next/link';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
+import { IFeedTarget } from '@/components/entities/IFeedTarget';
+import { useSnackbar } from 'notistack';
 
 const GET_POSTS = gql`
   query GetPosts {
@@ -43,19 +46,23 @@ const GET_POSTS = gql`
       id
       title
     }
-  }
-`;
-
-const DELETE_POST = gql`
-  mutation DeletePost($id: ID!) {
-    deletePost(id: $id)
+    getFeedTargets {
+      id
+      title
+      url
+    }
   }
 `;
 
 function PostsPost() {
-  const { data, loading, refetch } = useQuery(GET_POSTS);
+  const { enqueueSnackbar } = useSnackbar();
+  const { data, loading, refetch, error: loadingError } = useQuery(GET_POSTS);
 
-  const [deletePost] = useMutation(DELETE_POST, {
+  const [deletePost] = useMutation(gql`
+    mutation DeletePost($id: ID!) {
+      deletePost(id: $id)
+    }
+  `, {
     onCompleted: () => {
       refetch();
     },
@@ -65,8 +72,54 @@ function PostsPost() {
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить этот пост?')) {
+    if (window.confirm('Вы уверены, что хотите удалить эту запись?')) {
       deletePost({ variables: { id } });
+    }
+  };
+
+  const [repostPost] = useMutation(gql`
+    mutation RepostPost($id: ID!, $feedId: ID!) {
+      repostPost(id: $id, feedId: $feedId)
+    }`, {
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (error) => {
+      console.error('Ошибка при переслании поста:', error);
+    },
+  });
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, postId: string) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedPostId(postId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedPostId(null);
+  };
+
+  const handleRepost = async (feedId: string) => {
+    if (!selectedPostId) return;
+    try {
+      const result = await repostPost({
+        variables: {
+          id: selectedPostId,
+          feedId,
+        },
+      });
+      if (result.data?.repostPost) {
+        enqueueSnackbar('Запись успешно переслана', { variant: 'success' });
+      } else {
+        enqueueSnackbar('Ошибка при пересылке', { variant: 'error' });
+      }
+      handleMenuClose();
+    } catch (error) {
+      console.error('Repost failed:', error);
+      enqueueSnackbar('Ошибка при попытке переслать запись', { variant: 'error' });
     }
   };
 
@@ -117,6 +170,13 @@ function PostsPost() {
               </IconButton>
             </Link>
             <IconButton
+              onClick={(e) => handleMenuOpen(e, row.original.id)}
+              size="small"
+              color="primary"
+            >
+              <Repeat />
+            </IconButton>
+            <IconButton
               onClick={() => handleDelete(row.original.id)}
               size="small"
               color="error"
@@ -137,6 +197,38 @@ function PostsPost() {
       </div>
     );
   }
+
+  if (loadingError) {
+    return (
+      <div className="flex items-center justify-center">
+        <Typography variant="h4">Ошибка</Typography>
+      </div>
+    );
+  }
+
+  const feedOptions = data.getFeedTargets;
+
+  const RepostMenu = (
+    <Menu
+      anchorEl={anchorEl}
+      open={Boolean(anchorEl)}
+      onClose={handleMenuClose}
+      MenuListProps={{
+        'aria-labelledby': 'repost-menu',
+      }}
+    >
+      {feedOptions.map((feed: IFeedTarget) => (
+        <MenuItem
+          key={feed.id}
+          onClick={() => handleRepost(feed.id)}
+        >
+          {feed.title}
+          {' '}
+          {feed.url}
+        </MenuItem>
+      ))}
+    </Menu>
+  );
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
@@ -171,6 +263,7 @@ function PostsPost() {
           },
         }}
       />
+      {RepostMenu}
     </div>
   );
 }
