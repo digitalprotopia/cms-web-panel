@@ -25,6 +25,7 @@ const GET_POSTS = gql`
       blockContent
       preview
       createdAt
+      externalPostCount
       categories {
         id
         title
@@ -161,6 +162,12 @@ function PostsPost() {
             </Typography>
           </div>
         ),
+      },
+      {
+        accessorKey: 'externalPostCount',
+        header: 'Количество пересылок',
+        size: 150,
+        Cell: ({ row }) => <div>{row.original.externalPostCount}</div>,
       },
       {
         accessorKey: 'actions',
