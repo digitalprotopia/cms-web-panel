@@ -1,20 +1,20 @@
-import React from 'react';
+// показать табличкой, в табличке "репостнуть в ленту публикаций"
+
+import React, { useMemo } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
-  Card,
-  CardContent,
-  CardHeader,
   Button,
   IconButton,
   Typography,
   CircularProgress,
 } from '@mui/material';
 import {
-  Edit, AccessTime, Delete,
+  Edit, AccessTime, Delete, Repeat,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { IPost } from '@/components/entities/IPost';
 import Link from 'next/link';
+import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 
 const GET_POSTS = gql`
   query GetPosts {
@@ -52,58 +52,6 @@ const DELETE_POST = gql`
   }
 `;
 
-function PostCard({
-  post,
-  onDelete,
-}: {
-  post: IPost;
-  onDelete: (id: string) => void;
-}) {
-  // const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
-  //   day: 'numeric',
-  //   month: 'long',
-  //   year: 'numeric',
-  //   hour: '2-digit',
-  //   minute: '2-digit',
-  // });
-
-  return (
-    <Card>
-      <CardHeader
-        title={post.title}
-        subheader={post.slug}
-        action={(
-          <div>
-            <Link href={`/admin/posts/${post.id}`}>
-              <IconButton size="small">
-                <Edit />
-              </IconButton>
-            </Link>
-            <IconButton
-              onClick={() => onDelete(post.id)}
-              size="small"
-              color="error"
-            >
-              <Delete />
-            </IconButton>
-          </div>
-          )}
-      />
-      <CardContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {/* {post.url} */}
-        </Typography>
-        <div className="flex items-center">
-          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
-          <Typography variant="caption" color="text.secondary">
-            {dayjs(post.createdAt).toString()}
-          </Typography>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function PostsPost() {
   const { data, loading, refetch } = useQuery(GET_POSTS);
 
@@ -122,6 +70,66 @@ function PostsPost() {
     }
   };
 
+  const columns: MRT_ColumnDef<any, any>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        size: 400,
+      },
+      {
+        accessorKey: 'title',
+        header: 'Заголовок',
+        size: 150,
+        Cell: ({ row }) => (
+          <div>
+            {row.original.title}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'slug',
+        header: 'Слаг',
+        size: 150,
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Дата создания',
+        size: 150,
+        Cell: ({ row }) => (
+          <div className="flex items-center">
+            <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
+            <Typography variant="caption" color="text.secondary">
+              {dayjs(row.original.createdAt).toString()}
+            </Typography>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'actions',
+        header: 'Действия',
+        size: 150,
+        Cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Link href={`/admin/posts/${row.original.id}`}>
+              <IconButton size="small">
+                <Edit />
+              </IconButton>
+            </Link>
+            <IconButton
+              onClick={() => handleDelete(row.original.id)}
+              size="small"
+              color="error"
+            >
+              <Delete />
+            </IconButton>
+          </div>
+        ),
+      },
+    ],
+    [refetch],
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center">
@@ -132,7 +140,7 @@ function PostsPost() {
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mb-4">
         <Typography variant="h4">Посты</Typography>
         <Link href="/admin/posts/add">
           <Button
@@ -143,15 +151,26 @@ function PostsPost() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-        {data?.getPosts?.map((post: IPost) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
+      <MaterialReactTable
+        columns={columns}
+        data={data.getPosts}
+        enableColumnResizing
+        enableFullScreenToggle={false}
+        enableDensityToggle
+        enableColumnFilters
+        enablePagination
+        enableSorting
+        initialState={{
+          columnVisibility: {
+            id: false,
+          },
+        }}
+        muiTableProps={{
+          sx: {
+            tableLayout: 'fixed',
+          },
+        }}
+      />
     </div>
   );
 }
