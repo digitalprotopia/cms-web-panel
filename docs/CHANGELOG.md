@@ -1,3 +1,10 @@
+## [0.14.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.14.0...v0.14.1) (2025-04-01)
+
+
+### Bug Fixes
+
+* Cms web panel bug fixes ([6476e94](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/6476e94ff211f0c5fb4ff0b661ab1bbfef6d69e7))
+
 # [0.14.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.13.3...v0.14.0) (2025-03-31)
 
 
