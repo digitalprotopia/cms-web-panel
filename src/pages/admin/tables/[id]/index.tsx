@@ -663,7 +663,7 @@ function TablePage() {
                   >
                     Редактировать
                   </Button>
-                  
+                  <div>
                   <Button
                     variant="contained"
                     onClick={() => {
@@ -671,10 +671,11 @@ function TablePage() {
                       setDropDownOpen(false);
                       setIsFieldPrivilegesDialogOpen(true);
                     }}
-                    className="mt-2 normal-case"
+                    style={{ marginTop: '8px' }}
                   >
                     Редактировать права поля
                   </Button>
+                  </div>
                   <h4>Удалить поле</h4>
                   <Button
                     variant="contained"
@@ -1067,10 +1068,8 @@ function FieldPrivilegesDialog({
     skip: !field?.id || !open
   });
 
-  // Используем useMutation для обновления привилегий
   const [updateFieldPrivilege] = useMutation(UPDATE_FIELD_PRIVILEGES, {
     onCompleted: () => {
-      enqueueSnackbar('Права успешно обновлены!', { variant: 'success' });
       refetchPrivileges();
     },
     onError: (error) => {
@@ -1078,7 +1077,6 @@ function FieldPrivilegesDialog({
     }
   });
 
-  // Инициализация состояния привилегий
   useEffect(() => {
     if (privilegesData) {
       const newPrivileges = privilegesData.getPrivilegesByFieldId.reduce((acc, { roleId, privilege }) => {
@@ -1086,10 +1084,6 @@ function FieldPrivilegesDialog({
         return acc;
       }, {});
       setPrivileges(newPrivileges);
-      console.log('###################', newPrivileges)
-      console.log('###################', setPrivileges(newPrivileges))
-      console.log('############', privilegesData)
-
     }
   }, [privilegesData]);
 
@@ -1102,9 +1096,7 @@ function FieldPrivilegesDialog({
 
   const handleSave = async () => {
     if (!field?.id) return;
-
     try {
-      // Обновляем привилегии для каждой роли
       await Promise.all(
         Object.entries(privileges).map(([roleId, privilege]) => {
           return updateFieldPrivilege({
@@ -1118,6 +1110,7 @@ function FieldPrivilegesDialog({
           });
         })
       );
+      enqueueSnackbar('Права успешно обновлены!', { variant: 'success' });
       onClose();
     } catch (error) {
       console.error('Error saving privileges:', error);
