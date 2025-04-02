@@ -8,9 +8,8 @@ export enum Role {
 
 export enum Privilege {
     READ = 'read',
-    CREATE = 'create',
-    EDIT = 'edit',
-    DELETE = 'delete',
+    WRITE = 'write',
+    FORBIDDEN = 'forbidden',
 }
 
 export interface IFieldPrivilege extends IEntity {

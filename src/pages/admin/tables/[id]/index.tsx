@@ -61,7 +61,7 @@ import useTable, {
   useEditRow,
 } from '../../../../components/use-table';
 import '../../../../components/entities/IFieldPrivilege'
-import { Privilege } from '@/components/entities/ITablePrivilege';
+import { Privilege } from '@/components/entities/IFieldPrivilege';
 import { useSnackbar } from 'notistack';
 
 const GET_ROLES = gql`
@@ -74,7 +74,7 @@ query GetRoles {
 }
 `;
 
-const GET_PRIVILEGES = gql`
+const GET_FIELD_PRIVILEGES = gql`
 query GetPrivilegesByFieldId($fieldId: String!) {
     getPrivilegesByFieldId(fieldId: $fieldId) {
         roleId
@@ -83,8 +83,8 @@ query GetPrivilegesByFieldId($fieldId: String!) {
 }
 `;
 
-const UPDATE_PRIVILEGES = gql`
-mutation UpdateFieldPrivileges($fieldId: String!, $roleId: String!, $privilege: PrivilegeInput!) {
+const UPDATE_FIELD_PRIVILEGES = gql`
+mutation UpdateFieldPrivileges($fieldId: String!, $roleId: String!, $privilege: FieldPrivilegeInput!) {
     updateFieldPrivileges(fieldId: $fieldId, roleId: $roleId, privilege: $privilege)
 }
 `;
@@ -1062,13 +1062,13 @@ function FieldPrivilegesDialog({
     loading: privilegesLoading, 
     error: privilegesError, 
     refetch: refetchPrivileges 
-  } = useQuery(GET_PRIVILEGES, { 
+  } = useQuery(GET_FIELD_PRIVILEGES, { 
     variables: { fieldId: field?.id },
     skip: !field?.id || !open
   });
 
   // Используем useMutation для обновления привилегий
-  const [updatePrivilege] = useMutation(UPDATE_PRIVILEGES, {
+  const [updateFieldPrivilege] = useMutation(UPDATE_FIELD_PRIVILEGES, {
     onCompleted: () => {
       enqueueSnackbar('Права успешно обновлены!', { variant: 'success' });
       refetchPrivileges();
@@ -1088,6 +1088,7 @@ function FieldPrivilegesDialog({
       setPrivileges(newPrivileges);
       console.log('###################', newPrivileges)
       console.log('###################', setPrivileges(newPrivileges))
+      console.log('############', privilegesData)
 
     }
   }, [privilegesData]);
@@ -1106,11 +1107,13 @@ function FieldPrivilegesDialog({
       // Обновляем привилегии для каждой роли
       await Promise.all(
         Object.entries(privileges).map(([roleId, privilege]) => {
-          return updatePrivilege({
+          return updateFieldPrivilege({
             variables: {
               fieldId: field.id,
               roleId,
-              privilege: { privilege }
+              privilege: {
+                privilege
+              }
             }
           });
         })
@@ -1172,9 +1175,8 @@ function FieldPrivilegesDialog({
                   onChange={(e) => handlePrivilegeChange(role.id, e.target.value as Privilege)}
                 >
                   <MenuItem value={Privilege.READ}>Чтение</MenuItem>
-                  <MenuItem value={Privilege.CREATE}>Создание</MenuItem>
-                  <MenuItem value={Privilege.EDIT}>Редактирование</MenuItem>
-                  <MenuItem value={Privilege.DELETE}>Удаление</MenuItem>
+                  <MenuItem value={Privilege.WRITE}>Запись</MenuItem>
+                  <MenuItem value={Privilege.FORBIDDEN}>Запрещено</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -1184,7 +1186,7 @@ function FieldPrivilegesDialog({
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
         <Button 
-          variant="contained" 
+          variant="contained"  
           onClick={handleSave}
           disabled={rolesLoading || privilegesLoading}
         >
