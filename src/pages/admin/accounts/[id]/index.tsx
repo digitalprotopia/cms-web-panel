@@ -90,6 +90,9 @@ export default function PostEditPost() {
                 ...formData,
                 name: e.target.value,
               })}
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
             <TextField
               label="email"
@@ -100,6 +103,9 @@ export default function PostEditPost() {
                 ...formData,
                 email: e.target.value,
               })}
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
           </div>
         </div>

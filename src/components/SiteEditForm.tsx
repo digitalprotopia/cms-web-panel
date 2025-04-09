@@ -35,6 +35,7 @@ export default function SiteEditForm({
     <form onSubmit={handleSubmit} className="p-4">
       <div className="grid grid-cols-2 gap-4">
         {textField('Заголовок', formData.title, (e) => setFormData({ ...formData, title: e.target.value }))}
+        {textField('Заголовок', formData.title, (e) => setFormData({ ...formData, title: e.target.value }))}
         {textField('Домен', formData.domain, (e) => setFormData({ ...formData, domain: e.target.value }))}
         <div className="grid grid-cols-2 gap-4">
           <S3Autocomplete
