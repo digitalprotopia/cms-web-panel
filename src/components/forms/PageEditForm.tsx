@@ -213,12 +213,18 @@ export default function PageForm({
               title: e.target.value,
             })}
             required
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
           />
           <TextField
             label="SEO Тег"
             fullWidth
             value={formData.seotag}
             onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
           />
         </div>
 

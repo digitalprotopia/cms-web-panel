@@ -184,6 +184,9 @@ function CreateTemplate(props: {
             label="Название"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
           />
           <TextField
             label="Имя файла"

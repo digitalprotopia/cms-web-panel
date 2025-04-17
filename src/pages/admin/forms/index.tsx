@@ -35,7 +35,6 @@ function FormCard({ form, onDelete }: {
           <div className="flex flex-col gap-1 mt-1">
             <span className="text-sm text-gray-600 scrollable-title">
               Код:
-              {' '}
               {form.name}
             </span>
             <span className="text-sm text-gray-500">
