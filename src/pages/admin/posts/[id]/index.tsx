@@ -18,8 +18,10 @@ export default function PostEditPost() {
           aria-label="История изменений"
           onClick={handleHistoryClick}
           sx={{
+            // backgroundColor: 'black', // Основной цвет
+            color: 'black', // Цвет иконки
             '&:hover': {
-              backgroundColor: 'rgba(233, 30, 99, 0.1)'
+              backgroundColor: 'rgba(233, 30, 99, 0.1)' // Затемнение при наведении
             }
           }}
         >

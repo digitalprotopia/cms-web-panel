@@ -81,7 +81,7 @@ export default function PostHistoryView() {
   });
 
   const [restoreHistory] = useMutation(RESTORE_HISTORY, {
-    onCompleted: () => router.push(`/admin/posts/${id}/edit`),
+    onCompleted: () => router.push(`/admin/posts/${id}`),
     onError: (err) => alert(`Restore error: ${err.message}`)
   });
 
@@ -110,7 +110,7 @@ export default function PostHistoryView() {
           ))
         ) : (
           <List dense>
-            {data?.getPostHistory?.map((version, index) => (
+            {data?.getPostHistory?.map((version: string, index: string) => (
               <div key={version.id}>
                 <ListItem 
                   button
