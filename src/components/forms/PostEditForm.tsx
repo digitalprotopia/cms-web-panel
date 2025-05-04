@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, CircularProgress, TextField } from '@mui/material';
 import { MuiChipsInput } from 'mui-chips-input';
 import DefaultEditor from 'react-simple-wysiwyg';
@@ -37,13 +37,13 @@ const UPDATE_POST = gql`
   }
 `;
 
-export default function PostForm({
-  id,
-  onClose,
-}: {
+interface PostFormProps {
   id?: string;
   onClose: () => void;
-}) {
+  historyData?: Partial<IPost>;
+}
+
+export default function PostForm({ id, onClose, historyData }: PostFormProps) {
   const [formData, setFormData] = useState<Partial<IPost>>({
     title: '',
     content: '',
@@ -53,6 +53,17 @@ export default function PostForm({
     categoryIds: [],
     roleIds: [],
   });
+
+  useEffect(() => {
+    if (historyData) {
+      setFormData(prev => ({
+        ...prev,
+        title: historyData.title || prev.title,
+        blockContent: historyData.blockContent || prev.blockContent,
+        preview: historyData.preview || prev.preview
+      }));
+    }
+  }, [historyData]);
 
   const linkData = useQuery(gql`
     query {

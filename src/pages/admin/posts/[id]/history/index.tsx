@@ -101,7 +101,7 @@ export default function PostHistoryView() {
           <IconButton onClick={() => router.back()} sx={{ mr: 1 }}>
             <BackIcon />
           </IconButton>
-          <Typography variant="h6">Version History</Typography>
+          <Typography variant="h6">История версий</Typography>
         </Box>
 
         {loading ? (
@@ -126,7 +126,7 @@ export default function PostHistoryView() {
                     primary={
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          Version {data.getPostHistory.length - index}
+                          Версия {data.getPostHistory.length - index}
                         </Typography>
                         {index === 0 && (
                           <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
@@ -157,7 +157,7 @@ export default function PostHistoryView() {
           <>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
               <Typography variant="h5">{selectedVersion.title}</Typography>
-              <Tooltip title="Restore this version">
+              <Tooltip title="Восстановить эту версию">
               <IconButton onClick={() => restoreHistory({ variables: { historyId: selectedVersion.id } })}>
                 <RestoreIcon color="primary" />
               </IconButton>
@@ -173,7 +173,7 @@ export default function PostHistoryView() {
                 sx={{ mr: 1 }}
               />
               <Chip 
-                label={`Version ${data.getPostHistory.length - data.getPostHistory.findIndex(v => v.id === selectedVersion.id)}`}
+                label={`Версия ${data.getPostHistory.length - data.getPostHistory.findIndex(v => v.id === selectedVersion.id)}`}
                 variant="outlined"
                 size="small"
               />
@@ -203,7 +203,7 @@ export default function PostHistoryView() {
             </Paper>
           </>
         ) : (
-          <Typography>Select a version to view details</Typography>
+          <Typography>Выберите версию для просмотра подробностей</Typography>
         )}
       </Box>
     </Box>
