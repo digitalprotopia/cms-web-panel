@@ -77,7 +77,7 @@ interface PostHistoryDialogProps {
     }) => void;
   }
 
-export default function PostHistoryDialog({ open, postId, onClose, onRestore }: PostHistoryDialogProps) {
+export default function PostHistoryDialog({ open, postId, onClose, onSelectVersion }: PostHistoryDialogProps) {
     const [selectedVersion, setSelectedVersion] = useState<any>(null);
   
     const { loading, error, data } = useQuery(GET_POST_HISTORY, {
@@ -89,7 +89,7 @@ export default function PostHistoryDialog({ open, postId, onClose, onRestore }: 
         if (selectedVersion) {
           onSelectVersion({
             title: selectedVersion.title,
-            blockContent: JSON.parse(selectedVersion.blockContent),
+            blockContent: selectedVersion.blockContent,
             preview: selectedVersion.preview
           });
           onClose();
