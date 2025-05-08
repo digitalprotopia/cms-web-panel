@@ -1,5 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Button, CircularProgress, TextField } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { 
+  Button, 
+  CircularProgress, 
+  TextField, 
+  Stack, 
+  Typography, 
+  IconButton 
+} from '@mui/material';
+import HistoryIcon from '@mui/icons-material/History';
 import { MuiChipsInput } from 'mui-chips-input';
 import DefaultEditor from 'react-simple-wysiwyg';
 import { gql, useMutation, useQuery } from '@apollo/client';
@@ -10,6 +18,7 @@ import S3Autocomplete, { Option } from '../guiElements/S3Autocomplete';
 import BlockEditor from '../BlockEditor';
 import { flattenIndexedTree, ItemWithParentId, makeIndexedTree } from '../guiElements/Tree';
 import { IRole } from '../entities/IRole';
+import PostHistoryDialog from '../dialogs/PostHistoryDialog';
 
 const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {
@@ -40,10 +49,9 @@ const UPDATE_POST = gql`
 interface PostFormProps {
   id?: string;
   onClose: () => void;
-  historyData?: Partial<IPost>;
 }
 
-export default function PostForm({ id, onClose, historyData }: PostFormProps) {
+export default function PostForm({ id, onClose }: PostFormProps) {
   const [formData, setFormData] = useState<Partial<IPost>>({
     title: '',
     content: '',
@@ -54,16 +62,22 @@ export default function PostForm({ id, onClose, historyData }: PostFormProps) {
     roleIds: [],
   });
 
-  useEffect(() => {
-    if (historyData) {
-      setFormData(prev => ({
-        ...prev,
-        title: historyData.title || prev.title,
-        blockContent: historyData.blockContent || prev.blockContent,
-        preview: historyData.preview || prev.preview
-      }));
-    }
-  }, [historyData]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+
+  const handleSelectVersion = (version: { 
+    title: string; 
+    blockContent: any; 
+    preview: string 
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      title: version.title,
+      blockContent: typeof version.blockContent === 'string' 
+        ? JSON.parse(version.blockContent) 
+        : version.blockContent,
+      preview: version.preview
+    }));
+  };
 
   const linkData = useQuery(gql`
     query {
@@ -174,22 +188,6 @@ export default function PostForm({ id, onClose, historyData }: PostFormProps) {
     }
   };
 
-  // const snippets = useQuery(gql`
-  //   query {
-  //     getAllWidgets {
-  //       id
-  //       name
-  //       title
-  //       createdAt
-  //     }
-  //     getAllForms {
-  //       id
-  //       name
-  //       title
-  //       createdAt
-  //     }
-  // }`);
-
   if (!linkData.data || (id && !initialData.data?.getPost?.id)) {
     return (
       <div className="flex items-center justify-center">
@@ -199,86 +197,111 @@ export default function PostForm({ id, onClose, historyData }: PostFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4">
-      <div>
-        <div className="grid p-2 grid-cols-2 gap-4">
-          {/* <TextField
-            label="Название"
-            fullWidth
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          /> */}
-          <TextField
-            label="Заголовок"
-            fullWidth
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            required
-          />
+    <>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4">Редактировать запись</Typography>
+        {id && (
+          <IconButton 
+            color="secondary" 
+            aria-label="История изменений"
+            onClick={() => setHistoryDialogOpen(true)}
+            sx={{
+              color: 'black',
+              '&:hover': {
+                backgroundColor: 'rgba(233, 30, 99, 0.1)'
+              }
+            }}
+          >
+            <HistoryIcon />
+          </IconButton>
+        )}
+      </Stack>
 
-          <MuiChipsInput
-            label="Теги"
-            value={formData.tags}
-            onChange={(_tags) => setFormData({ ...formData, tags: _tags })}
-          />
+      <form onSubmit={handleSubmit} className="p-4">
+        <div>
+          <div className="grid p-2 grid-cols-2 gap-4">
+            <TextField
+              label="Заголовок"
+              fullWidth
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
+
+            <MuiChipsInput
+              label="Теги"
+              value={formData.tags}
+              onChange={(_tags) => setFormData({ ...formData, tags: _tags })}
+            />
+          </div>
+
+          <div className="grid p-2 grid-cols-2 gap-4">
+            <S3Autocomplete
+              multiple
+              label="Категории"
+              value={formData.categoryIds}
+              options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds))
+                .map((category) => ({
+                  id: category.id,
+                  name: category.title,
+                  level: category.level,
+                }))}
+              onChange={(categoryIds) => setFormData({
+                ...formData,
+                categoryIds: categoryIds as string[],
+              })}
+              renderOption={(option) => (
+                <div style={{ paddingLeft: option.level * 20 }}>
+                  {option.name}
+                </div>
+              )}
+            />
+            <S3Autocomplete
+              value={formData.roleIds}
+              onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
+              options={roles}
+              multiple
+              label="Роли"
+            />
+          </div>
         </div>
 
-        <div className="grid p-2 grid-cols-2 gap-4">
-          <S3Autocomplete
-            multiple
-            label="Категории"
-            value={formData.categoryIds}
-            options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds))
-              .map((category) => ({
-                id: category.id,
-                name: category.title,
-                level: category.level,
-              }))}
-            onChange={(categoryIds) => setFormData({
-              ...formData,
-              categoryIds: categoryIds as string[],
-            })}
-            renderOption={(option) => (
-              <div style={{ paddingLeft: option.level * 20 }}>
-                {option.name}
-              </div>
-            )}
-          />
-          <S3Autocomplete
-            value={formData.roleIds}
-            onChange={(value) => setFormData({ ...formData, roleIds: value as string[] })}
-            options={roles}
-            multiple
-            label="Роли"
-          />
+        <h4>Блочный редактор</h4>
+        <BlockEditor
+          value={formData.blockContent}
+          onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+        />
+
+        <h4>Контент</h4>
+        <DefaultEditor
+          value={formData.content}
+          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+        />
+
+        <h4>Превью</h4>
+        <DefaultEditor
+          value={formData.preview}
+          onChange={(e) => setFormData({ ...formData, preview: e.target.value })}
+        />
+
+        <div className="flex justify-end gap-2 mt-5">
+          <Button variant="outlined" onClick={() => onClose()}>
+            Отмена
+          </Button>
+          <Button variant="contained" type="submit">
+            {id ? 'Обновить' : 'Создать'}
+          </Button>
         </div>
-      </div>
+      </form>
 
-      <h4>Блочный редактор</h4>
-      <BlockEditor
-        initialData={initialData.data?.getPost?.blockContent}
-        onChange={(blockContent) => setFormData({ ...formData, blockContent })}
-      />
-      <h4>Контент</h4>
-      <DefaultEditor
-        value={formData.content}
-        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-      />
-      <h4>Превью</h4>
-      <DefaultEditor
-        value={formData.preview}
-        onChange={(e) => setFormData({ ...formData, preview: e.target.value })}
-      />
-
-      <div className="flex justify-end gap-2 mt-5">
-        <Button variant="outlined" onClick={() => onClose()}>
-          Отмена
-        </Button>
-        <Button variant="contained" type="submit">
-          {id ? 'Обновить' : 'Создать'}
-        </Button>
-      </div>
-    </form>
+      {id && (
+        <PostHistoryDialog
+          open={historyDialogOpen}
+          postId={id as string}
+          onClose={() => setHistoryDialogOpen(false)}
+          onSelectVersion={handleSelectVersion}
+        />
+      )}
+    </>
   );
 }

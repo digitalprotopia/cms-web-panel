@@ -109,7 +109,6 @@ export default function PostHistoryDialog({ open, postId, onClose, onSelectVersi
           )}
   
         <Box sx={{ display: 'flex', height: '500px' }}>
-        {/* Sidebar with versions */}
         <Paper sx={{ width: 320, overflowY: 'auto', borderRight: '1px solid #ddd' }}>
             {loading ? (
             Array(3).fill(0).map((_, i) => (
@@ -158,7 +157,6 @@ export default function PostHistoryDialog({ open, postId, onClose, onSelectVersi
             )}
         </Paper>
 
-        {/* Main content */}
         <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
             {selectedVersion ? (
             <>
