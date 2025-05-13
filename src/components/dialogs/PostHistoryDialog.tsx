@@ -32,6 +32,7 @@ import {
   Person as PersonIcon,
   Schedule as TimeIcon
 } from '@mui/icons-material';
+import { IPostHistory } from '../entities/IPostHistory';
 
 dayjs.extend(localizedFormat);
 dayjs.extend(advancedFormat);
@@ -50,35 +51,23 @@ const GET_POST_HISTORY = gql`
   }
 `;
 
-const formatDateTime = (dateString: string) => {
-    return dayjs(dateString).format('D MMMM YYYY года HH:mm');
-  };
-
-const formatBlockContent = (content: any) => {
-  try {
-    if (typeof content !== 'string') {
-      content = JSON.stringify(content);
-    }
-    const parsed = JSON.parse(content);
-    return JSON.stringify(parsed, null, 2);
-  } catch {
-    return content;
-  }
+const formatDateTime = (dateString: string): string => {
+  return dayjs(dateString).format('D MMMM YYYY года HH:mm');
 };
 
 interface PostHistoryDialogProps {
     open: boolean;
     postId: string;
     onClose: () => void;
-    onSelectVersion: (version: {
+    onRestoreVersion: (version: {
       title: string;
-      blockContent: any;
+      blockContent: string;
       preview: string;
     }) => void;
   }
 
-export default function PostHistoryDialog({ open, postId, onClose, onSelectVersion }: PostHistoryDialogProps) {
-    const [selectedVersion, setSelectedVersion] = useState<any>(null);
+export default function PostHistoryDialog({ open, postId, onClose, onRestoreVersion: onRestoreVersion }: PostHistoryDialogProps) {
+    const [selectedVersion, setSelectedVersion] = useState<IPostHistory>();
   
     const { loading, error, data } = useQuery(GET_POST_HISTORY, {
       variables: { postId },
@@ -87,7 +76,7 @@ export default function PostHistoryDialog({ open, postId, onClose, onSelectVersi
   
     const handleSelectVersion = () => {
         if (selectedVersion) {
-          onSelectVersion({
+          onRestoreVersion({
             title: selectedVersion.title,
             blockContent: selectedVersion.blockContent,
             preview: selectedVersion.preview
@@ -116,7 +105,7 @@ export default function PostHistoryDialog({ open, postId, onClose, onSelectVersi
             ))
             ) : (
             <List dense>
-                {data?.getPostHistory?.map((version: any, index: number) => (
+                {data?.getPostHistory?.map((version: IPostHistory, index: number) => (
                 <div key={version.id}>
                     <ListItem 
                     button

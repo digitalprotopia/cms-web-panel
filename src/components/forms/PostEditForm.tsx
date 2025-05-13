@@ -72,9 +72,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     setFormData(prev => ({
       ...prev,
       title: version.title,
-      blockContent: typeof version.blockContent === 'string' 
-        ? JSON.parse(version.blockContent) 
-        : version.blockContent,
+      blockContent: version.blockContent,
       preview: version.preview
     }));
   };
@@ -199,7 +197,14 @@ export default function PostForm({ id, onClose }: PostFormProps) {
   return (
     <>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">Редактировать запись</Typography>
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          display: location.pathname.endsWith('/add') ? 'none' : 'block' 
+        }}
+      >
+        Редактировать запись
+      </Typography>
         {id && (
           <IconButton 
             color="secondary" 
@@ -299,7 +304,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
           open={historyDialogOpen}
           postId={id as string}
           onClose={() => setHistoryDialogOpen(false)}
-          onSelectVersion={handleSelectVersion}
+          onRestoreVersion={handleSelectVersion}
         />
       )}
     </>
