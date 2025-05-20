@@ -1,11 +1,9 @@
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
-import BlockEditor from '../BlockEditor';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { useState } from 'react';
-import { useQuery } from '@apollo/client';
-import { gql } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 import {
   Dialog,
   DialogTitle,
@@ -20,18 +18,18 @@ import {
   Avatar,
   Divider,
   Chip,
-  IconButton,
-  Tooltip,
   Skeleton,
   Alert,
   DialogActions,
-  Button
+  Button,
 } from '@mui/material';
 import {
   Restore as RestoreIcon,
   Person as PersonIcon,
-  Schedule as TimeIcon
+  Schedule as TimeIcon,
 } from '@mui/icons-material';
+
+import BlockEditor from '../BlockEditor';
 import { IPostHistory } from '../entities/IPostHistory';
 
 dayjs.extend(localizedFormat);
@@ -51,174 +49,177 @@ const GET_POST_HISTORY = gql`
   }
 `;
 
-const formatDateTime = (dateString: string): string => {
-  return dayjs(dateString).format('D MMMM YYYY года HH:mm');
-};
+const formatDateTime = (
+  dateString: string,
+): string => dayjs(dateString).format('D MMMM YYYY года HH:mm');
 
 interface PostHistoryDialogProps {
-    open: boolean;
-    postId: string;
-    onClose: () => void;
-    onRestoreVersion: (version: {
-      title: string;
-      blockContent: string;
-      preview: string;
-    }) => void;
-  }
+  open: boolean;
+  postId: string;
+  onClose: () => void;
+  onRestoreVersion: (version: {
+    title: string;
+    blockContent: string;
+    preview: string;
+  }) => void;
+}
 
-export default function PostHistoryDialog({ open, postId, onClose, onRestoreVersion: onRestoreVersion }: PostHistoryDialogProps) {
-    const [selectedVersion, setSelectedVersion] = useState<IPostHistory>();
-  
-    const { loading, error, data } = useQuery(GET_POST_HISTORY, {
-      variables: { postId },
-      skip: !postId
-    });
-  
-    const handleSelectVersion = () => {
-        if (selectedVersion) {
-          onRestoreVersion({
-            title: selectedVersion.title,
-            blockContent: selectedVersion.blockContent,
-            preview: selectedVersion.preview
-          });
-          onClose();
-        }
-      };
-  
-    return (
-      <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6">История версий</Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          {error && (
-            <Box sx={{ p: 3 }}>
-              <Alert severity="error">{error.message}</Alert>
-            </Box>
-          )}
-  
+export default function PostHistoryDialog(
+  { open, postId, onClose, onRestoreVersion }: PostHistoryDialogProps,
+) {
+  const [selectedVersion, setSelectedVersion] = useState<IPostHistory>();
+
+  const { loading, error, data } = useQuery(GET_POST_HISTORY, {
+    variables: { postId },
+    skip: !postId,
+  });
+
+  const handleSelectVersion = () => {
+    if (selectedVersion) {
+      onRestoreVersion({
+        title: selectedVersion.title,
+        blockContent: selectedVersion.blockContent,
+        preview: selectedVersion.preview,
+      });
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+      <DialogTitle>
+        <Typography variant="h6">История версий</Typography>
+      </DialogTitle>
+      <DialogContent dividers>
+        {error && (
+          <Box sx={{ p: 3 }}>
+            <Alert severity="error">{error.message}</Alert>
+          </Box>
+        )}
+
         <Box sx={{ display: 'flex', height: '500px' }}>
-        <Paper sx={{ width: 320, overflowY: 'auto', borderRight: '1px solid #ddd' }}>
+          <Paper sx={{ width: 320, overflowY: 'auto', borderRight: '1px solid #ddd' }}>
             {loading ? (
-            Array(3).fill(0).map((_, i) => (
+              Array(3).fill(0).map((_, i) => (
                 <Skeleton key={i} variant="rectangular" width="100%" height={80} sx={{ mb: 1 }} />
-            ))
+              ))
             ) : (
-            <List dense>
+              <List dense>
                 {data?.getPostHistory?.map((version: IPostHistory, index: number) => (
-                <div key={version.id}>
-                    <ListItem 
-                    button
-                    selected={selectedVersion?.id === version.id}
-                    onClick={() => setSelectedVersion(version)}
+                  <div key={version.id}>
+                    <ListItem
+                      button
+                      selected={selectedVersion?.id === version.id}
+                      onClick={() => setSelectedVersion(version)}
                     >
-                    <ListItemAvatar>
+                      <ListItemAvatar>
                         <Avatar sx={{ bgcolor: 'grey.300' }}>
-                        <PersonIcon />
+                          <PersonIcon />
                         </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                        primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={(
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            Версия {data.getPostHistory.length - index}
+                              {`Версия ${data.getPostHistory.length - index}`}
                             </Typography>
                             {index === 0 && (
                             <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
                             )}
-                        </Box>
-                        }
-                        secondary={
-                        <>
+                          </Box>
+                        )}
+                        secondary={(
+                          <>
                             <Box component="span" sx={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}>
-                            <TimeIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
-                            {formatDateTime(version.createdAt)}
+                              <TimeIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
+                              {formatDateTime(version.createdAt)}
                             </Box>
                             <Typography variant="caption">{version.title}</Typography>
-                        </>
-                        }
-                    />
+                          </>
+                        )}
+                      />
                     </ListItem>
                     <Divider variant="inset" component="li" />
-                </div>
+                  </div>
                 ))}
-            </List>
+              </List>
             )}
-        </Paper>
+          </Paper>
 
-        <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
+          <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
             {selectedVersion ? (
-            <>
+              <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                <Typography variant="h5">{selectedVersion.title}</Typography>
+                  <Typography variant="h5">{selectedVersion.title}</Typography>
                 </Box>
 
                 <Box sx={{ mb: 3 }}>
-                <Chip 
+                  <Chip
                     label={formatDateTime(selectedVersion.createdAt)}
                     icon={<TimeIcon />}
                     variant="outlined"
                     size="small"
                     sx={{ mr: 1 }}
-                />
-                <Chip 
-                    label={`Версия ${data.getPostHistory.length - data.getPostHistory.findIndex(v => v.id === selectedVersion.id)}`}
+                  />
+                  <Chip
+                    label={`Версия ${data.getPostHistory.length - data.getPostHistory.findIndex((v) => v.id === selectedVersion.id)}`}
                     variant="outlined"
                     size="small"
-                />
+                  />
                 </Box>
 
                 <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Превью</Typography>
-                <Typography>{selectedVersion.preview}</Typography>
+                  <Typography variant="h6" gutterBottom>Превью</Typography>
+                  <Typography>{selectedVersion.preview}</Typography>
                 </Paper>
 
                 <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>Контент</Typography>
-                <Box
+                  <Typography variant="h6" gutterBottom>Контент</Typography>
+                  <Box
                     sx={{
-                    p: 2,
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: 1,
-                    maxHeight: '50vh',
-                    overflow: 'auto'
+                      p: 2,
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 1,
+                      maxHeight: '50vh',
+                      overflow: 'auto',
                     }}
-                >
-                    {selectedVersion.blockContent ? (
-                    typeof selectedVersion.blockContent === 'string' ? (
-                        <BlockEditor 
-                        initialData={JSON.parse(selectedVersion.blockContent)}
-                        readOnly
+                  >
+                    if (selectedVersion.blockContent)
+                    {
+                      typeof selectedVersion.blockContent === 'string' ? (
+                        <BlockEditor
+                          initialData={JSON.parse(selectedVersion.blockContent)}
+                          readOnly
                         />
-                    ) : (
-                        <BlockEditor 
-                        initialData={selectedVersion.blockContent}
-                        readOnly
+                      ) : (
+                        <BlockEditor
+                          initialData={selectedVersion.blockContent}
+                          readOnly
                         />
-                    )
-                    ) : (
+                      )
+                    }
+                    else
                     <Typography>Нет содержимого</Typography>
-                    )}
-                </Box>
+                  </Box>
                 </Paper>
-            </>
+              </>
             ) : (
-            <Typography>Выберите версию для просмотра подробностей</Typography>
+              <Typography>Выберите версию для просмотра подробностей</Typography>
             )}
+          </Box>
         </Box>
-        </Box>
-    </DialogContent>
-    <DialogActions>
+      </DialogContent>
+      <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
-        <Button 
-            onClick={handleSelectVersion} 
-            disabled={!selectedVersion}
-            startIcon={<RestoreIcon />}
-            color="primary"
-            >
-           Выбрать версию
+        <Button
+          onClick={handleSelectVersion}
+          disabled={!selectedVersion}
+          startIcon={<RestoreIcon />}
+          color="primary"
+        >
+          Выбрать версию
         </Button>
-    </DialogActions>
+      </DialogActions>
     </Dialog>
-);
+  );
 }
