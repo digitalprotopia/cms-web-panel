@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { 
-  Button, 
-  CircularProgress, 
-  TextField, 
-  Stack, 
-  Typography, 
-  IconButton 
+import { useState } from 'react';
+import {
+  Button,
+  CircularProgress,
+  TextField,
+  Stack,
+  Typography,
+  IconButton,
 } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
 import { MuiChipsInput } from 'mui-chips-input';
@@ -64,16 +64,16 @@ export default function PostForm({ id, onClose }: PostFormProps) {
 
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
-  const handleSelectVersion = (version: { 
-    title: string; 
-    blockContent: any; 
-    preview: string 
+  const handleSelectVersion = (version: {
+    title: string;
+    blockContent: any;
+    preview: string
   }) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       title: version.title,
       blockContent: version.blockContent,
-      preview: version.preview
+      preview: version.preview,
     }));
   };
 
@@ -197,24 +197,24 @@ export default function PostForm({ id, onClose }: PostFormProps) {
   return (
     <>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          display: location.pathname.endsWith('/add') ? 'none' : 'block' 
-        }}
-      >
-        Редактировать запись
-      </Typography>
+        <Typography
+          variant="h4"
+          sx={{
+            display: document.location.pathname.endsWith('/add') ? 'none' : 'block',
+          }}
+        >
+          Редактировать запись
+        </Typography>
         {id && (
-          <IconButton 
-            color="secondary" 
+          <IconButton
+            color="secondary"
             aria-label="История изменений"
             onClick={() => setHistoryDialogOpen(true)}
             sx={{
               color: 'black',
               '&:hover': {
-                backgroundColor: 'rgba(233, 30, 99, 0.1)'
-              }
+                backgroundColor: 'rgba(233, 30, 99, 0.1)',
+              },
             }}
           >
             <HistoryIcon />
