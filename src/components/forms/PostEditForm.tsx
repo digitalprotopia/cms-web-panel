@@ -273,7 +273,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
 
         <h4>Блочный редактор</h4>
         <BlockEditor
-          value={formData.blockContent}
+          initialData={formData.blockContent}
           onChange={(blockContent) => setFormData({ ...formData, blockContent })}
         />
 

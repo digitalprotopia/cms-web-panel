@@ -29,8 +29,8 @@ import {
   Schedule as TimeIcon,
 } from '@mui/icons-material';
 
-import BlockEditor from '../BlockEditor';
-import { IPostHistory } from '../entities/IPostHistory';
+import { BlockView } from '@/components/BlockEditor';
+import { IPostHistory } from '@/components/entities/IPostHistory';
 
 dayjs.extend(localizedFormat);
 dayjs.extend(advancedFormat);
@@ -184,9 +184,8 @@ export default function PostHistoryDialog(
                   >
                     {selectedVersion.blockContent
                       ? (
-                        <BlockEditor
-                          initialData={selectedVersion.blockContent}
-                          readOnly
+                        <BlockView
+                          blockContent={selectedVersion.blockContent}
                         />
                       )
                       : (<Typography>Нет содержимого</Typography>)}
