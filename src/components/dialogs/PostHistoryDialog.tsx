@@ -50,7 +50,7 @@ const GET_POST_HISTORY = gql`
 `;
 
 const formatDateTime = (
-  dateString: string,
+  dateString: dayjs.ConfigType,
 ): string => dayjs(dateString).format('D MMMM YYYY года HH:mm');
 
 interface PostHistoryDialogProps {
@@ -108,8 +108,6 @@ export default function PostHistoryDialog(
                 {data?.getPostHistory?.map((version: IPostHistory, index: number) => (
                   <div key={version.id}>
                     <ListItem
-                      button
-                      selected={selectedVersion?.id === version.id}
                       onClick={() => setSelectedVersion(version)}
                     >
                       <ListItemAvatar>
@@ -162,7 +160,7 @@ export default function PostHistoryDialog(
                     sx={{ mr: 1 }}
                   />
                   <Chip
-                    label={`Версия ${data.getPostHistory.length - data.getPostHistory.findIndex((v) => v.id === selectedVersion.id)}`}
+                    label={`Версия ${data.getPostHistory.length - data.getPostHistory.findIndex((v: IPostHistory) => v.id === selectedVersion.id)}`}
                     variant="outlined"
                     size="small"
                   />
@@ -184,22 +182,14 @@ export default function PostHistoryDialog(
                       overflow: 'auto',
                     }}
                   >
-                    if (selectedVersion.blockContent)
-                    {
-                      typeof selectedVersion.blockContent === 'string' ? (
-                        <BlockEditor
-                          initialData={JSON.parse(selectedVersion.blockContent)}
-                          readOnly
-                        />
-                      ) : (
+                    {selectedVersion.blockContent
+                      ? (
                         <BlockEditor
                           initialData={selectedVersion.blockContent}
                           readOnly
                         />
                       )
-                    }
-                    else
-                    <Typography>Нет содержимого</Typography>
+                      : (<Typography>Нет содержимого</Typography>)}
                   </Box>
                 </Paper>
               </>
