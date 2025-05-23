@@ -64,7 +64,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
 
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
-  const handleSelectVersion = (version: {
+  const handleSelectedPost = (version: {
     title: string;
     blockContent: any;
     preview: string
@@ -273,7 +273,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
 
         <h4>Блочный редактор</h4>
         <BlockEditor
-          initialData={formData.blockContent}
+          initialData={initialData.data?.getPost?.blockContent}
           onChange={(blockContent) => setFormData({ ...formData, blockContent })}
         />
 
@@ -304,7 +304,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
           open={historyDialogOpen}
           postId={id as string}
           onClose={() => setHistoryDialogOpen(false)}
-          onRestoreVersion={handleSelectVersion}
+          onRestorePost={handleSelectedPost}
         />
       )}
     </>

@@ -59,7 +59,7 @@ interface PostHistoryDialogProps {
   open: boolean;
   postId: string;
   onClose: () => void;
-  onRestoreVersion: (version: {
+  onRestorePost: (post: {
     title: string;
     blockContent: string;
     preview: string;
@@ -67,21 +67,21 @@ interface PostHistoryDialogProps {
 }
 
 export default function PostHistoryDialog(
-  { open, postId, onClose, onRestoreVersion }: PostHistoryDialogProps,
+  { open, postId, onClose, onRestorePost }: PostHistoryDialogProps,
 ) {
-  const [selectedVersion, setSelectedVersion] = useState<IPostHistory>();
+  const [selectedPost, setSelectedPost] = useState<IPostHistory>();
 
   const { loading, error, data } = useQuery(GET_POST_HISTORY, {
     variables: { postId },
     skip: !postId,
   });
 
-  const handleSelectVersion = () => {
-    if (selectedVersion) {
-      onRestoreVersion({
-        title: selectedVersion.title,
-        blockContent: selectedVersion.blockContent,
-        preview: selectedVersion.preview,
+  const handleSelectedPost = () => {
+    if (selectedPost) {
+      onRestorePost({
+        title: selectedPost.title,
+        blockContent: selectedPost.blockContent,
+        preview: selectedPost.preview,
       });
       onClose();
     }
@@ -107,12 +107,12 @@ export default function PostHistoryDialog(
               ))
             ) : (
               <List dense>
-                {data?.getPostHistory?.map((version: IPostHistory, index: number) => (
-                  <div key={version.id}>
+                {data?.getPostHistory?.map((post: IPostHistory, index: number) => (
+                  <div key={post.id}>
                     <ListItem>
                       <ListItemButton
-                        selected={selectedVersion === version}
-                        onClick={() => setSelectedVersion(version)}
+                        selected={typeof selectedPost !== 'undefined' && selectedPost.id === post.id}
+                        onClick={() => setSelectedPost(post)}
                         sx={{ cursor: 'pointer' }}
                       >
                         <ListItemAvatar>
@@ -135,9 +135,9 @@ export default function PostHistoryDialog(
                             <>
                               <Box component="span" sx={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}>
                                 <TimeIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
-                                {formatDateTime(version.createdAt)}
+                                {formatDateTime(post.createdAt)}
                               </Box>
-                              <Typography variant="caption">{version.title}</Typography>
+                              <Typography variant="caption">{post.title}</Typography>
                             </>
                           )}
                         />
@@ -151,22 +151,22 @@ export default function PostHistoryDialog(
           </Paper>
 
           <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
-            {selectedVersion ? (
+            {selectedPost ? (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                  <Typography variant="h5">{selectedVersion.title}</Typography>
+                  <Typography variant="h5">{selectedPost.title}</Typography>
                 </Box>
 
                 <Box sx={{ mb: 3 }}>
                   <Chip
-                    label={formatDateTime(selectedVersion.createdAt)}
+                    label={formatDateTime(selectedPost.createdAt)}
                     icon={<TimeIcon />}
                     variant="outlined"
                     size="small"
                     sx={{ mr: 1 }}
                   />
                   <Chip
-                    label={`Версия ${data.getPostHistory.length - data.getPostHistory.findIndex((v: IPostHistory) => v.id === selectedVersion.id)}`}
+                    label={`Версия ${data.getPostHistory.length - data.getPostHistory.findIndex((v: IPostHistory) => v.id === selectedPost.id)}`}
                     variant="outlined"
                     size="small"
                   />
@@ -174,7 +174,7 @@ export default function PostHistoryDialog(
 
                 <Paper sx={{ p: 3, mb: 3 }}>
                   <Typography variant="h6" gutterBottom>Превью</Typography>
-                  <Typography>{selectedVersion.preview}</Typography>
+                  <Typography>{selectedPost.preview}</Typography>
                 </Paper>
 
                 <Paper sx={{ p: 3 }}>
@@ -188,10 +188,11 @@ export default function PostHistoryDialog(
                       overflow: 'auto',
                     }}
                   >
-                    {selectedVersion.blockContent
+                    {selectedPost.blockContent
                       ? (
                         <BlockView
-                          blockContent={selectedVersion.blockContent}
+                          key={selectedPost.id}
+                          blockContent={selectedPost.blockContent}
                         />
                       )
                       : (<Typography>Нет содержимого</Typography>)}
@@ -207,8 +208,8 @@ export default function PostHistoryDialog(
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
         <Button
-          onClick={handleSelectVersion}
-          disabled={!selectedVersion}
+          onClick={handleSelectedPost}
+          disabled={!selectedPost}
           startIcon={<RestoreIcon />}
           color="primary"
         >
