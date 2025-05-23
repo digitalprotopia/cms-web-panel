@@ -1,3 +1,4 @@
+import * as React from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -22,6 +23,7 @@ import {
   Alert,
   DialogActions,
   Button,
+  ListItemButton,
 } from '@mui/material';
 import {
   Restore as RestoreIcon,
@@ -107,35 +109,39 @@ export default function PostHistoryDialog(
               <List dense>
                 {data?.getPostHistory?.map((version: IPostHistory, index: number) => (
                   <div key={version.id}>
-                    <ListItem
-                      onClick={() => setSelectedVersion(version)}
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'grey.300' }}>
-                          <PersonIcon />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={(
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {`Версия ${data.getPostHistory.length - index}`}
-                            </Typography>
-                            {index === 0 && (
-                            <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
-                            )}
-                          </Box>
-                        )}
-                        secondary={(
-                          <>
-                            <Box component="span" sx={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}>
-                              <TimeIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
-                              {formatDateTime(version.createdAt)}
+                    <ListItem>
+                      <ListItemButton
+                        selected={selectedVersion === version}
+                        onClick={() => setSelectedVersion(version)}
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: 'grey.300' }}>
+                            <PersonIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={(
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                {`Версия ${data.getPostHistory.length - index}`}
+                              </Typography>
+                              {index === 0 && (
+                                <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
+                              )}
                             </Box>
-                            <Typography variant="caption">{version.title}</Typography>
-                          </>
-                        )}
-                      />
+                          )}
+                          secondary={(
+                            <>
+                              <Box component="span" sx={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}>
+                                <TimeIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
+                                {formatDateTime(version.createdAt)}
+                              </Box>
+                              <Typography variant="caption">{version.title}</Typography>
+                            </>
+                          )}
+                        />
+                      </ListItemButton>
                     </ListItem>
                     <Divider variant="inset" component="li" />
                   </div>
@@ -206,7 +212,7 @@ export default function PostHistoryDialog(
           startIcon={<RestoreIcon />}
           color="primary"
         >
-          Выбрать версию
+          Восстановить
         </Button>
       </DialogActions>
     </Dialog>
