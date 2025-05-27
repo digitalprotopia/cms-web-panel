@@ -300,7 +300,9 @@ function BlockEditor({
     },
   });
 
-  setEditor(editor);
+  useEffect(() => {
+    setEditor(editor);
+  }, []);
 
   const ref = useRef<HTMLDivElement>();
 
