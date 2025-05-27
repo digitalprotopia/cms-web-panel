@@ -72,15 +72,15 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     blockContent: any;
     preview: string
   }) => {
+    if (editor !== null) {
+      editor.replaceBlocks(editor.document, version.blockContent);
+    }
     setFormData((prev) => ({
       ...prev,
       title: version.title,
       blockContent: version.blockContent,
       preview: version.preview,
     }));
-    if (editor !== null) {
-      editor.replaceBlocks(editor.document, version.blockContent);
-    }
   };
 
   const linkData = useQuery(gql`
