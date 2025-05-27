@@ -4,8 +4,12 @@ import { BlockNoteSchema,
   locales,
   combineByGroup,
   Block,
+  BlockNoteEditor,
   defaultStyleSpecs,
-  CustomBlockConfig, InlineContentSchema, StyleSchema } from '@blocknote/core';
+  CustomBlockConfig,
+  InlineContentSchema,
+  StyleSchema } from '@blocknote/core';
+
 import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
 
   useBlockNoteEditor,
@@ -148,6 +152,7 @@ interface BlockEditorProps {
   onChange: (data: any) => void;
   isEditable?: boolean;
   type?: 'page' | 'template';
+  setEditor?: (editor: BlockNoteEditor<any>) => void;
 }
 
 export function AddBlocksItem(props: DragHandleMenuProps) {
@@ -253,8 +258,11 @@ export const schema = BlockNoteSchema.create({
 });
 
 function BlockEditor({
-  initialData, onChange, isEditable = true,
+  initialData,
+  onChange,
+  isEditable = true,
   type = 'page',
+  setEditor = () => {},
 }: BlockEditorProps) {
   const snippets = useQuery(gql`
     query {
@@ -275,8 +283,7 @@ function BlockEditor({
   });
 
   const editor = useCreateBlockNote({
-    // eslint-disable-next-line no-nested-ternary
-    initialContent: initialData ? (initialData.length ? initialData : null) : null,
+    initialContent: initialData && initialData.length ? initialData : null,
     schema: withMultiColumn(schema),
     // The default drop cursor only shows up above and below blocks - we replace
     // it with the multi-column one that also shows up on the sides of blocks.
@@ -292,6 +299,8 @@ function BlockEditor({
       },
     },
   });
+
+  setEditor(editor);
 
   const ref = useRef<HTMLDivElement>();
 

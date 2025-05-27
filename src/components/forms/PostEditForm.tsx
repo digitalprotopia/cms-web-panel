@@ -11,6 +11,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import { MuiChipsInput } from 'mui-chips-input';
 import DefaultEditor from 'react-simple-wysiwyg';
 import { gql, useMutation, useQuery } from '@apollo/client';
+import { BlockNoteEditor } from '@blocknote/core';
 import { ICategory } from '../entities/ICategory';
 import { IPost } from '../entities/IPost';
 import { ITag } from '../entities/ITag';
@@ -64,6 +65,8 @@ export default function PostForm({ id, onClose }: PostFormProps) {
 
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
+  const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
+
   const handleSelectedPost = (version: {
     title: string;
     blockContent: any;
@@ -75,6 +78,9 @@ export default function PostForm({ id, onClose }: PostFormProps) {
       blockContent: version.blockContent,
       preview: version.preview,
     }));
+    if (editor !== null) {
+      editor.replaceBlocks(editor.document, version.blockContent);
+    }
   };
 
   const linkData = useQuery(gql`
@@ -275,6 +281,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         <BlockEditor
           initialData={initialData.data?.getPost?.blockContent}
           onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+          setEditor={setEditor}
         />
 
         <h4>Контент</h4>
