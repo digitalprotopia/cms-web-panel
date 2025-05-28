@@ -67,19 +67,19 @@ export default function PostForm({ id, onClose }: PostFormProps) {
 
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
 
-  const handleSelectedPost = (version: {
+  const handleSelectedPost = (selectedPost: {
     title: string;
     blockContent: any;
     preview: string
   }) => {
     if (editor !== null) {
-      editor.replaceBlocks(editor.document, version.blockContent);
+      editor.replaceBlocks(editor.document, selectedPost.blockContent);
     }
     setFormData((prev) => ({
       ...prev,
-      title: version.title,
-      blockContent: version.blockContent,
-      preview: version.preview,
+      title: selectedPost.title,
+      blockContent: selectedPost.blockContent,
+      preview: selectedPost.preview,
     }));
   };
 

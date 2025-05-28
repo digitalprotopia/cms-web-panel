@@ -30,6 +30,7 @@ import {
   Person as PersonIcon,
   Schedule as TimeIcon,
 } from '@mui/icons-material';
+import { EditorProps, EditorProvider, Editor } from 'react-simple-wysiwyg';
 
 import { BlockView } from '@/components/BlockEditor';
 import { IPostHistory } from '@/components/entities/IPostHistory';
@@ -37,6 +38,20 @@ import { IPostHistory } from '@/components/entities/IPostHistory';
 dayjs.extend(localizedFormat);
 dayjs.extend(advancedFormat);
 dayjs.locale('ru');
+
+// todo: Переместить к комнпонентам если будет переиспользоваться.
+// Только для просмотра модификация react-simple-wysiwyg DefaultEditor.
+function WysiwygView(
+  props: EditorProps,
+) {
+  return (
+    <EditorProvider>
+      <Editor {...props} disabled>
+        {props.children}
+      </Editor>
+    </EditorProvider>
+  );
+}
 
 const GET_POST_HISTORY = gql`
   query GetPostHistory($postId: ID!) {
@@ -174,7 +189,9 @@ export default function PostHistoryDialog(
 
                 <Paper sx={{ p: 3, mb: 3 }}>
                   <Typography variant="h6" gutterBottom>Превью</Typography>
-                  <Typography>{selectedPost.preview}</Typography>
+                  <WysiwygView
+                    value={selectedPost.preview}
+                  />
                 </Paper>
 
                 <Paper sx={{ p: 3 }}>
