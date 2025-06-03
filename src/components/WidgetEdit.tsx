@@ -7,8 +7,6 @@ import {
   Select,
   FormControl,
   InputLabel,
-  ToggleButtonGroup,
-  ToggleButton,
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
@@ -19,7 +17,6 @@ import { RenderWidget } from './ParseWidgets';
 import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
-import FramePreview from './FramePreview';
 
 interface WidgetEditProps {
   id?: string;
@@ -108,6 +105,8 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     cssClass: '',
   });
 
+  // draft: Рассмотреть возможность избавиться от cachedHtmlRef и useEffect с ним в пользу
+  //  useQuery(GET_WIDGET, ... onCompleted ... setCachedHtml
   const cachedHtmlRef = useRef<string>('');
   const [cachedHtml, setCachedHtml] = useState<string>('');
 
@@ -123,8 +122,6 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
   useEffect(() => {
     cachedHtmlRef.current = form.templateHtml;
   }, [form.templateHtml]);
-
-  const [previewMode, setPreviewMode] = useState<'widget' | 'iframe'>('widget');
 
   const isEditMode = !!id;
 
@@ -325,37 +322,14 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         padding: 8,
       }}
       >
-        <div>
-          <ToggleButtonGroup
-            value={previewMode}
-            exclusive
-            onChange={(_, value) => setPreviewMode(value)}
-          >
-            <ToggleButton value="widget">Widget</ToggleButton>
-            <ToggleButton value="iframe">Iframe</ToggleButton>
-          </ToggleButtonGroup>
-        </div>
-        {previewMode === 'iframe' ? (
-          <FramePreview>
-            <RenderWidget
-              widgetViewType={form.widgetViewType}
-              html={cachedHtml}
-              fields={widgetTable.meta?.fields as TableField[]}
-              data={widgetTable.meta ? [row] : []}
-              language={form.language}
-              cssClass={form.cssClass}
-            />
-          </FramePreview>
-        ) : (
-          <RenderWidget
-            widgetViewType={form.widgetViewType}
-            html={cachedHtml}
-            fields={widgetTable.meta?.fields as TableField[]}
-            data={widgetTable.meta ? [row] : []}
-            language={form.language}
-            cssClass={form.cssClass}
-          />
-        )}
+        <RenderWidget
+          widgetViewType={form.widgetViewType}
+          html={cachedHtml}
+          fields={widgetTable.meta?.fields as TableField[]}
+          data={widgetTable.meta ? [row] : []}
+          language={form.language}
+          cssClass={form.cssClass}
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">

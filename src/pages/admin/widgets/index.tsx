@@ -85,6 +85,7 @@ function WidgetCard({
 }
 
 function WidgetsPage() {
+  // todo: Рассмотреть возможность удаления isModalOpen state и соответсвующего Dialog в return.
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
 
