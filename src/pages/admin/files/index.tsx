@@ -65,7 +65,7 @@ function FilesPage() {
         accessorKey: 'createdAt',
         header: 'Дата добавления',
         size: 200,
-        Cell: ({ cell }) => dayjs(cell.getValue() as any).format('DD.MM.YYYY'),
+        Cell: ({ cell }) => dayjs(cell.getValue()).format('DD.MM.YYYY'),
       },
       {
         accessorKey: 'actions',
