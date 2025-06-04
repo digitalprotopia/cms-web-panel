@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   TextField,
@@ -17,6 +17,10 @@ import { RenderWidget } from './ParseWidgets';
 import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
+
+// draft: Consider possibility to move to the some settings place.
+// Задержка рендеринга превью, милисекунды.
+const RENDER_PREVIEW_DELAY = 1000;
 
 interface WidgetEditProps {
   id?: string;
@@ -99,34 +103,24 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     name: '',
     title: '',
     tableId: '',
-    templateHtml: '',
+    markup: '',
     widgetViewType: 'list',
     language: TemplateLanguage.SIMPLE,
     cssClass: '',
-    // draft: Set empty style here and get it from server there.
-    style: `h1 {color: green}
-    p {color: red}
-    table {color: red}
-    table thead {color: blue}`,
+    style: '',
   });
 
-  // draft: Рассмотреть возможность избавиться от cachedHtmlRef и useEffect с ним в пользу
-  //  useQuery(GET_WIDGET, ... onCompleted ... setCachedHtml
-  const cachedHtmlRef = useRef<string>('');
-  const [cachedHtml, setCachedHtml] = useState<string>('');
+  const [previewMarkup, setPreviewMarkup] = useState<string>('');
 
+  // Установить разметку превью равной разметке формы с заданной задержкой.
   useEffect(() => {
     const interval = setInterval(() => {
-      if (cachedHtmlRef.current !== cachedHtml) {
-        setCachedHtml(cachedHtmlRef.current);
+      if (previewMarkup !== form.markup) {
+        setPreviewMarkup(form.markup);
       }
-    }, 2000);
+    }, RENDER_PREVIEW_DELAY);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    cachedHtmlRef.current = form.templateHtml;
-  }, [form.templateHtml]);
+  }, [form.markup]);
 
   const isEditMode = !!id;
 
@@ -135,15 +129,18 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     skip: !isEditMode,
     onCompleted: (data) => {
       setForm({
-        // draft: Remove `...form` if unused.
-        ...form,
         name: data.getWidget.name,
         title: data.getWidget.title,
         tableId: data.getWidget.tableView.table?.id,
-        templateHtml: data.getWidget.template.html,
+        markup: data.getWidget.template.html,
         widgetViewType: data.getWidget.widgetViewType,
         language: data.getWidget.template.language,
         cssClass: data.getWidget.cssClass,
+        // draft: Get style from server.
+        style: `h1 {color: green}
+        p {color: red}
+        table {color: red}
+        table thead {color: blue}`,
       });
     },
   });
@@ -192,7 +189,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       },
       template: {
         title: form.title,
-        html: form.templateHtml,
+        html: form.markup,
         language: form.language,
       },
     };
@@ -306,17 +303,17 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       {form.language === TemplateLanguage.REACT
         ? (
           <Editor
-            value={form.templateHtml}
+            value={form.markup}
             height={200}
-            onChange={(value) => setForm({ ...form, templateHtml: value! })}
+            onChange={(value) => setForm({ ...form, markup: value! })}
             language="javascript"
           />
         )
         : (
           <Editor
-            value={form.templateHtml}
+            value={form.markup}
             height={200}
-            onChange={(value) => setForm({ ...form, templateHtml: value! })}
+            onChange={(value) => setForm({ ...form, markup: value! })}
             language="html"
           />
         )}
@@ -331,7 +328,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       >
         <RenderWidget
           widgetViewType={form.widgetViewType}
-          html={cachedHtml}
+          html={previewMarkup}
           fields={widgetTable.meta?.fields as TableField[]}
           data={widgetTable.meta ? [row] : []}
           language={form.language}
@@ -349,7 +346,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
              color="primary"
              onClick={() => setForm({
                ...form,
-               templateHtml: `${form.templateHtml}{${field.dbName}}`,
+               markup: `${form.markup}{${field.dbName}}`,
              })}
            >
              {`{${field.dbName}}`}
@@ -365,7 +362,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
           variant="contained"
           onClick={handleSave}
           disabled={
-          !form.name || !form.title! || !form.templateHtml
+          !form.name || !form.title! || !form.markup
           // || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
         }
         >
