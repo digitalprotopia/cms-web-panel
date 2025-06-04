@@ -64,7 +64,7 @@ function FileDialog(props: {
         size: 300,
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
-            {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(row.original.extension) ? (
+            {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(row.original.extension) ? (
               <img
                 src={`${window.config.server}/download/?id=${row.original.id}`}
                 alt={row.original.name}
@@ -97,7 +97,7 @@ function FileDialog(props: {
 
   return (
     <>
-      {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(selectedFile?.extension) ? (
+      {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(selectedFile?.extension) ? (
         <img
           src={`${window.config.server}/download/?id=${selectedFile?.id}`}
           alt={selectedFile.name}
@@ -289,7 +289,7 @@ export const BlockEditorImageBlock = createReactBlockSpec(
               </div>
             )
           }
-          {(data?.getFile && ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(data.getFile.extension)) ? (
+          {(data?.getFile && ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(data.getFile.extension)) ? (
             <div className={props.block.props.cssClass}>
               <img
                 src={`${window.config.server}/download/?id=${data.getFile.id}`}

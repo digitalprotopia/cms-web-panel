@@ -154,6 +154,9 @@ function CategoriesPage() {
           helperText={(form.title === '' && 'Название не может быть пустым')
             || (categoryExists && 'Категория с таким названием уже существует.')
             || (slugExists && 'Категория с таким адресом уже существует.')}
+          slotProps={{
+            htmlInput: { maxLength: 255 },
+          }}
         />
       </DialogContent>
       <DialogContent>

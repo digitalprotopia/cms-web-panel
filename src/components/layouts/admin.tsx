@@ -101,7 +101,7 @@ const menuItems: ISidebarItem[] = [
 
       return sites.data?.getAllSites.map((site: Partial<ISite>) => (
         <div key={site.id}>
-          <div>
+          <div className="scrollable-title">
             {site.title}
           </div>
           <div className="pl-4 underline">

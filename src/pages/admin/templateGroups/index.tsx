@@ -3,7 +3,6 @@ import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
   CardContent,
-  CardHeader,
   Button,
   Dialog,
   DialogTitle,
@@ -120,30 +119,34 @@ function TemplateGroupCard({
   onDelete: (id: string) => void;
 }) {
   const router = useRouter();
+
   return (
     <Card onClick={() => router.push(`/admin/templateGroups/${templateGroup.id}`)}>
-      <CardHeader
-        title={templateGroup.title}
-        action={(
-          <div>
-            <IconButton onClick={() => onEdit(templateGroup)} size="small">
-              <Edit />
-            </IconButton>
-            <IconButton
-              onClick={() => onDelete(templateGroup.id)}
-              size="small"
-              color="error"
-            >
-              <Delete />
-            </IconButton>
-          </div>
-        )}
-      />
+      <div className="flex items-start justify-between p-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-medium scrollable-title">{templateGroup.title}</h2>
+        </div>
+
+        <div className="flex-shrink-0 flex gap-2 ml-4">
+          <IconButton onClick={() => onEdit(templateGroup)} size="small">
+            <Edit />
+          </IconButton>
+          <IconButton
+            onClick={() => onDelete(templateGroup.id)}
+            size="small"
+            color="error"
+          >
+            <Delete />
+          </IconButton>
+        </div>
+      </div>
       <CardContent>
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
-            {dayjs(parseInt(String(templateGroup.createdAt), 10)).toString()}
+            Создано:
+            {' '}
+            {dayjs(templateGroup.createdAt).format('DD.MM.YYYY')}
           </Typography>
         </div>
       </CardContent>

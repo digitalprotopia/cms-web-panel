@@ -92,7 +92,7 @@ function FormFieldFile(props: FormFieldProps) {
         size: 300,
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
-            {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(row.original.extension) ? (
+            {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(row.original.extension) ? (
               <img
                 src={`${window.config.server}/download/?id=${row.original.id}`}
                 alt={row.original.name}
@@ -228,6 +228,9 @@ function FormFieldOneToManyOne(props: FormFieldProps) {
       label={props.title}
       value={props.value || ''}
       onChange={(e) => props.onChange(e.target.value)}
+      slotProps={{
+        htmlInput: { maxLength: 255 },
+      }}
     >
       <MenuItem value={null as any}>Не выбрано</MenuItem>
       {table.data?.map((row: any) => (
@@ -496,8 +499,10 @@ export default function FormField(props: FormFieldProps) {
         label={props.title}
         value={props.value || ''}
         onChange={(e) => props.onChange(e.target.value)}
-        inputProps={FieldType.STRING ? { maxLength: 255 } : {}}
         className="min-w-48"
+        slotProps={{
+          htmlInput: { maxLength: 255 },
+        }}
       />
     );
   }
@@ -510,6 +515,9 @@ export default function FormField(props: FormFieldProps) {
         multiline
         rows={1}
         className="min-w-48"
+        slotProps={{
+          htmlInput: { maxLength: 255 },
+        }}
       />
     );
   }
@@ -562,6 +570,9 @@ export default function FormField(props: FormFieldProps) {
         value={props.value || 0}
         type="number"
         onChange={(e) => props.onChange(parseInt(e.target.value, 10))}
+        slotProps={{
+          htmlInput: { maxLength: 255 },
+        }}
       />
     );
   }
@@ -573,6 +584,9 @@ export default function FormField(props: FormFieldProps) {
         value={props.value || 0}
         type="number"
         onChange={(e) => props.onChange(parseFloat(e.target.value))}
+        slotProps={{
+          htmlInput: { maxLength: 255 },
+        }}
       />
     );
   }

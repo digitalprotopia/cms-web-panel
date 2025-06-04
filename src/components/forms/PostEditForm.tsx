@@ -237,6 +237,9 @@ export default function PostForm({ id, onClose }: PostFormProps) {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
 
             <MuiChipsInput

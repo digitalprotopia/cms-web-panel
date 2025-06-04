@@ -54,7 +54,7 @@ function TablesPage() {
       {
         accessorKey: 'id',
         header: 'ID',
-        size: 400,
+        size: 350,
       },
       {
         accessorKey: 'dbName',
@@ -65,7 +65,6 @@ function TablesPage() {
             <div>
               {row.original.dbName}
             </div>
-            {row.original.isSystem && <div className="text-red-600">Системная таблица</div>}
           </div>
         ),
       },
@@ -77,7 +76,7 @@ function TablesPage() {
       {
         accessorKey: 'actions',
         header: 'Действия',
-        size: 300,
+        size: 250,
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
             <Button
@@ -105,8 +104,18 @@ function TablesPage() {
           </div>
         ),
       },
+      ...(showSystem ? [{
+        accessorKey: 'isSystem',
+        header: 'Тип таблицы',
+        size: 200,
+        Cell: ({ row }) => (
+          <div>
+            {row.original.isSystem ? (row.original.isSystem && <div className="text-red-600">Системная таблица</div>) : 'пользовательская таблица'}
+          </div>
+        ),
+      }] as MRT_ColumnDef<MRT_RowData, any>[] : []),
     ],
-    [router],
+    [router, showSystem],
   );
 
   if (loading) {

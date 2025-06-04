@@ -69,7 +69,7 @@ export const BlockEditorWidget = createReactBlockSpec(
                   <Menu.Target>
                     <div contentEditable={false}>
                       <Menu.Item>
-                        {snippets.data?.getAllWidgets?.find((w: IWidget) => w.name === props.block.props.type)?.title || 'Выберете виджет'}
+                        {snippets.data?.getAllWidgets?.find((w: IWidget) => w.name === props.block.props.type)?.title || 'Выберите виджет'}
                       </Menu.Item>
                     </div>
                   </Menu.Target>
