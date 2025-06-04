@@ -439,6 +439,25 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
   return <MapComponent {...mapProps} />;
 };
 
+function WidgetStyle(
+  props: {
+    children: React.JSX.Element,
+    cssClass?: string,
+    style?: string,
+  },
+) {
+  return (
+    <>
+      <style>
+        {props.style || undefined}
+      </style>
+      <div className={props.cssClass || undefined}>
+        {props.children}
+      </div>
+    </>
+  );
+}
+
 export function RenderWidget(
   props: {
     widgetViewType: string,
@@ -447,6 +466,7 @@ export function RenderWidget(
     data: any,
     language: TemplateLanguage,
     cssClass: string,
+    style?: string,
   },
 ) {
   const {
@@ -457,14 +477,14 @@ export function RenderWidget(
 
   if (widgetViewType === WidgetViewType.MAP) {
     return (
-      <div className={props.cssClass || undefined}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style}>
         <WidgetMap
           data={data}
           fields={fields}
           html={html}
           language={language}
         />
-      </div>
+      </WidgetStyle>
     );
   }
   if (language === TemplateLanguage.REACT) {
@@ -481,32 +501,34 @@ export function RenderWidget(
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
-          <div className={props.cssClass || undefined}>
+          <WidgetStyle cssClass={props.cssClass} style={props.style}>
             <template.ListComponent data={data} Component={template.Component} />
-          </div>
+          </WidgetStyle>
         </ErrorBoundary>
       );
     }
   }
   if (language === TemplateLanguage.SIMPLE && widgetViewType === WidgetViewType.STATIC) {
     return (
-      <div className={props.cssClass || undefined}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style}>
         <div dangerouslySetInnerHTML={{ __html: html }} />
-      </div>
+      </WidgetStyle>
     );
   }
   return (
-    <div className={props.cssClass || undefined}>
+    <WidgetStyle cssClass={props.cssClass} style={props.style}>
       <WidgetList
         data={data}
         fields={fields}
         html={html}
         language={language}
       />
-    </div>
+    </WidgetStyle>
   );
 }
 
+// draft: Check that RenderWidget here work correct after adding style parameter.
+//  Check that PageWidget callers work correct.
 export function PageWidget(props: {
   widgetName: string;
 }) {

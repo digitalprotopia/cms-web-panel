@@ -103,6 +103,11 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     widgetViewType: 'list',
     language: TemplateLanguage.SIMPLE,
     cssClass: '',
+    // draft: Set empty style here and get it from server there.
+    style: `h1 {color: green}
+    p {color: red}
+    table {color: red}
+    table thead {color: blue}`,
   });
 
   // draft: Рассмотреть возможность избавиться от cachedHtmlRef и useEffect с ним в пользу
@@ -130,6 +135,8 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     skip: !isEditMode,
     onCompleted: (data) => {
       setForm({
+        // draft: Remove `...form` if unused.
+        ...form,
         name: data.getWidget.name,
         title: data.getWidget.title,
         tableId: data.getWidget.tableView.table?.id,
@@ -329,6 +336,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
           data={widgetTable.meta ? [row] : []}
           language={form.language}
           cssClass={form.cssClass}
+          style={form.style}
         />
       </div>
 
