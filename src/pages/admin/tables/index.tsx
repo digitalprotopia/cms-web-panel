@@ -113,7 +113,7 @@ function TablesPage() {
             {row.original.isSystem ? (row.original.isSystem && <div className="text-red-600">Системная таблица</div>) : 'пользовательская таблица'}
           </div>
         ),
-      }] : []),
+      }] as MRT_ColumnDef<MRT_RowData, any>[] : []),
     ],
     [router, showSystem],
   );

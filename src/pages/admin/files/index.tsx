@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
-import { MaterialReactTable } from 'material-react-table';
+import { MaterialReactTable, MRT_ColumnDef, MRT_RowData } from 'material-react-table';
 import { IFile } from '@/components/entities/IFile';
 import { toBase64 } from '@/components/form';
 import { Delete } from '@mui/icons-material';
@@ -44,7 +44,7 @@ function FilesPage() {
 
   const [form, setForm] = useState<Partial<IFile>>({});
 
-  const columns = useMemo(
+  const columns = useMemo<MRT_ColumnDef<MRT_RowData, any>[]>(
     () => [
       {
         accessorKey: 'id',
