@@ -6,6 +6,8 @@ import {
   MenuItem,
   Select,
   FormControl,
+  ToggleButtonGroup,
+  ToggleButton,
   InputLabel,
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
@@ -98,6 +100,18 @@ const UPDATE_WIDGET = gql`
   }
 `;
 
+enum EditionTab {
+  MARKUP = 'markup',
+  STYLE = 'style',
+}
+
+// todo: Переместить в подходящий модуль если будет переиспользоваться.
+enum EditorLanguage {
+  CSS = 'css',
+  JS = 'javascript',
+  HTML = 'html',
+}
+
 function WidgetEdit({ id, onClose }: WidgetEditProps) {
   const [form, setForm] = useState({
     name: '',
@@ -111,6 +125,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
   });
 
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
+  const [selectedTab, setSelectedTab] = useState<EditionTab>(EditionTab.MARKUP);
 
   // Установить разметку превью равной разметке формы с заданной задержкой.
   useEffect(() => {
@@ -300,23 +315,33 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         ))}
       </TextField>
 
-      {form.language === TemplateLanguage.REACT
-        ? (
-          <Editor
-            value={form.markup}
-            height={200}
-            onChange={(value) => setForm({ ...form, markup: value! })}
-            language="javascript"
-          />
-        )
-        : (
-          <Editor
-            value={form.markup}
-            height={200}
-            onChange={(value) => setForm({ ...form, markup: value! })}
-            language="html"
-          />
-        )}
+      <ToggleButtonGroup
+        value={selectedTab}
+        onChange={(_, value) => { setSelectedTab(value); }}
+        exclusive
+      >
+        <ToggleButton value={EditionTab.MARKUP}>Разметка</ToggleButton>
+        <ToggleButton value={EditionTab.STYLE}>Стиль</ToggleButton>
+      </ToggleButtonGroup>
+      {
+        selectedTab === EditionTab.MARKUP
+          ? (<Editor
+              value={form.markup}
+              height={200}
+              onChange={(value) => setForm({ ...form, markup: value! })}
+              language={
+                form.language === TemplateLanguage.REACT
+                  ? EditorLanguage.JS
+                  : EditorLanguage.HTML
+              }
+          />)
+          : (<Editor
+              value={form.style}
+              height={200}
+              onChange={(value) => setForm({ ...form, style: value! })}
+              language={EditorLanguage.CSS}
+          />)
+      }
 
       <div style={{
         borderWidth: '1px',
