@@ -11,7 +11,7 @@ import {
 } from 'next/router';
 import TemplateEdit from '@/components/TemplateEdit';
 import { useSnackbar } from 'notistack';
-import TemplateGroupMenu from '@/components/blocks/templates/TemplateGroupMenu';
+import TemplateGroupMenu from '@/components/blockEditor/blocks/templates/TemplateGroupMenu';
 
 const GET_TEMPLATES = gql`
   query GetTemplateGroup($id: ID!) {

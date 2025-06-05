@@ -7,7 +7,7 @@ import { MaterialReactTable } from 'material-react-table';
 import { ITemplate, TemplateType } from './entities/ITemplate';
 import { IFile } from './entities/IFile';
 import { toBase64 } from './form';
-import TemplateBlocks from './blocks/templates/TemplateBlocks';
+import TemplateBlocks from './blockEditor/blocks/templates/TemplateBlocks';
 
 function TemplateFile(props: {
   fileId?: string,
@@ -59,7 +59,7 @@ function TemplateFile(props: {
         size: 300,
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
-            {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(row.original.extension) ? (
+            {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(row.original.extension) ? (
               <img
                 src={`${window.config.server}/download/?id=${row.original.id}`}
                 alt={row.original.name}
@@ -92,7 +92,7 @@ function TemplateFile(props: {
 
   return (
     <>
-      {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(selectedFile?.extension) ? (
+      {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(selectedFile?.extension) ? (
         <img
           src={`${window.config.server}/download/?id=${selectedFile?.id}`}
           alt={selectedFile.name}
@@ -209,6 +209,9 @@ export default function TemplateEdit({
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
           </div>
         )}

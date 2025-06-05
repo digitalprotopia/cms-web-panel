@@ -173,16 +173,25 @@ function TableEditor({
               fullWidth
               required
               className="w-full"
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
 
             <TextField
               label="Имя в базе данных"
               value={formData.dbName}
-              onChange={(e) => setFormData((prev) => ({ ...prev, dbName: e.target.value }))}
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
+                setFormData((prev) => ({ ...prev, dbName: e.target.value }));
+              }}
               fullWidth
               required
               className="w-full"
               disabled={isEditMode}
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
 
             {/* <div className="mt-6">

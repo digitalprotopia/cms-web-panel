@@ -71,11 +71,13 @@ function ConfirmDevice() {
         setIsConfirmed(true);
         enqueueSnackbar('Устройство успешно подтверждено', { variant: 'success' });
       } else {
-        enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
+        // enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
       }
     } catch (error) {
-      enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
+      // enqueueSnackbar('Ошибка подтверждения устройства', { variant: 'error' });
     }
+    localStorage.removeItem('code');
+    localStorage.removeItem('botId');
   };
 
   if (!user.user?.id) {

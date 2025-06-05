@@ -1,17 +1,16 @@
 import { gql, useQuery } from '@apollo/client';
-import {
-  BlockNoteEditor, defaultProps, insertOrUpdateBlock, BlockNoteSchema,
+import { BlockNoteSchema,
   defaultBlockSpecs, filterSuggestionItems,
   locales,
   combineByGroup,
   Block,
+  BlockNoteEditor,
+  defaultStyleSpecs,
   CustomBlockConfig,
   InlineContentSchema,
-  StyleSchema,
-  defaultStyleSpecs,
-} from '@blocknote/core';
-import {
-  createReactBlockSpec, getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
+  StyleSchema } from '@blocknote/core';
+
+import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
 
   useBlockNoteEditor,
   useComponentsContext,
@@ -21,8 +20,6 @@ import {
   RemoveBlockItem,
   BlockColorsItem,
   DragHandleMenuProps,
-  ReactCustomBlockRenderProps,
-  createReactStyleSpec,
   FormattingToolbarController,
   FormattingToolbar,
   BlockTypeSelect,
@@ -34,85 +31,40 @@ import {
   NestBlockButton,
   UnnestBlockButton,
   CreateLinkButton,
-} from '@blocknote/react';
-import { Menu, TextInput } from '@mantine/core';
+  ReactCustomBlockRenderProps } from '@blocknote/react';
 import {
   multiColumnDropCursor, withMultiColumn,
   locales as multiColumnLocales, getMultiColumnSlashMenuItems,
 } from '@blocknote/xl-multi-column';
 // import { useMemo } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
-import {
-  DashboardOutlined, MoreVert, WidgetsOutlined, Html,
-  Visibility,
-} from '@mui/icons-material';
-import {
-  Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField,
-  Tooltip,
-} from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
-import { Editor } from '@monaco-editor/react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
-import { IWidget } from './entities/IWidget';
-// eslint-disable-next-line import/no-cycle
-import { FormWidget, PageWidget } from './ParseWidgets';
 
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
-import { IForm } from './entities/IForm';
-import { BlockEditorCssView, insertBlockEditorCssView } from './blocks/templates/css';
-import { BlockEditorHeadView, insertBlockEditorHeadView } from './blocks/templates/head';
+import { MoreVert } from '@mui/icons-material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField } from '@mui/material';
+import { BlockEditorCssView, insertBlockEditorCssView } from './blockEditor/blocks/templates/css';
+import { BlockEditorHeadView, insertBlockEditorHeadView } from './blockEditor/blocks/templates/head';
 // eslint-disable-next-line import/no-cycle
-import { BlockEditorContentView, insertBlockEditorContentView } from './blocks/templates/content';
+import { BlockEditorContentView, insertBlockEditorContentView } from './blockEditor/blocks/templates/content';
 // eslint-disable-next-line import/no-cycle
-import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blocks/postBlock';
+import { BlockEditorPostBlock, insertBlockEditorPostBlock } from './blockEditor/blocks/postBlock';
 // eslint-disable-next-line import/no-cycle
-import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blocks/imageBlock';
+import { BlockEditorImageBlock, insertBlockEditorImageBlock } from './blockEditor/blocks/imageBlock';
+// eslint-disable-next-line import/no-cycle
+import { BlockEditorWidget, insertBlockEditorWidgets } from './blockEditor/blocks/blockEditorWidget';
+import BlockEditorHtmlView, { insertBlockEditorHtmlView } from './blockEditor/blocks/blockEditorHtmlView';
+// eslint-disable-next-line import/no-cycle
+import { BlockEditorForm, insertBlockEditorForms } from './blockEditor/blocks/blockEditorForm';
+// eslint-disable-next-line import/no-cycle
+import { BlockEditorPosts, insertBlockEditorPosts } from './blockEditor/blocks/blockEditorPosts';
+// eslint-disable-next-line import/no-cycle
+import { ClassStyle, SetClassButton } from './blockEditor/blocks/classButton';
 
-export const ClassStyle = createReactStyleSpec(
-  {
-    type: 'class',
-    propSchema: 'string',
-  },
-  {
-    render: (props) => (
-      <span className={props.value} ref={props.contentRef} />
-    ),
-  },
-);
-
-function SetClassButton() {
-  const editor = useBlockNoteEditor<
-    typeof schema.blockSchema,
-    typeof schema.inlineContentSchema,
-    typeof schema.styleSchema
-  >();
-
-  if (!editor.isEditable) {
-    return null;
-  }
-
-  return (
-    <Button
-      onClick={(values) => {
-        console.log(values);
-        const fontName = prompt('Укажите класс', editor.getActiveStyles().class);
-        if (fontName !== null) {
-          editor.addStyles({
-            class: fontName,
-          });
-        }
-      }}
-    >
-      <Tooltip title={editor.getActiveStyles().class}>
-        <span>CSS Class</span>
-      </Tooltip>
-    </Button>
-  );
-}
-
-function BlockSettings(
+export function BlockSettings(
   props: ReactCustomBlockRenderProps<CustomBlockConfig & any, InlineContentSchema, StyleSchema>,
 ) {
   const [dialog, setDialog] = useState(false);
@@ -149,166 +101,6 @@ function BlockSettings(
     </>
   );
 }
-
-export const BlockEditorWidget = createReactBlockSpec(
-  {
-    type: 'widget',
-    propSchema: {
-      textAlignment: defaultProps.textAlignment,
-      textColor: defaultProps.textColor,
-      type: {
-        type: 'string',
-        default: '',
-      },
-      cssClass: {
-        type: 'string',
-        default: '',
-      },
-    },
-    content: 'inline',
-  },
-  {
-    render: (props) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const snippets = useQuery(
-        gql`
-            query {
-            getAllWidgets {
-            id
-            name
-            title
-            createdAt
-            }
-            }`,
-        { skip: !props.editor.isEditable },
-      );
-
-      return (
-        <div className={props.editor.isEditable ? 'widget' : 'widget-view'} data-widget-type={props.block.props.type}>
-          {/* Icon which opens a menu to choose the Widget type */}
-          {props.editor.isEditable
-            ? (
-              <>
-                <Menu withinPortal={false}>
-                  <Menu.Target>
-                    <div contentEditable={false}>
-                      <Menu.Item>
-                        {snippets.data?.getAllWidgets?.find((w: IWidget) => w.name === props.block.props.type)?.title || 'Выберете виджет'}
-                      </Menu.Item>
-                    </div>
-                  </Menu.Target>
-                  {/* Dropdown to change the Widget type */}
-                  <Menu.Dropdown>
-                    <Menu.Label>Виджет</Menu.Label>
-                    <Menu.Divider />
-                    {(snippets.data?.getAllWidgets || []).map((widget: IWidget) => (
-                      <Menu.Item
-                        key={widget.name}
-                        onClick={() => props.editor.updateBlock(props.block, {
-                          type: 'widget',
-                          props: { type: widget.name },
-                        })}
-                      >
-                        {widget.title}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Dropdown>
-                </Menu>
-                <BlockSettings {...props} />
-              </>
-            )
-            : null}
-          <div
-            style={{
-              flex: 1,
-              pointerEvents: props.editor.isEditable ? 'none' : undefined,
-            }}
-            className={props.block.props.cssClass || undefined}
-          >
-            {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
-          </div>
-        </div>
-      );
-    },
-  },
-);
-
-export const BlockEditorForm = createReactBlockSpec(
-  {
-    type: 'form',
-    propSchema: {
-      textAlignment: defaultProps.textAlignment,
-      textColor: defaultProps.textColor,
-      type: {
-        type: 'string',
-        default: '',
-      },
-      cssClass: {
-        type: 'string',
-        default: '',
-      },
-    },
-    content: 'inline',
-  },
-  {
-    render: (props) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const snippets = useQuery(
-        gql`
-            query {
-            getAllForms {
-            id
-            name
-            title
-            createdAt
-            }
-            }`,
-        { skip: !props.editor.isEditable },
-      );
-
-      return (
-        <div className={props.editor.isEditable ? 'widget' : 'widget-view'} data-widget-type={props.block.props.type}>
-          {/* Icon which opens a menu to choose the Widget type */}
-          {props.editor.isEditable
-            ? (
-              <>
-                <Menu withinPortal={false}>
-                  <Menu.Target>
-                    <div contentEditable={false}>
-                      <Menu.Item>
-                        {snippets.data?.getAllForms?.find((f: IForm) => f.name === props.block.props.type)?.title || 'Выберете форму'}
-                      </Menu.Item>
-                    </div>
-                  </Menu.Target>
-                  {/* Dropdown to change the Widget type */}
-                  <Menu.Dropdown>
-                    <Menu.Label>Виджет</Menu.Label>
-                    <Menu.Divider />
-                    {(snippets.data?.getAllForms || []).map((form: IForm) => (
-                      <Menu.Item
-                        key={form.name}
-                        onClick={() => props.editor.updateBlock(props.block, {
-                          type: 'form',
-                          props: { type: form.name },
-                        })}
-                      >
-                        {form.title}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Dropdown>
-                </Menu>
-                <BlockSettings {...props} />
-              </>
-            )
-            : null}
-          <div style={{ flex: 1 }} className={props.block.props.cssClass || undefined}>
-            {props.block.props.type ? <FormWidget formName={props.block.props.type} /> : null}
-          </div>
-        </div>
-      );
-    },
-  },
-);
 
 export function Posts(props: {
   urlPrefix?: string;
@@ -355,191 +147,12 @@ export function Posts(props: {
   );
 }
 
-export const BlockEditorPosts = createReactBlockSpec(
-  {
-    type: 'posts',
-    propSchema: {
-      urlPrefix: {
-        default: '/posts/',
-        type: 'string',
-      },
-    },
-    content: 'none',
-    isSelectable: false,
-  },
-  {
-    render: (props) => (
-      <div data-widget-type="posts" className="flex gap-2">
-        {
-            props.editor.isEditable && (
-              <div>
-                <div>
-                  <TextInput
-                    size="small"
-                    label="Префикс ссылки на посты"
-                    value={props.block.props.urlPrefix}
-                    onChange={(e) => {
-                      props.editor.updateBlock(
-                        props.block,
-                        { props: {
-                          ...props.block.props,
-                          urlPrefix: e.target.value,
-                        } },
-                      );
-                    }}
-                  />
-                </div>
-              </div>
-            )
-          }
-        <div>
-          {props.editor.isEditable
-            ? (
-              <div style={{ pointerEvents: 'none' }}>
-                <Posts urlPrefix={props.block.props.urlPrefix} />
-              </div>
-            )
-            : <Posts urlPrefix={props.block.props.urlPrefix} />}
-        </div>
-      </div>
-    ),
-  },
-);
-
-export const BlockEditorHtmlView = createReactBlockSpec(
-  {
-    type: 'html-view',
-    propSchema: {
-      html: {
-        default: '',
-        type: 'string',
-      },
-    },
-    content: 'none',
-    isSelectable: false,
-  },
-  {
-    render: (props) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [isShow, setIsShow] = useState(false);
-
-      return (
-        <div data-widget-type="html-view">
-          <div>
-            {props.editor.isEditable ? (
-              <div>
-                <IconButton
-                  onClick={() => setIsShow(!isShow)}
-                >
-                  <Visibility />
-                </IconButton>
-              </div>
-            ) : null}
-            {(props.editor.isEditable && !isShow)
-              ? (
-                <div>
-                  <Editor
-                    height={200}
-                    width={800}
-                    defaultLanguage="html"
-                    defaultValue={props.block.props.html}
-                    onChange={(value) => {
-                      props.editor.updateBlock(props.block, {
-                        type: 'html-view',
-                        props: { html: value },
-                      });
-                    }}
-                  />
-                </div>
-              )
-              : (
-                <div dangerouslySetInnerHTML={{ __html: props.block.props.html }} />
-              )}
-          </div>
-        </div>
-      );
-    },
-  },
-);
-
-export const insertBlockEditorWidgets = (editor: BlockNoteEditor, widgets: IWidget[]) => (
-  widgets.map((widget) => ({
-    title: widget.title,
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'widget' as any,
-        props: {
-          type: widget.name,
-        } as any,
-      });
-    },
-    aliases: [
-      widget.name,
-    ],
-    group: 'Виджеты',
-    icon: <WidgetsOutlined />,
-  })));
-
-export const insertBlockEditorForms = (editor: BlockNoteEditor, widgets: IForm[]) => (
-  widgets.map((form) => ({
-    title: form.title,
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'form' as any,
-        props: {
-          type: form.name,
-        } as any,
-      });
-    },
-    aliases: [
-      form.name,
-    ],
-    group: 'Формы',
-    icon: <DashboardOutlined />,
-  })));
-
-export const insertBlockEditorPosts = (editor: BlockNoteEditor) => (
-  {
-    title: 'Посты',
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'posts' as any,
-        props: {
-          urlPrefix: '/posts/',
-        } as any,
-      });
-    },
-    aliases: [
-      'posts',
-    ],
-    group: 'Посты',
-    icon: <DashboardOutlined />,
-  }
-);
-
-export const insertBlockEditorHtmlView = (editor: BlockNoteEditor) => (
-  {
-    title: 'HTML блок',
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: 'html-view' as any,
-        props: {
-        } as any,
-      });
-    },
-    aliases: [
-      'html-view',
-    ],
-    group: 'Базовые блоки',
-    icon: <Html />,
-  }
-);
-
 interface BlockEditorProps {
   initialData: any;
   onChange: (data: any) => void;
   isEditable?: boolean;
   type?: 'page' | 'template';
+  setEditor?: (editor: BlockNoteEditor<any>) => void;
 }
 
 export function AddBlocksItem(props: DragHandleMenuProps) {
@@ -623,7 +236,7 @@ export function AddBlocksItem(props: DragHandleMenuProps) {
   );
 }
 
-const schema = BlockNoteSchema.create({
+export const schema = BlockNoteSchema.create({
   blockSpecs: {
     // Adds all default blocks.
     ...defaultBlockSpecs,
@@ -645,8 +258,11 @@ const schema = BlockNoteSchema.create({
 });
 
 function BlockEditor({
-  initialData, onChange, isEditable = true,
+  initialData,
+  onChange,
+  isEditable = true,
   type = 'page',
+  setEditor = () => {},
 }: BlockEditorProps) {
   const snippets = useQuery(gql`
     query {
@@ -667,8 +283,7 @@ function BlockEditor({
   });
 
   const editor = useCreateBlockNote({
-    // eslint-disable-next-line no-nested-ternary
-    initialContent: initialData ? (initialData.length ? initialData : null) : null,
+    initialContent: initialData && initialData.length ? initialData : null,
     schema: withMultiColumn(schema),
     // The default drop cursor only shows up above and below blocks - we replace
     // it with the multi-column one that also shows up on the sides of blocks.
@@ -684,6 +299,10 @@ function BlockEditor({
       },
     },
   });
+
+  useEffect(() => {
+    setEditor(editor);
+  }, []);
 
   const ref = useRef<HTMLDivElement>();
 

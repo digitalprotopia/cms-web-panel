@@ -14,18 +14,22 @@ type TableField = IField & {
   dbName: string;
   oneToManyLinkOneTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
   oneToManyLinkManyTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
   manyToManyLinkFirstTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
   manyToManyLinkSecondTable?: {
     id: string;
+    isSystem: boolean;
     dbName: string;
   };
 };
@@ -35,6 +39,7 @@ interface TableMeta {
   name: string;
   dbName: string;
   createdAt: string;
+  isSystem: boolean;
   fields: TableField[];
 }
 
@@ -51,26 +56,32 @@ export const GET_TABLE_BY_ID = gql`
       name
       dbName
       createdAt
+      isSystem
       fields {
         id
         name
         type
         dbName
+        isSystem
         position
         oneToManyLinkOneTable {
           id
+          isSystem
           dbName
         }
         oneToManyLinkManyTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkFirstTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkSecondTable {
           id
+          isSystem
           dbName
         }
       }
@@ -84,27 +95,33 @@ export const GET_TABLE_BY_DB_NAME = gql`
       id
       name
       dbName
+      isSystem
       createdAt
       fields {
         id
         name
         type
         dbName
+        isSystem
         position
         oneToManyLinkOneTable {
           id
+          isSystem
           dbName
         }
         oneToManyLinkManyTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkFirstTable {
           id
+          isSystem
           dbName
         }
         manyToManyLinkSecondTable {
           id
+          isSystem
           dbName
         }
       }
@@ -112,27 +129,42 @@ export const GET_TABLE_BY_DB_NAME = gql`
   }
 `;
 
+const getDbName = (table: {
+  id: string;
+  isSystem: boolean;
+  dbName: string;
+}) => {
+  if (table.isSystem) {
+    return `SystemTable${table.dbName}`;
+  }
+  return table.dbName;
+};
+
 export const generateGetTableDataQuery = (
   tableName: string,
   fields: TableField[],
+  isSystem = false,
 ) => {
   const tables: string[] = [];
+  if (isSystem) {
+    tableName = `SystemTable${tableName}`;
+  }
   fields.forEach((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE
-      && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
-      tables.push(field.oneToManyLinkManyTable!.dbName);
+      && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
+      tables.push(getDbName(field.oneToManyLinkManyTable!));
     }
     if (field.type === FieldType.ONE_TO_MANY_MANY
-      && !tables.includes(field.oneToManyLinkOneTable!.dbName)) {
-      tables.push(field.oneToManyLinkOneTable!.dbName);
+      && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
+      tables.push(getDbName(field.oneToManyLinkOneTable!));
     }
     if (field.type === FieldType.MANY_TO_MANY_FIRST
-      && !tables.includes(field.manyToManyLinkSecondTable!.dbName)) {
-      tables.push(field.manyToManyLinkSecondTable!.dbName);
+      && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
+      tables.push(getDbName(field.manyToManyLinkSecondTable!));
     }
     if (field.type === FieldType.MANY_TO_MANY_SECOND
-      && !tables.includes(field.manyToManyLinkFirstTable!.dbName)) {
-      tables.push(field.manyToManyLinkFirstTable!.dbName);
+      && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
+      tables.push(getDbName(field.manyToManyLinkFirstTable!));
     }
   });
   return gql`
@@ -207,20 +239,20 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
     const tables: string[] = [];
     tableMeta?.fields.forEach((field: any) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE
-        && !tables.includes(field.oneToManyLinkManyTable!.dbName)) {
-        tables.push(field.oneToManyLinkManyTable!.dbName);
+        && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
+        tables.push(getDbName(field.oneToManyLinkManyTable!));
       }
       if (field.type === FieldType.ONE_TO_MANY_MANY
-        && !tables.includes(field.oneToManyLinkOneTable!.dbName)) {
-        tables.push(field.oneToManyLinkOneTable!.dbName);
+        && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
+        tables.push(getDbName(field.oneToManyLinkOneTable!));
       }
       if (field.type === FieldType.MANY_TO_MANY_FIRST
-        && !tables.includes(field.manyToManyLinkSecondTable!.dbName)) {
-        tables.push(field.manyToManyLinkSecondTable!.dbName);
+        && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
+        tables.push(getDbName(field.manyToManyLinkSecondTable!));
       }
       if (field.type === FieldType.MANY_TO_MANY_SECOND
-        && !tables.includes(field.manyToManyLinkFirstTable!.dbName)) {
-        tables.push(field.manyToManyLinkFirstTable!.dbName);
+        && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
+        tables.push(getDbName(field.manyToManyLinkFirstTable!));
       }
     });
     const objects: any = {};
@@ -232,24 +264,24 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
 
     tableMeta?.fields.forEach((field: IField) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE) {
-        data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+        data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
           row[field.dbName] = objects[row[`${field.dbName}Id`]];
         });
       }
       if (field.type === FieldType.ONE_TO_MANY_MANY || field.type === FieldType.MANY_TO_MANY_FIRST
         || field.type === FieldType.MANY_TO_MANY_SECOND) {
-        data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+        data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
           row[field.dbName] = row[`${field.dbName}Ids`].map((id: string) => objects[id]);
         });
       }
     });
 
-    data[`getAll${tableMeta!.dbName}`].forEach((row: any) => {
+    data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
       row.createdBy = data.getUsers.find((user: any) => user.id === row.createdById);
       row.updatedBy = data.getUsers.find((user: any) => user.id === row.updatedById);
     });
 
-    return data[`getAll${tableMeta!.dbName}`];
+    return data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`];
   };
 
   const {
@@ -258,7 +290,7 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
     error: dataError,
     refetch: refetchData,
   } = useQuery(
-    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || []),
+    generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || [], tableMeta?.isSystem),
     {
       skip: !tableMeta?.dbName || !tableMeta?.fields,
       onCompleted: (data) => {

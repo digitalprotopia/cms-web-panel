@@ -36,6 +36,9 @@ export function Register() {
           name="name"
           value={registerForm.name}
           onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+          slotProps={{
+            htmlInput: { maxLength: 255 },
+          }}
         />
         {/* <TextField */}
         {/*  margin="normal" */}
@@ -53,6 +56,9 @@ export function Register() {
           name="email"
           value={registerForm.email}
           onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+          slotProps={{
+            htmlInput: { maxLength: 255 },
+          }}
         />
         {/* <MuiTelInput */}
         {/*  className="mt-4" */}
@@ -71,6 +77,9 @@ export function Register() {
           type="password"
           value={registerForm.password}
           onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+          slotProps={{
+            htmlInput: { maxLength: 255 },
+          }}
         />
         {' '}
         <TextField
@@ -83,6 +92,9 @@ export function Register() {
             ...registerForm,
             repeatPassword: e.target.value,
           })}
+          slotProps={{
+            htmlInput: { maxLength: 255 },
+          }}
         />
         {/* {config.license
                 && (

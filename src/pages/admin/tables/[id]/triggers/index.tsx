@@ -118,6 +118,9 @@ export default function Triggers() {
               className="w-full"
               value={createForm.title}
               onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
           </div>
           <div>

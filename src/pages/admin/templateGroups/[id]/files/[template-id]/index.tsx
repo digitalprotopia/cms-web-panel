@@ -23,7 +23,7 @@ import TemplateEdit from '@/components/TemplateEdit';
 import clsx from 'clsx';
 import { Add, Delete } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
-import TemplateGroupMenu from '@/components/blocks/templates/TemplateGroupMenu';
+import TemplateGroupMenu from '@/components/blockEditor/blocks/templates/TemplateGroupMenu';
 
 const GET_TEMPLATES = gql`
   query GetTemplateGroup($id: ID!) {
@@ -184,6 +184,9 @@ function CreateTemplate(props: {
             label="Название"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
           />
           <TextField
             label="Имя файла"
