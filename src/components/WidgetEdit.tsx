@@ -29,6 +29,18 @@ interface WidgetEditProps {
   onClose: () => void;
 }
 
+// draft: Look over the project to check that interface is not repeated.
+interface IForm {
+  name: string,
+  title: string,
+  tableId: string,
+  markup: string,
+  widgetViewType: string,
+  language: TemplateLanguage,
+  cssClass: string,
+  style: string,
+}
+
 const GET_TABLES = gql`
   query {
     getTables {
@@ -112,8 +124,46 @@ enum EditorLanguage {
   HTML = 'html',
 }
 
+function WidgetMarkupEditor({ form, setForm }: { form: IForm, setForm: (form: IForm) => void }) {
+  const [selectedTab, setSelectedTab] = useState<EditionTab>(EditionTab.MARKUP);
+
+  const EDITOR_HEIGHT = 200;
+
+  return (
+    <div>
+      <ToggleButtonGroup
+        value={selectedTab}
+        onChange={(_, value) => { setSelectedTab(value); }}
+        exclusive
+      >
+        <ToggleButton value={EditionTab.MARKUP}>Разметка</ToggleButton>
+        <ToggleButton value={EditionTab.STYLE}>Стиль</ToggleButton>
+      </ToggleButtonGroup>
+      {
+        selectedTab === EditionTab.MARKUP
+          ? (<Editor
+              value={form.markup}
+              height={EDITOR_HEIGHT}
+              onChange={(value) => setForm({ ...form, markup: value! })}
+              language={
+                form.language === TemplateLanguage.REACT
+                  ? EditorLanguage.JS
+                  : EditorLanguage.HTML
+              }
+          />)
+          : (<Editor
+              value={form.style}
+              height={EDITOR_HEIGHT}
+              onChange={(value) => setForm({ ...form, style: value! })}
+              language={EditorLanguage.CSS}
+          />)
+      }
+    </div>
+  );
+}
+
 function WidgetEdit({ id, onClose }: WidgetEditProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<IForm>({
     name: '',
     title: '',
     tableId: '',
@@ -125,9 +175,8 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
   });
 
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
-  const [selectedTab, setSelectedTab] = useState<EditionTab>(EditionTab.MARKUP);
 
-  // Установить разметку превью равной разметке формы с заданной задержкой.
+  // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
     const interval = setInterval(() => {
       if (previewMarkup !== form.markup) {
@@ -232,6 +281,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
 
   return (
     <div className="flex flex-col gap-4 py-2">
+      {/* todo: Рассмотреть возможность переноса настроек виджета в отдельный компонент. */}
       <TextField
         label="Название"
         variant="outlined"
@@ -315,33 +365,8 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         ))}
       </TextField>
 
-      <ToggleButtonGroup
-        value={selectedTab}
-        onChange={(_, value) => { setSelectedTab(value); }}
-        exclusive
-      >
-        <ToggleButton value={EditionTab.MARKUP}>Разметка</ToggleButton>
-        <ToggleButton value={EditionTab.STYLE}>Стиль</ToggleButton>
-      </ToggleButtonGroup>
-      {
-        selectedTab === EditionTab.MARKUP
-          ? (<Editor
-              value={form.markup}
-              height={200}
-              onChange={(value) => setForm({ ...form, markup: value! })}
-              language={
-                form.language === TemplateLanguage.REACT
-                  ? EditorLanguage.JS
-                  : EditorLanguage.HTML
-              }
-          />)
-          : (<Editor
-              value={form.style}
-              height={200}
-              onChange={(value) => setForm({ ...form, style: value! })}
-              language={EditorLanguage.CSS}
-          />)
-      }
+      {/* Редактор разметки и стиля. */}
+      <WidgetMarkupEditor form={form} setForm={setForm} />
 
       <div style={{
         borderWidth: '1px',
