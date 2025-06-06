@@ -22,23 +22,11 @@ import { WidgetViewType } from './entities/IWidget';
 
 // draft: Consider possibility to move to the some settings place.
 // Задержка рендеринга превью, милисекунды.
-const RENDER_PREVIEW_DELAY = 1000;
+const RENDER_PREVIEW_DELAY = 2000;
 
 interface WidgetEditProps {
   id?: string;
   onClose: () => void;
-}
-
-// draft: Look over the project to check that interface is not repeated.
-interface IForm {
-  name: string,
-  title: string,
-  tableId: string,
-  markup: string,
-  widgetViewType: string,
-  language: TemplateLanguage,
-  cssClass: string,
-  style: string,
 }
 
 const GET_TABLES = gql`
@@ -174,6 +162,18 @@ function WidgetMarkupEditor({
   );
 }
 
+// draft: Look over the project to check that interface is not repeated.
+interface IForm {
+  name: string,
+  title: string,
+  tableId: string,
+  markup: string,
+  widgetViewType: string,
+  language: TemplateLanguage,
+  cssClass: string,
+  style: string,
+}
+
 function WidgetEdit({ id, onClose }: WidgetEditProps) {
   const [form, setForm] = useState<IForm>({
     name: '',
@@ -185,6 +185,9 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     cssClass: '',
     style: '',
   });
+
+  const setStyle = (style: string) => { setForm((prev) => ({ ...prev, style })); };
+  const setMarkup = (markup: string) => { setForm((prev) => ({ ...prev, markup })); };
 
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
   const [previewStyle, setPreviewStyle] = useState<string>('');
@@ -391,9 +394,9 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       {/* Редактор разметки и стиля. */}
       <WidgetMarkupEditor
         markup={form.markup}
-        setMarkup={(markup) => { setForm(() => ({ ...form, markup })); }}
+        setMarkup={setMarkup}
         style={form.style}
-        setStyle={(style) => { setForm(() => ({ ...form, style })); }}
+        setStyle={setStyle}
         markup_language={form.language}
       />
 
