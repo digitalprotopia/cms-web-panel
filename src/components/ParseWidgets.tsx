@@ -527,8 +527,6 @@ export function RenderWidget(
   );
 }
 
-// draft: Check that RenderWidget here work correct after adding style parameter.
-//  Check that PageWidget callers work correct.
 export function PageWidget(props: {
   widgetName: string;
 }) {
@@ -542,6 +540,7 @@ export function PageWidget(props: {
                   template {
                       html
                       language
+                      css
                   }
                   tableView {
                       tableId
@@ -608,6 +607,7 @@ export function PageWidget(props: {
       data={resultData}
       language={data.getWidgetByName.template.language}
       cssClass={data.getWidgetByName.cssClass || ''}
+      style={data.getWidgetByName.template.css}
     />
   );
 }

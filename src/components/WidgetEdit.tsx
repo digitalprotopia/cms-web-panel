@@ -20,7 +20,6 @@ import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
 
-// draft: Consider possibility to move to the some settings place.
 // Задержка рендеринга превью, милисекунды.
 const RENDER_PREVIEW_DELAY = 2000;
 
@@ -61,6 +60,7 @@ const GET_WIDGET = gql`
         id
         html
         language
+        css
       }
     }
   }
@@ -162,7 +162,6 @@ function WidgetMarkupEditor({
   );
 }
 
-// draft: Look over the project to check that interface is not repeated.
 interface IForm {
   name: string,
   title: string,
@@ -226,11 +225,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         widgetViewType: data.getWidget.widgetViewType,
         language: data.getWidget.template.language,
         cssClass: data.getWidget.cssClass,
-        // draft: Get style from server.
-        style: `h1 {color: green}
-        p {color: red}
-        table {color: red}
-        table thead {color: blue}`,
+        style: data.getWidget.template.css,
       });
     },
   });
@@ -281,6 +276,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         title: form.title,
         html: form.markup,
         language: form.language,
+        css: form.style,
       },
     };
 
