@@ -124,7 +124,19 @@ enum EditorLanguage {
   HTML = 'html',
 }
 
-function WidgetMarkupEditor({ form, setForm }: { form: IForm, setForm: (form: IForm) => void }) {
+function WidgetMarkupEditor({
+  markup,
+  setMarkup,
+  style,
+  setStyle,
+  markup_language,
+}: {
+  markup: string,
+  setMarkup: (markup: string) => void,
+  style: string,
+  setStyle: (style: string) => void,
+  markup_language: TemplateLanguage,
+}) {
   const [selectedTab, setSelectedTab] = useState<EditionTab>(EditionTab.MARKUP);
 
   const EDITOR_HEIGHT = 200;
@@ -142,19 +154,19 @@ function WidgetMarkupEditor({ form, setForm }: { form: IForm, setForm: (form: IF
       {
         selectedTab === EditionTab.MARKUP
           ? (<Editor
-              value={form.markup}
+              value={markup}
               height={EDITOR_HEIGHT}
-              onChange={(value) => setForm({ ...form, markup: value! })}
+              onChange={(value) => setMarkup(value!)}
               language={
-                form.language === TemplateLanguage.REACT
+                markup_language === TemplateLanguage.REACT
                   ? EditorLanguage.JS
                   : EditorLanguage.HTML
               }
           />)
           : (<Editor
-              value={form.style}
+              value={style}
               height={EDITOR_HEIGHT}
-              onChange={(value) => setForm({ ...form, style: value! })}
+              onChange={(value) => setStyle(value!)}
               language={EditorLanguage.CSS}
           />)
       }
@@ -366,7 +378,13 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       </TextField>
 
       {/* Редактор разметки и стиля. */}
-      <WidgetMarkupEditor form={form} setForm={setForm} />
+      <WidgetMarkupEditor
+        markup={form.markup}
+        setMarkup={(markup) => { setForm(() => ({ ...form, markup })); }}
+        style={form.style}
+        setStyle={(style) => { setForm(() => ({ ...form, style })); }}
+        markup_language={form.language}
+      />
 
       <div style={{
         borderWidth: '1px',
