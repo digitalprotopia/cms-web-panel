@@ -187,6 +187,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
   });
 
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
+  const [previewStyle, setPreviewStyle] = useState<string>('');
 
   // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
@@ -197,6 +198,16 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     }, RENDER_PREVIEW_DELAY);
     return () => clearInterval(interval);
   }, [form.markup]);
+
+  // Установить (с заданной задержкой) стиль превью равный стилю формы.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (previewStyle !== form.style) {
+        setPreviewStyle(form.style);
+      }
+    }, RENDER_PREVIEW_DELAY);
+    return () => clearInterval(interval);
+  }, [form.style]);
 
   const isEditMode = !!id;
 
@@ -401,7 +412,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
           data={widgetTable.meta ? [row] : []}
           language={form.language}
           cssClass={form.cssClass}
-          style={form.style}
+          style={previewStyle}
         />
       </div>
 
