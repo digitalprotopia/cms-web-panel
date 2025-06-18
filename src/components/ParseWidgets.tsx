@@ -439,11 +439,14 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
   return <MapComponent {...mapProps} />;
 };
 
+// Применить стиль к дочернему компоненту.
+// Если передан style props применить класс `widget-${widgetId}` к потомку.
 function WidgetStyle(
   props: {
     children: React.JSX.Element,
     cssClass?: string,
     style?: string,
+    widgetId: string,
   },
 ) {
   return (
@@ -452,7 +455,11 @@ function WidgetStyle(
         {props.style || undefined}
       </style>
       <div className={props.cssClass || undefined}>
-        {props.children}
+        {props.style
+          ? (<div className={`widget-${props.widgetId}`}>
+            {props.children}
+             </div>)
+          : props.children}
       </div>
     </>
   );
@@ -460,6 +467,7 @@ function WidgetStyle(
 
 export function RenderWidget(
   props: {
+    widgetId: string,
     widgetViewType: string,
     html: string,
     fields: TableField[],
@@ -470,14 +478,14 @@ export function RenderWidget(
   },
 ) {
   const {
-    widgetViewType, html, fields, data, language,
+    widgetId, widgetViewType, html, fields, data, language,
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
 
   if (widgetViewType === WidgetViewType.MAP) {
     return (
-      <WidgetStyle cssClass={props.cssClass} style={props.style}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
         <WidgetMap
           data={data}
           fields={fields}
@@ -501,7 +509,7 @@ export function RenderWidget(
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
-          <WidgetStyle cssClass={props.cssClass} style={props.style}>
+          <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
             <template.ListComponent data={data} Component={template.Component} />
           </WidgetStyle>
         </ErrorBoundary>
@@ -510,13 +518,13 @@ export function RenderWidget(
   }
   if (language === TemplateLanguage.SIMPLE && widgetViewType === WidgetViewType.STATIC) {
     return (
-      <WidgetStyle cssClass={props.cssClass} style={props.style}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
         <div dangerouslySetInnerHTML={{ __html: html }} />
       </WidgetStyle>
     );
   }
   return (
-    <WidgetStyle cssClass={props.cssClass} style={props.style}>
+    <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
       <WidgetList
         data={data}
         fields={fields}
@@ -601,6 +609,7 @@ export function PageWidget(props: {
 
   return (
     <RenderWidget
+      widgetId={data.getWidgetByName.id}
       widgetViewType={data.getWidgetByName.widgetViewType}
       html={data.getWidgetByName.template.html}
       fields={table.meta?.fields as TableField[]}

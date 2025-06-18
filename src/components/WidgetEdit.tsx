@@ -167,6 +167,7 @@ interface IForm {
   title: string,
   tableId: string,
   markup: string,
+  widgetId: string,
   widgetViewType: string,
   language: TemplateLanguage,
   cssClass: string,
@@ -179,6 +180,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     title: '',
     tableId: '',
     markup: '',
+    widgetId: '',
     widgetViewType: 'list',
     language: TemplateLanguage.SIMPLE,
     cssClass: '',
@@ -222,6 +224,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         title: data.getWidget.title,
         tableId: data.getWidget.tableView.table?.id,
         markup: data.getWidget.template.html,
+        widgetId: data.getWidget.id,
         widgetViewType: data.getWidget.widgetViewType,
         language: data.getWidget.template.language,
         cssClass: data.getWidget.cssClass,
@@ -405,6 +408,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       }}
       >
         <RenderWidget
+          widgetId={form.widgetId}
           widgetViewType={form.widgetViewType}
           html={previewMarkup}
           fields={widgetTable.meta?.fields as TableField[]}
