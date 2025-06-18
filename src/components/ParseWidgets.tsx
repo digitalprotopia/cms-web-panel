@@ -11,6 +11,7 @@ import {
   Map, useYMaps,
 } from '@pbe/react-yandex-maps';
 import dayjs from 'dayjs';
+import { compileString } from 'sass';
 
 import * as Mui from '@mui/material';
 
@@ -449,16 +450,20 @@ function WidgetStyle(
     widgetId: string,
   },
 ) {
+  let style;
+  const className = `widget-${props.widgetId}`;
+  if (props.style) {
+    const SCSS_STYLE = `.${className} {${props.style}}`;
+    style = compileString(SCSS_STYLE)?.css;
+  }
   return (
     <>
       <style>
-        {props.style || undefined}
+        {style}
       </style>
       <div className={props.cssClass || undefined}>
-        {props.style
-          ? (<div className={`widget-${props.widgetId}`}>
-            {props.children}
-             </div>)
+        {style
+          ? <div className={className}>{props.children}</div>
           : props.children}
       </div>
     </>
