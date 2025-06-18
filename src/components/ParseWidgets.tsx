@@ -440,8 +440,7 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
   return <MapComponent {...mapProps} />;
 };
 
-// Применить стиль к дочернему компоненту.
-// Если передан style props применить класс `widget-${widgetId}` к потомку.
+// Применить style и cssClass к дочернему компоненту если они переданны.
 function WidgetStyle(
   props: {
     children: React.JSX.Element,
@@ -452,9 +451,15 @@ function WidgetStyle(
 ) {
   let style;
   const className = `widget-${props.widgetId}`;
+  // Если нужно применять стиль, применить класс с id виджета к стилю виджета и элементу потомку.
   if (props.style) {
     const SCSS_STYLE = `.${className} {${props.style}}`;
-    style = compileString(SCSS_STYLE)?.css;
+    // Попытаться скомпилировать SCSS, ничего не менять если SCSS не валидный.
+    try {
+      style = compileString(SCSS_STYLE)?.css;
+    } catch {
+      // todo: Добавить логирование для dev environment.
+    }
   }
   return (
     <>
