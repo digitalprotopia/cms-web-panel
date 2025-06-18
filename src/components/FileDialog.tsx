@@ -71,7 +71,7 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
       size: 300,
       Cell: ({ row }: { row: any }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          {['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp'].includes(row.original.extension) && (
+          {['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp'].includes(row.original.extension) && (
           <img
             src={`${window.config.server}/download/?id=${row.original.id}`}
             alt={row.original.name}

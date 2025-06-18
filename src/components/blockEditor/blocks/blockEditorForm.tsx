@@ -51,7 +51,7 @@ export const BlockEditorForm = createReactBlockSpec(
                   <Menu.Target>
                     <div contentEditable={false}>
                       <Menu.Item>
-                        {snippets.data?.getAllForms?.find((f: IForm) => f.name === props.block.props.type)?.title || 'Выберете форму'}
+                        {snippets.data?.getAllForms?.find((f: IForm) => f.name === props.block.props.type)?.title || 'Выберите форму'}
                       </Menu.Item>
                     </div>
                   </Menu.Target>

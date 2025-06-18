@@ -7,10 +7,12 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
-import { MaterialReactTable } from 'material-react-table';
+import { MaterialReactTable, MRT_ColumnDef, MRT_RowData } from 'material-react-table';
 import { IFile } from '@/components/entities/IFile';
 import { toBase64 } from '@/components/form';
 import { Delete } from '@mui/icons-material';
+import { useSnackbar } from 'notistack';
+import dayjs from 'dayjs';
 
 function FilesPage() {
   const router = useRouter();
@@ -26,6 +28,7 @@ function FilesPage() {
       }
     }
   `);
+  const { enqueueSnackbar } = useSnackbar();
   const [createFile] = useMutation(gql`
     mutation createFile($input: FileInput!) {
       createFile(input: $input) {
@@ -41,12 +44,12 @@ function FilesPage() {
 
   const [form, setForm] = useState<Partial<IFile>>({});
 
-  const columns = useMemo(
+  const columns = useMemo<MRT_ColumnDef<MRT_RowData, any>[]>(
     () => [
       {
         accessorKey: 'id',
         header: 'ID',
-        size: 400,
+        size: 350,
       },
       {
         accessorKey: 'name',
@@ -59,12 +62,18 @@ function FilesPage() {
         size: 150,
       },
       {
+        accessorKey: 'createdAt',
+        header: 'Дата добавления',
+        size: 200,
+        Cell: ({ cell }) => dayjs(cell.getValue()).format('DD.MM.YYYY'),
+      },
+      {
         accessorKey: 'actions',
         header: 'Действия',
         size: 300,
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
-            {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(row.original.extension) ? (
+            {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(row.original.extension) ? (
               <a href={`${window.config.server}/download/?id=${row.original.id}&mode=view`} target="_blank" rel="noreferrer">
                 <img
                   src={`${window.config.server}/download/?id=${row.original.id}&mode=view`}
@@ -126,6 +135,7 @@ function FilesPage() {
               },
             });
             await refetch();
+            enqueueSnackbar('Выбранный файл добавлен', { variant: 'success', autoHideDuration: 3000 });
           }}
           disabled={!form.file}
         >
@@ -135,13 +145,16 @@ function FilesPage() {
 
       <MaterialReactTable
         columns={columns}
-        data={data.getFiles}
+        data={data?.getFiles || []}
         enableColumnResizing
         enableFullScreenToggle={false}
         enableDensityToggle
         enableColumnFilters
         enablePagination
         enableSorting
+        initialState={{
+          sorting: [{ id: 'createdAt', desc: true }],
+        }}
         muiTableProps={{
           sx: {
             tableLayout: 'fixed',

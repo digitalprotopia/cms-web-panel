@@ -313,6 +313,10 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         fullWidth
         value={form.title}
         onChange={(e) => setForm({ ...form, title: e.target.value })}
+        slotProps={{
+          htmlInput: { maxLength: 255 },
+        }}
+
       />
 
       <TextField
@@ -321,6 +325,10 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         fullWidth
         value={form.name}
         onChange={(e) => setForm({ ...form, name: e.target.value })}
+        slotProps={{
+          htmlInput: { maxLength: 255 },
+        }}
+
       />
 
       <TextField

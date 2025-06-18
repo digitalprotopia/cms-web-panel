@@ -173,6 +173,9 @@ function TableEditor({
               fullWidth
               required
               className="w-full"
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
 
             <TextField
@@ -186,6 +189,9 @@ function TableEditor({
               required
               className="w-full"
               disabled={isEditMode}
+              slotProps={{
+                htmlInput: { maxLength: 255 },
+              }}
             />
 
             {/* <div className="mt-6">

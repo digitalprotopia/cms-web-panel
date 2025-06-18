@@ -3,7 +3,6 @@ import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
   CardContent,
-  CardHeader,
   Button,
   Dialog,
   DialogTitle,
@@ -50,33 +49,37 @@ function WidgetCard({
 }) {
   return (
     <Card>
-      <CardHeader
-        title={widget.title}
-        action={(
-          <div>
-            <Link href={`/admin/widgets/${widget.id}`}>
-              <IconButton size="small">
-                <Edit />
-              </IconButton>
-            </Link>
-            <IconButton
-              onClick={() => onDelete(widget.id)}
-              size="small"
-              color="error"
-            >
-              <Delete />
+      <div className="flex items-start justify-between p-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-medium scrollable-title">{widget.title}</h2>
+        </div>
+        <div className="flex-shrink-0 flex gap-2 ml-4">
+          <Link href={`/admin/widgets/${widget.id}`}>
+            <IconButton size="small">
+              <Edit />
             </IconButton>
-          </div>
-        )}
-      />
+          </Link>
+          <IconButton
+            onClick={() => onDelete(widget.id)}
+            size="small"
+            color="error"
+          >
+            <Delete />
+          </IconButton>
+        </div>
+      </div>
       <CardContent>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" className="scrollable-title">
+          Код:
+          {' '}
           {widget.name}
         </Typography>
         <div className="flex items-center mt-2">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
-            {dayjs(widget.createdAt).toString()}
+            Создано:
+            {' '}
+            {dayjs(widget.createdAt).format('DD.MM.YYYY')}
           </Typography>
         </div>
       </CardContent>
