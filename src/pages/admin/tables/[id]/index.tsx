@@ -1,5 +1,5 @@
 import {
-  useMemo, useState, useCallback, useRef, useEffect
+  useMemo, useState, useCallback, useRef, useEffect,
 } from 'react';
 import {
   MaterialReactTable,
@@ -17,14 +17,14 @@ import {
   Popover,
   MenuItem,
   Select,
-  InputLabel, 
-  DialogTitle, 
-  DialogContent, 
-  Dialog, 
-  DialogActions, 
+  InputLabel,
+  DialogTitle,
+  DialogContent,
+  Dialog,
+  DialogActions,
   Box,
   CircularProgress,
-  Typography
+  Typography,
 } from '@mui/material';
 import {
   Add,
@@ -49,9 +49,9 @@ import {
   IFieldOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
+import { useSnackbar } from 'notistack';
 import useTable, {
   TableField,
   TableMeta,
@@ -61,9 +61,7 @@ import useTable, {
   useEditField,
   useEditRow,
 } from '../../../../components/use-table';
-import '../../../../components/entities/IFieldPrivilege'
-import { Privilege } from '@/components/entities/IFieldPrivilege';
-import { useSnackbar } from 'notistack';
+import { Privilege } from '../../../../components/entities/IFieldPrivilege';
 
 const GET_ROLES = gql`
 query GetRoles {
@@ -679,17 +677,17 @@ function TablePage() {
                     Редактировать
                   </Button>
                   <div>
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setSelectedField(field);
-                      setDropDownOpen(false);
-                      setIsFieldPrivilegesDialogOpen(true);
-                    }}
-                    style={{ marginTop: '8px' }}
-                  >
-                    Редактировать права поля
-                  </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setSelectedField(field);
+                        setDropDownOpen(false);
+                        setIsFieldPrivilegesDialogOpen(true);
+                      }}
+                      style={{ marginTop: '8px' }}
+                    >
+                      Редактировать права поля
+                    </Button>
                   </div>
                   <h4>Удалить поле</h4>
                   <Button
@@ -961,9 +959,9 @@ function TablePage() {
             color="primary"
             onClick={() => router.push(`/admin/tables/${id}/privileges`)}
             className="normal-case"
-         >
+          >
             Настроить права
-         </Button>
+          </Button>
           <Button
             variant="contained"
             onClick={handleExportCSV}
@@ -1051,13 +1049,13 @@ function TablePage() {
           },
         }}
       />
-      
+
       <AddRowForm meta={meta} refetch={handleRefetch} />
       <FieldPrivilegesDialog
-      open={isFieldPrivilegesDialogOpen}
-      onClose={() => setIsFieldPrivilegesDialogOpen(false)}
-      field={selectedField}
-    />
+        open={isFieldPrivilegesDialogOpen}
+        onClose={() => setIsFieldPrivilegesDialogOpen(false)}
+        field={selectedField}
+      />
     </div>
   );
 }
@@ -1072,21 +1070,21 @@ function FieldPrivilegesDialog({
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const [privileges, setPrivileges] = useState<Record<string, Privilege>>({});
-  
-  const { 
-    data: rolesData, 
-    loading: rolesLoading, 
-    error: rolesError 
+
+  const {
+    data: rolesData,
+    loading: rolesLoading,
+    error: rolesError,
   } = useQuery(GET_ROLES);
 
-  const { 
-    data: privilegesData, 
-    loading: privilegesLoading, 
-    error: privilegesError, 
-    refetch: refetchPrivileges 
-  } = useQuery(GET_FIELD_PRIVILEGES, { 
+  const {
+    data: privilegesData,
+    loading: privilegesLoading,
+    error: privilegesError,
+    refetch: refetchPrivileges,
+  } = useQuery(GET_FIELD_PRIVILEGES, {
     variables: { fieldId: field?.id },
-    skip: !field?.id || !open
+    skip: !field?.id || !open,
   });
 
   const [updateFieldPrivilege] = useMutation(UPDATE_FIELD_PRIVILEGES, {
@@ -1095,7 +1093,7 @@ function FieldPrivilegesDialog({
     },
     onError: (error) => {
       enqueueSnackbar(`Ошибка при обновлении прав: ${error.message}`, { variant: 'error' });
-    }
+    },
   });
 
   useEffect(() => {
@@ -1109,9 +1107,9 @@ function FieldPrivilegesDialog({
   }, [privilegesData]);
 
   const handlePrivilegeChange = (roleId: string, newPrivilege: Privilege) => {
-    setPrivileges(prev => ({
+    setPrivileges((prev) => ({
       ...prev,
-      [roleId]: newPrivilege
+      [roleId]: newPrivilege,
     }));
   };
 
@@ -1119,17 +1117,15 @@ function FieldPrivilegesDialog({
     if (!field?.id) return;
     try {
       await Promise.all(
-        Object.entries(privileges).map(([roleId, privilege]) => {
-          return updateFieldPrivilege({
-            variables: {
-              fieldId: field.id,
-              roleId,
-              privilege: {
-                privilege
-              }
-            }
-          });
-        })
+        Object.entries(privileges).map(([roleId, privilege]) => updateFieldPrivilege({
+          variables: {
+            fieldId: field.id,
+            roleId,
+            privilege: {
+              privilege,
+            },
+          },
+        })),
       );
       enqueueSnackbar('Права успешно обновлены!', { variant: 'success' });
       onClose();
@@ -1142,7 +1138,9 @@ function FieldPrivilegesDialog({
     return (
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
         <DialogTitle>
-          Права доступа для поля: <strong>{field?.name}</strong>
+          Права доступа для поля:
+          {' '}
+          <strong>{field?.name}</strong>
         </DialogTitle>
         <DialogContent>
           <Box display="flex" justifyContent="center" p={4}>
@@ -1157,11 +1155,15 @@ function FieldPrivilegesDialog({
     return (
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
         <DialogTitle>
-          Права доступа для поля: <strong>{field?.name}</strong>
+          Права доступа для поля:
+          {' '}
+          <strong>{field?.name}</strong>
         </DialogTitle>
         <DialogContent>
           <Typography color="error">
-            Ошибка загрузки данных: {rolesError?.message || privilegesError?.message}
+            Ошибка загрузки данных:
+            {' '}
+            {rolesError?.message || privilegesError?.message}
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1174,7 +1176,9 @@ function FieldPrivilegesDialog({
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        Права доступа для поля: <strong>{field?.name}</strong>
+        Права доступа для поля:
+        {' '}
+        <strong>{field?.name}</strong>
       </DialogTitle>
       <DialogContent>
         <Box sx={{ marginTop: 2 }}>
@@ -1199,8 +1203,8 @@ function FieldPrivilegesDialog({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
-        <Button 
-          variant="contained"  
+        <Button
+          variant="contained"
           onClick={handleSave}
           disabled={rolesLoading || privilegesLoading}
         >
