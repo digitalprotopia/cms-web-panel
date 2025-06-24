@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { Privilege } from '../../../../../components/entities/ITablePrivilege';
+import { IRole } from '@/components/entities/IRole';
+import { ITablePrivilege, Privilege } from '../../../../../components/entities/ITablePrivilege';
 
 const GET_ROLES = gql`
 query GetRoles {
@@ -43,11 +44,15 @@ function PrivilegesPage() {
   const [updatePrivileges] = useMutation(UPDATE_PRIVILEGES);
   const { enqueueSnackbar } = useSnackbar();
 
-  const [privilegesState, setPrivilegesState] = useState({});
+  const [privilegesState, setPrivilegesState] = useState<
+  Record<string, Partial<ITablePrivilege>[]>>({});
 
   useEffect(() => {
     if (privilegesData) {
-      const initialState = privilegesData.getPrivilegesByTableId.reduce((acc, { roleId, privilege, onlyCreator }) => {
+      const initialState = privilegesData.getPrivilegesByTableId.reduce((
+        acc: Record<string, Partial<ITablePrivilege>[]>,
+        { roleId, privilege, onlyCreator }: ITablePrivilege,
+      ) => {
         if (!acc[roleId]) {
           acc[roleId] = [];
         }
@@ -58,10 +63,10 @@ function PrivilegesPage() {
     }
   }, [privilegesData]);
 
-  const handlePrivilegeChange = (roleId, privilege, checked) => {
+  const handlePrivilegeChange = (roleId: string, privilege: Privilege, checked: boolean) => {
     setPrivilegesState((prevState) => {
       const rolePrivileges = prevState[roleId] || [];
-      const updatedPrivileges = checked
+      const updatedPrivileges: Partial<ITablePrivilege>[] = checked
         ? [...rolePrivileges, { privilege, onlyCreator: false }]
         : rolePrivileges.filter((p) => p.privilege !== privilege);
       return {
@@ -71,10 +76,11 @@ function PrivilegesPage() {
     });
   };
 
-  const handleOnlyCreatorChange = (roleId, privilege, onlyCreator) => {
+  const handleOnlyCreatorChange = (roleId: string, privilege: Privilege, onlyCreator: boolean) => {
     setPrivilegesState((prevState) => {
       const rolePrivileges = prevState[roleId] || [];
-      const updatedPrivileges = rolePrivileges.map((p) => (p.privilege === privilege ? { ...p, onlyCreator } : p));
+      const updatedPrivileges = rolePrivileges.map((p) => (
+        p.privilege === privilege ? { ...p, onlyCreator } : p));
       return {
         ...prevState,
         [roleId]: updatedPrivileges,
@@ -85,9 +91,10 @@ function PrivilegesPage() {
   const handleSave = async () => {
     try {
       await Promise.all(Object.entries(privilegesState).map(([roleId, privileges]) => {
-        const role = rolesData.getRoles.find((role) => role.id === roleId);
+        const role = rolesData.getRoles.find((_role: IRole) => _role.id === roleId);
         if (role) {
-          const validPrivileges = privileges.filter((priv) => Object.values(Privilege).includes(priv.privilege));
+          const validPrivileges = privileges.filter((priv) => Object.values(Privilege)
+            .includes(priv.privilege!));
           return updatePrivileges({ variables: { tableId, roleId, privileges: validPrivileges } });
         }
         return Promise.resolve();
@@ -128,8 +135,11 @@ function PrivilegesPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rolesData.getRoles.map(({ id, title }) => {
-              const privileges = privilegesState[id] || [];
+            {rolesData.getRoles.map(({ id, name, title }: IRole) => {
+              if (name === 'admin') {
+                return null;
+              }
+              const privileges: Partial<ITablePrivilege>[] = privilegesState[id] || [];
               return (
                 <TableRow key={id}>
                   <TableCell>{title}</TableCell>
@@ -137,26 +147,32 @@ function PrivilegesPage() {
                     <FormGroup>
                       {Object.values(Privilege).map((priv) => {
                         const isChecked = privileges.some((p) => p.privilege === priv);
-                        const onlyCreatorChecked = privileges.some((p) => p.privilege === priv && p.onlyCreator);
+                        const onlyCreatorChecked = privileges.some(
+                          (p) => p.privilege === priv && p.onlyCreator,
+                        );
                         return (
                           <div key={priv} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <FormControlLabel
                               control={
                                 (<Checkbox
                                   checked={isChecked}
-                                  onChange={(e) => handlePrivilegeChange(id, priv, e.target.checked)}
+                                  onChange={
+                                    (e) => handlePrivilegeChange(id, priv, e.target.checked)
+}
                                 />)
                                                             }
                               label={priv}
                               style={{ flex: 1 }}
                             />
                             <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-100px' }}>
-                              {isChecked && (
+                              {name !== 'guest' && priv !== Privilege.CREATE && isChecked && (
                                 <FormControlLabel
                                   control={
                                     (<Checkbox
                                       checked={onlyCreatorChecked}
-                                      onChange={(e) => handleOnlyCreatorChange(id, priv, e.target.checked)}
+                                      onChange={
+                                        (e) => handleOnlyCreatorChange(id, priv, e.target.checked)
+}
                                     />)
                                     }
                                   label="Только владелец"
