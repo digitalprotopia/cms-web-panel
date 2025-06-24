@@ -118,9 +118,9 @@ function RolesPage() {
   `);
   const handleDeleteRole = async (roleId: string) => {
     try {
-      await deleteRole({ 
+      await deleteRole({
         variables: { id: roleId },
-        refetchQueries: ['getRoles']
+        refetchQueries: ['getRoles'],
       });
     } catch (error) {
       console.error('Ошибка при удалении роли:', error);
@@ -148,15 +148,16 @@ function RolesPage() {
           <span style={{
             fontWeight: row.original.isSystem ? 'bold' : 'normal',
             textDecoration: row.original.isDeleted ? 'line-through' : 'none',
-            opacity: row.original.isDeleted ? 0.6 : 1
-          }}>
+            opacity: row.original.isDeleted ? 0.6 : 1,
+          }}
+          >
             {row.original.title}
             {row.original.isSystem && ' (системная)'}
             {row.original.isDeleted && ' (удалена)'}
           </span>
         ),
       },
-      
+
       {
         accessorKey: 'actions',
         header: 'Действия',
@@ -171,20 +172,20 @@ function RolesPage() {
                 }
               }}
               disabled={row.original.isSystem}
-              title={row.original.isSystem ? "Системную роль нельзя изменить" : "Редактировать"}
+              title={row.original.isSystem ? 'Системную роль нельзя изменить' : 'Редактировать'}
             >
               <Edit />
             </IconButton>
             <IconButton
               onClick={() => {
                 if (!row.original.isSystem) {
-                  if (confirm(`Удалить роль "${row.original.title}"?`)) {
+                  if (window.confirm(`Удалить роль "${row.original.title}"?`)) {
                     handleDeleteRole(row.original.id);
                   }
                 }
               }}
               disabled={row.original.isSystem}
-              title={row.original.isSystem ? "Системную роль нельзя удалить" : "Удалить"}
+              title={row.original.isSystem ? 'Системную роль нельзя удалить' : 'Удалить'}
               color="error"
             >
               <Delete />

@@ -4,5 +4,5 @@ export interface IRole extends IEntity {
   name: string;
   title: string;
   isSystem: boolean;
-  isDeleted: Boolean;
+  isDeleted: boolean;
 }
