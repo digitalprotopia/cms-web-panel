@@ -656,7 +656,7 @@ function TablePage() {
                         setDropDownOpen(false);
                         setIsFieldPrivilegesDialogOpen(true);
                       }}
-                      style={{ marginTop: '8px' }}
+                      style={{ marginTop: '8px', display: 'none' }}
                     >
                       Редактировать права поля
                     </Button>
