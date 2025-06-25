@@ -117,13 +117,13 @@ function WidgetMarkupEditor({
   setMarkup,
   style,
   setStyle,
-  markup_language,
+  markupLanguage,
 }: {
   markup: string,
   setMarkup: (markup: string) => void,
   style: string,
   setStyle: (style: string) => void,
-  markup_language: TemplateLanguage,
+  markupLanguage: TemplateLanguage,
 }) {
   const [selectedTab, setSelectedTab] = useState<EditionTab>(EditionTab.MARKUP);
 
@@ -146,7 +146,7 @@ function WidgetMarkupEditor({
               height={EDITOR_HEIGHT}
               onChange={(value) => setMarkup(value!)}
               language={
-                markup_language === TemplateLanguage.REACT
+                markupLanguage === TemplateLanguage.REACT
                   ? EditorLanguage.JS
                   : EditorLanguage.HTML
               }
@@ -404,7 +404,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         setMarkup={setMarkup}
         style={form.style}
         setStyle={setStyle}
-        markup_language={form.language}
+        markupLanguage={form.language}
       />
 
       <div style={{

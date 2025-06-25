@@ -456,9 +456,12 @@ function WidgetStyle(
     const SCSS_STYLE = `.${className} {${props.style}}`;
     // Попытаться скомпилировать SCSS, ничего не менять если SCSS не валидный.
     try {
-      style = compileString(SCSS_STYLE)?.css;
-    } catch {
-      // todo: Добавить логирование для dev environment.
+      style = compileString(SCSS_STYLE).css;
+    } catch (error) {
+      // Логируем в dev среде ожидаемые ошибки разбора не валидного SCSS.
+      if (process.env.NODE_ENV === 'development') {
+        console.error(error);
+      }
     }
   }
   return (
