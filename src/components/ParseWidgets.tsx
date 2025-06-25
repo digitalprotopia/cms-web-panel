@@ -11,6 +11,7 @@ import {
   Map, useYMaps,
 } from '@pbe/react-yandex-maps';
 import dayjs from 'dayjs';
+import { compileString } from 'sass';
 
 import * as Mui from '@mui/material';
 
@@ -439,32 +440,72 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
   return <MapComponent {...mapProps} />;
 };
 
+// Применить style и cssClass к дочернему компоненту если они переданны.
+function WidgetStyle(
+  props: {
+    children: React.JSX.Element,
+    cssClass?: string,
+    style?: string,
+    widgetId: string,
+  },
+) {
+  let style;
+  const className = `widget-${props.widgetId}`;
+  // Если нужно применять стиль, применить класс с id виджета к стилю виджета и элементу потомку.
+  if (props.style) {
+    const SCSS_STYLE = `.${className} {${props.style}}`;
+    // Попытаться скомпилировать SCSS, ничего не менять если SCSS не валидный.
+    try {
+      style = compileString(SCSS_STYLE).css;
+    } catch (error) {
+      // Логируем в dev среде ожидаемые ошибки разбора не валидного SCSS.
+      if (process.env.NODE_ENV === 'development') {
+        console.error(error);
+      }
+    }
+  }
+  return (
+    <>
+      <style>
+        {style}
+      </style>
+      <div className={props.cssClass || undefined}>
+        {style
+          ? <div className={className}>{props.children}</div>
+          : props.children}
+      </div>
+    </>
+  );
+}
+
 export function RenderWidget(
   props: {
+    widgetId: string,
     widgetViewType: string,
     html: string,
     fields: TableField[],
     data: any,
     language: TemplateLanguage,
     cssClass: string,
+    style?: string,
   },
 ) {
   const {
-    widgetViewType, html, fields, data, language,
+    widgetId, widgetViewType, html, fields, data, language,
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
 
   if (widgetViewType === WidgetViewType.MAP) {
     return (
-      <div className={props.cssClass || undefined}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
         <WidgetMap
           data={data}
           fields={fields}
           html={html}
           language={language}
         />
-      </div>
+      </WidgetStyle>
     );
   }
   if (language === TemplateLanguage.REACT) {
@@ -481,29 +522,29 @@ export function RenderWidget(
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
-          <div className={props.cssClass || undefined}>
+          <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
             <template.ListComponent data={data} Component={template.Component} />
-          </div>
+          </WidgetStyle>
         </ErrorBoundary>
       );
     }
   }
   if (language === TemplateLanguage.SIMPLE && widgetViewType === WidgetViewType.STATIC) {
     return (
-      <div className={props.cssClass || undefined}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
         <div dangerouslySetInnerHTML={{ __html: html }} />
-      </div>
+      </WidgetStyle>
     );
   }
   return (
-    <div className={props.cssClass || undefined}>
+    <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
       <WidgetList
         data={data}
         fields={fields}
         html={html}
         language={language}
       />
-    </div>
+    </WidgetStyle>
   );
 }
 
@@ -520,6 +561,7 @@ export function PageWidget(props: {
                   template {
                       html
                       language
+                      css
                   }
                   tableView {
                       tableId
@@ -580,12 +622,14 @@ export function PageWidget(props: {
 
   return (
     <RenderWidget
+      widgetId={data.getWidgetByName.id}
       widgetViewType={data.getWidgetByName.widgetViewType}
       html={data.getWidgetByName.template.html}
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
       cssClass={data.getWidgetByName.cssClass || ''}
+      style={data.getWidgetByName.template.css}
     />
   );
 }
