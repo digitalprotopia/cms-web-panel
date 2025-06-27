@@ -1,14 +1,14 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   TextField,
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
   ToggleButtonGroup,
   ToggleButton,
+  InputLabel,
 } from '@mui/material';
 import { ITable } from '@/components/entities/ITable';
 import dayjs from 'dayjs';
@@ -19,7 +19,9 @@ import { RenderWidget } from './ParseWidgets';
 import { TemplateLanguage } from './entities/ITemplate';
 import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
-import FramePreview from './FramePreview';
+
+// Задержка рендеринга превью, милисекунды.
+const RENDER_PREVIEW_DELAY = 2000;
 
 interface WidgetEditProps {
   id?: string;
@@ -58,6 +60,7 @@ const GET_WIDGET = gql`
         id
         html
         language
+        css
       }
     }
   }
@@ -97,34 +100,118 @@ const UPDATE_WIDGET = gql`
   }
 `;
 
+enum EditionTab {
+  MARKUP = 'markup',
+  STYLE = 'style',
+}
+
+// todo: Переместить в подходящий модуль если будет переиспользоваться.
+enum EditorLanguage {
+  CSS = 'css',
+  JS = 'javascript',
+  HTML = 'html',
+}
+
+function WidgetMarkupEditor({
+  markup,
+  setMarkup,
+  style,
+  setStyle,
+  markupLanguage,
+}: {
+  markup: string,
+  setMarkup: (markup: string) => void,
+  style: string,
+  setStyle: (style: string) => void,
+  markupLanguage: TemplateLanguage,
+}) {
+  const [selectedTab, setSelectedTab] = useState<EditionTab>(EditionTab.MARKUP);
+
+  const EDITOR_HEIGHT = 200;
+
+  return (
+    <div>
+      <ToggleButtonGroup
+        value={selectedTab}
+        onChange={(_, value) => { setSelectedTab(value); }}
+        exclusive
+      >
+        <ToggleButton value={EditionTab.MARKUP}>Разметка</ToggleButton>
+        <ToggleButton value={EditionTab.STYLE}>Стиль</ToggleButton>
+      </ToggleButtonGroup>
+      {
+        selectedTab === EditionTab.MARKUP
+          ? (<Editor
+              value={markup}
+              height={EDITOR_HEIGHT}
+              onChange={(value) => setMarkup(value!)}
+              language={
+                markupLanguage === TemplateLanguage.REACT
+                  ? EditorLanguage.JS
+                  : EditorLanguage.HTML
+              }
+          />)
+          : (<Editor
+              value={style}
+              height={EDITOR_HEIGHT}
+              onChange={(value) => setStyle(value!)}
+              language={EditorLanguage.CSS}
+          />)
+      }
+    </div>
+  );
+}
+
+interface IForm {
+  name: string,
+  title: string,
+  tableId: string,
+  markup: string,
+  widgetId: string,
+  widgetViewType: string,
+  language: TemplateLanguage,
+  cssClass: string,
+  style: string,
+}
+
 function WidgetEdit({ id, onClose }: WidgetEditProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<IForm>({
     name: '',
     title: '',
     tableId: '',
-    templateHtml: '',
+    markup: '',
+    widgetId: '',
     widgetViewType: 'list',
     language: TemplateLanguage.SIMPLE,
     cssClass: '',
+    style: '',
   });
 
-  const cachedHtmlRef = useRef<string>('');
-  const [cachedHtml, setCachedHtml] = useState<string>('');
+  const setStyle = (style: string) => { setForm((prev) => ({ ...prev, style })); };
+  const setMarkup = (markup: string) => { setForm((prev) => ({ ...prev, markup })); };
 
+  const [previewMarkup, setPreviewMarkup] = useState<string>('');
+  const [previewStyle, setPreviewStyle] = useState<string>('');
+
+  // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
     const interval = setInterval(() => {
-      if (cachedHtmlRef.current !== cachedHtml) {
-        setCachedHtml(cachedHtmlRef.current);
+      if (previewMarkup !== form.markup) {
+        setPreviewMarkup(form.markup);
       }
-    }, 2000);
+    }, RENDER_PREVIEW_DELAY);
     return () => clearInterval(interval);
-  }, []);
+  }, [form.markup]);
 
+  // Установить (с заданной задержкой) стиль превью равный стилю формы.
   useEffect(() => {
-    cachedHtmlRef.current = form.templateHtml;
-  }, [form.templateHtml]);
-
-  const [previewMode, setPreviewMode] = useState<'widget' | 'iframe'>('widget');
+    const interval = setInterval(() => {
+      if (previewStyle !== form.style) {
+        setPreviewStyle(form.style);
+      }
+    }, RENDER_PREVIEW_DELAY);
+    return () => clearInterval(interval);
+  }, [form.style]);
 
   const isEditMode = !!id;
 
@@ -136,10 +223,12 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         name: data.getWidget.name,
         title: data.getWidget.title,
         tableId: data.getWidget.tableView.table?.id,
-        templateHtml: data.getWidget.template.html,
+        markup: data.getWidget.template.html,
+        widgetId: data.getWidget.id,
         widgetViewType: data.getWidget.widgetViewType,
         language: data.getWidget.template.language,
         cssClass: data.getWidget.cssClass,
+        style: data.getWidget.template.css,
       });
     },
   });
@@ -188,8 +277,9 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       },
       template: {
         title: form.title,
-        html: form.templateHtml,
+        html: form.markup,
         language: form.language,
+        css: form.style,
       },
     };
 
@@ -216,6 +306,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
 
   return (
     <div className="flex flex-col gap-4 py-2">
+      {/* todo: Рассмотреть возможность переноса настроек виджета в отдельный компонент. */}
       <TextField
         label="Название"
         variant="outlined"
@@ -307,23 +398,14 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         ))}
       </TextField>
 
-      {form.language === TemplateLanguage.REACT
-        ? (
-          <Editor
-            value={form.templateHtml}
-            height={200}
-            onChange={(value) => setForm({ ...form, templateHtml: value! })}
-            language="javascript"
-          />
-        )
-        : (
-          <Editor
-            value={form.templateHtml}
-            height={200}
-            onChange={(value) => setForm({ ...form, templateHtml: value! })}
-            language="html"
-          />
-        )}
+      {/* Редактор разметки и стиля. */}
+      <WidgetMarkupEditor
+        markup={form.markup}
+        setMarkup={setMarkup}
+        style={form.style}
+        setStyle={setStyle}
+        markupLanguage={form.language}
+      />
 
       <div style={{
         borderWidth: '1px',
@@ -333,37 +415,16 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         padding: 8,
       }}
       >
-        <div>
-          <ToggleButtonGroup
-            value={previewMode}
-            exclusive
-            onChange={(_, value) => setPreviewMode(value)}
-          >
-            <ToggleButton value="widget">Widget</ToggleButton>
-            <ToggleButton value="iframe">Iframe</ToggleButton>
-          </ToggleButtonGroup>
-        </div>
-        {previewMode === 'iframe' ? (
-          <FramePreview>
-            <RenderWidget
-              widgetViewType={form.widgetViewType}
-              html={cachedHtml}
-              fields={widgetTable.meta?.fields as TableField[]}
-              data={widgetTable.meta ? [row] : []}
-              language={form.language}
-              cssClass={form.cssClass}
-            />
-          </FramePreview>
-        ) : (
-          <RenderWidget
-            widgetViewType={form.widgetViewType}
-            html={cachedHtml}
-            fields={widgetTable.meta?.fields as TableField[]}
-            data={widgetTable.meta ? [row] : []}
-            language={form.language}
-            cssClass={form.cssClass}
-          />
-        )}
+        <RenderWidget
+          widgetId={form.widgetId}
+          widgetViewType={form.widgetViewType}
+          html={previewMarkup}
+          fields={widgetTable.meta?.fields as TableField[]}
+          data={widgetTable.meta ? [row] : []}
+          language={form.language}
+          cssClass={form.cssClass}
+          style={previewStyle}
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -375,7 +436,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
              color="primary"
              onClick={() => setForm({
                ...form,
-               templateHtml: `${form.templateHtml}{${field.dbName}}`,
+               markup: `${form.markup}{${field.dbName}}`,
              })}
            >
              {`{${field.dbName}}`}
@@ -391,7 +452,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
           variant="contained"
           onClick={handleSave}
           disabled={
-          !form.name || !form.title! || !form.templateHtml
+          !form.name || !form.title! || !form.markup
           // || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
         }
         >
