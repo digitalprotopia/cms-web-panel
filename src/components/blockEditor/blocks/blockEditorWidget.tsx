@@ -1,9 +1,10 @@
-import Link from 'next/link';
 import { gql, useQuery } from '@apollo/client';
 import { BlockNoteEditor, defaultProps, insertOrUpdateBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import { WidgetsOutlined } from '@mui/icons-material';
+import Link from 'next/link';
+
 import { IWidget } from '../../entities/IWidget';
 // eslint-disable-next-line import/no-cycle
 import { PageWidget } from '../../ParseWidgets';

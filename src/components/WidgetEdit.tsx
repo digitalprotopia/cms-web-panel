@@ -1,5 +1,7 @@
-import { gql, useMutation, useQuery } from '@apollo/client';
+import dayjs from 'dayjs';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import {
   Button,
   TextField,
@@ -10,14 +12,15 @@ import {
   ToggleButton,
   InputLabel,
 } from '@mui/material';
-import { ITable } from '@/components/entities/ITable';
-import dayjs from 'dayjs';
 import { Editor, useMonaco } from '@monaco-editor/react';
+
+import { RenderWidget } from './ParseWidgets';
+import { getReactTemplateType } from './reactTemplates';
 import useTable, { TableField } from './use-table';
 import { FieldType, IField } from './entities/IField';
-import { RenderWidget } from './ParseWidgets';
+import { ISiteItem } from './entities/ISiteItem';
+import { ITable } from './entities/ITable';
 import { TemplateLanguage } from './entities/ITemplate';
-import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
 
 // Задержка рендеринга превью, милисекунды.
@@ -61,6 +64,13 @@ const GET_WIDGET = gql`
         html
         language
         css
+      }
+      siteItems {
+        id,
+        title,
+        site {
+          id
+        }
       }
     }
   }
@@ -174,6 +184,11 @@ interface IForm {
   style: string,
 }
 
+interface IPageURL {
+  title: string,
+  url: string,
+}
+
 function WidgetEdit({ id, onClose }: WidgetEditProps) {
   const [form, setForm] = useState<IForm>({
     name: '',
@@ -192,6 +207,8 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
 
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
   const [previewStyle, setPreviewStyle] = useState<string>('');
+
+  const [usingPages, setUsingPages] = useState<IPageURL[]>([]);
 
   // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
@@ -230,6 +247,15 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         cssClass: data.getWidget.cssClass,
         style: data.getWidget.template.css,
       });
+
+      const pageURLs: IPageURL[] = [];
+      data.getWidget.siteItems.forEach((siteItem: ISiteItem) => {
+        pageURLs.push({
+          title: siteItem.title,
+          url: `/admin/sites/${siteItem.site.id}/pages/${siteItem.id}`,
+        });
+      });
+      setUsingPages(pageURLs);
     },
   });
 
@@ -302,6 +328,12 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     if (field.type === FieldType.BOOLEAN) {
       row[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
     }
+  });
+
+  // WIP: Use correct type for pageLinks or remove it.
+  const pageLinks: any[] = [];
+  usingPages.forEach((page) => {
+    pageLinks.push(<div><Link href={page.url}>{page.title}</Link></div>);
   });
 
   return (
@@ -446,6 +478,10 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
           <span>В таблице нет полей</span>
         )}
       </div>
+      { /* WIP: Переместить к кнопкам "сохранить", "отмена" */ }
+      { pageLinks
+        ? <div>{pageLinks}</div>
+        : null}
 
       <div className="flex gap-4">
         <Button

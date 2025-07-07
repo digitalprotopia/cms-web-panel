@@ -1,5 +1,6 @@
 import { IEntity } from './IEntity';
 import { IRole } from './IRole';
+import { ISite } from './ISite';
 
 export enum SiteItemType {
   STATIC = 'static',
@@ -16,6 +17,7 @@ export interface ISiteItem extends IEntity {
   title: string;
   url: string;
   siteId: string;
+  site: ISite;
   parentId?: string;
   isRoot: boolean;
   seotag: string;
