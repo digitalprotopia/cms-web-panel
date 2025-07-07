@@ -699,7 +699,6 @@ export function FormWidget(props: {
   });
   const addRow = useAddRow(data?.getFormByName.table.dbName);
   const editRow = useEditRow(data?.getFormByName.table.dbName);
-  const { enqueueSnackbar } = useSnackbar();
   if (!data?.getFormByName) {
     return null;
   }
