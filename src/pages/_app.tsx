@@ -31,7 +31,6 @@ import { YMaps } from '@pbe/react-yandex-maps';
 import { PageProvider } from '@/components/PageContext';
 
 import '../i18n/i18n';
-import { I18nextProvider } from 'react-i18next';
 
 declare global {
   interface Window {
