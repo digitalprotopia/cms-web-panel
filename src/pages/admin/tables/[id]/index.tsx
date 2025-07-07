@@ -54,6 +54,8 @@ import useTable, {
   useEditField,
   useEditRow,
 } from '../../../../components/use-table';
+import { useTranslation } from 'react-i18next'; // add by Roman 05.07.25 for i18mext translations 
+
 
 interface AddRowFormProps {
   meta: TableMeta;
@@ -336,6 +338,7 @@ interface AddFieldProps {
 }
 
 function AddField({ onClose, refetch, meta }: AddFieldProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<Partial<IField>>({
     name: '',
     dbName: '',
@@ -453,7 +456,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
               FieldType.MANY_TO_MANY_SECOND].includes(key))
             .map((key) => (
               <MenuItem key={key} value={key}>
-                {key}
+                 {t(key)}
               </MenuItem>
             ))}
         </Select>
