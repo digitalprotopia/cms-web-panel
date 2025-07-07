@@ -1,17 +1,23 @@
 import dayjs from 'dayjs';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
   Button,
   TextField,
+  Link,
   MenuItem,
   Select,
   FormControl,
   ToggleButtonGroup,
   ToggleButton,
+  Typography,
   InputLabel,
 } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Editor, useMonaco } from '@monaco-editor/react';
 
 import { RenderWidget } from './ParseWidgets';
@@ -189,6 +195,40 @@ interface IPageURL {
   url: string,
 }
 
+function PageLinks({ usingPages }: { usingPages: IPageURL[] }) {
+  const pageLinks = usingPages.map(({ title, url }, index) => (
+    <Box>
+      <Link
+        key={index}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {title}
+      </Link>
+    </Box>
+  ));
+
+  return (
+    <div>
+      {
+        pageLinks.length === 0
+          ? <Typography component="span">Не используется на страницах</Typography>
+          : (<Accordion>
+            <AccordionSummary
+              expandIcon={<ArrowDropDownIcon />}
+              aria-controls="panel1-content"
+              id="panel1-header"
+            >
+              <Typography component="span">Используется на страницах</Typography>
+            </AccordionSummary>
+            <AccordionDetails>{ pageLinks }</AccordionDetails>
+             </Accordion>)
+      }
+    </div>
+  );
+}
+
 function WidgetEdit({ id, onClose }: WidgetEditProps) {
   const [form, setForm] = useState<IForm>({
     name: '',
@@ -328,12 +368,6 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     if (field.type === FieldType.BOOLEAN) {
       row[field.dbName] = row[field.dbName] ? 'Да' : 'Нет';
     }
-  });
-
-  // WIP: Use correct type for pageLinks or remove it.
-  const pageLinks: any[] = [];
-  usingPages.forEach((page) => {
-    pageLinks.push(<div><Link href={page.url}>{page.title}</Link></div>);
   });
 
   return (
@@ -478,10 +512,10 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
           <span>В таблице нет полей</span>
         )}
       </div>
-      { /* WIP: Переместить к кнопкам "сохранить", "отмена" */ }
-      { pageLinks
-        ? <div>{pageLinks}</div>
-        : null}
+
+      <PageLinks
+        usingPages={usingPages}
+      />
 
       <div className="flex gap-4">
         <Button
