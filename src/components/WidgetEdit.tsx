@@ -190,11 +190,14 @@ interface IForm {
   style: string,
 }
 
+// Используется не ISiteItem, т.к. в SiteItem url неявно это имя последнего
+//  сегмента пути (path), а в IPageURL url это весь url путь (path).
 interface IPageURL {
   title: string,
   url: string,
 }
 
+// Ссылки на страницы которые используют виждет.
 function PageLinks({ usingPages }: { usingPages: IPageURL[] }) {
   const pageLinks = usingPages.map(({ title, url }, index) => (
     <Box>
@@ -214,16 +217,18 @@ function PageLinks({ usingPages }: { usingPages: IPageURL[] }) {
       {
         pageLinks.length === 0
           ? <Typography component="span">Не используется на страницах</Typography>
-          : (<Accordion>
-            <AccordionSummary
-              expandIcon={<ArrowDropDownIcon />}
-              aria-controls="panel1-content"
-              id="panel1-header"
-            >
-              <Typography component="span">Используется на страницах</Typography>
-            </AccordionSummary>
-            <AccordionDetails>{ pageLinks }</AccordionDetails>
-             </Accordion>)
+          : (
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ArrowDropDownIcon />}
+                aria-controls="panel1-content"
+                id="panel1-header"
+              >
+                <Typography component="span">Используется на страницах</Typography>
+              </AccordionSummary>
+              <AccordionDetails>{ pageLinks }</AccordionDetails>
+            </Accordion>
+          )
       }
     </div>
   );
@@ -276,6 +281,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     variables: { id },
     skip: !isEditMode,
     onCompleted: (data) => {
+      // Обновить данные виджета.
       setForm({
         name: data.getWidget.name,
         title: data.getWidget.title,
@@ -288,13 +294,11 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         style: data.getWidget.template.css,
       });
 
-      const pageURLs: IPageURL[] = [];
-      data.getWidget.siteItems.forEach((siteItem: ISiteItem) => {
-        pageURLs.push({
-          title: siteItem.title,
-          url: `/admin/sites/${siteItem.site.id}/pages/${siteItem.id}`,
-        });
-      });
+      // Обновить данные страниц использующих виджет.
+      const pageURLs = data.getWidget.siteItems.map((siteItem: ISiteItem) => ({
+        title: siteItem.title,
+        url: `/admin/sites/${siteItem.site.id}/pages/${siteItem.id}`,
+      }));
       setUsingPages(pageURLs);
     },
   });
