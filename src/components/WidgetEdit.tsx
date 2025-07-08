@@ -7,8 +7,8 @@ import {
   AccordionSummary,
   Box,
   Button,
-  TextField,
   Link,
+  TextField,
   MenuItem,
   Select,
   FormControl,
@@ -191,19 +191,19 @@ interface IForm {
 }
 
 // Используется не ISiteItem, т.к. в SiteItem url неявно это имя последнего
-//  сегмента пути (path), а в IPageURL url это весь url путь (path).
-interface IPageURL {
+//  сегмента пути (path), а в IUsingPage urlPath это весь url путь (path).
+interface IUsingPage {
   title: string,
-  url: string,
+  urlPath: string,
 }
 
 // Ссылки на страницы которые используют виждет.
-function PageLinks({ usingPages }: { usingPages: IPageURL[] }) {
-  const pageLinks = usingPages.map(({ title, url }, index) => (
+function PageLinks({ usingPages }: { usingPages: IUsingPage[] }) {
+  const pageLinks = usingPages.map(({ title, urlPath }, index) => (
     <Box>
       <Link
         key={index}
-        href={url}
+        href={urlPath}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -221,8 +221,8 @@ function PageLinks({ usingPages }: { usingPages: IPageURL[] }) {
             <Accordion>
               <AccordionSummary
                 expandIcon={<ArrowDropDownIcon />}
-                aria-controls="panel1-content"
-                id="panel1-header"
+                aria-controls="using-pages-content"
+                id="using-pages-header"
               >
                 <Typography component="span">Используется на страницах</Typography>
               </AccordionSummary>
@@ -253,7 +253,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
   const [previewStyle, setPreviewStyle] = useState<string>('');
 
-  const [usingPages, setUsingPages] = useState<IPageURL[]>([]);
+  const [usingPages, setUsingPages] = useState<IUsingPage[]>([]);
 
   // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
@@ -295,11 +295,12 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       });
 
       // Обновить данные страниц использующих виджет.
-      const pageURLs = data.getWidget.siteItems.map((siteItem: ISiteItem) => ({
-        title: siteItem.title,
-        url: `/admin/sites/${siteItem.site.id}/pages/${siteItem.id}`,
-      }));
-      setUsingPages(pageURLs);
+      setUsingPages(data.getWidget.siteItems.map(
+        (siteItem: ISiteItem): IUsingPage => ({
+          title: siteItem.title,
+          urlPath: `/admin/sites/${siteItem.site.id}/pages/${siteItem.id}`,
+        }),
+      ));
     },
   });
 
