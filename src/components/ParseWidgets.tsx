@@ -3,7 +3,7 @@ import {
 } from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
+import { useSnackbar, enqueueSnackbar } from 'notistack';
 import { Button, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -63,7 +63,6 @@ export function parseReact(
     const babelCode = babel.transform(code, {
       presets: ['react', 'es2017'],
     }).code;
-
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     const data = {
       React,
@@ -76,6 +75,8 @@ export function parseReact(
       router,
       Head,
       FullCalendar,
+      useSnackbar,
+      enqueueSnackbar,
       dayGridPlugin,
       listPlugin,
       ruLocale,
@@ -742,7 +743,6 @@ export function FormWidget(props: {
   });
   const addRow = useAddRow(data?.getFormByName.table.dbName);
   const editRow = useEditRow(data?.getFormByName.table.dbName);
-  const { enqueueSnackbar } = useSnackbar();
   if (!data?.getFormByName) {
     return null;
   }
