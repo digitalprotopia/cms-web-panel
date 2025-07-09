@@ -42,8 +42,23 @@ function WidgetCard({
   onDelete,
 }: {
   widget: IWidget;
-  onDelete: (id: string) => void;
+  onDelete: () => void;
 }) {
+  const [deleteWidget] = useMutation(DELETE_WIDGET, {
+    onCompleted: () => {
+      onDelete();
+    },
+    onError: (error) => {
+      console.error('Ошибка при удалении виджета:', error);
+    },
+  });
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Вы уверены, что хотите удалить этот виджет?')) {
+      deleteWidget({ variables: { id } });
+    }
+  };
+
   return (
     <Card>
       <div className="flex items-start justify-between p-4">
@@ -57,7 +72,7 @@ function WidgetCard({
             </IconButton>
           </Link>
           <IconButton
-            onClick={() => onDelete(widget.id)}
+            onClick={() => handleDelete(widget.id)}
             size="small"
             color="error"
           >
@@ -87,21 +102,6 @@ function WidgetCard({
 function WidgetsPage() {
   const { data, loading, refetch } = useQuery(GET_WIDGETS);
 
-  const [deleteWidget] = useMutation(DELETE_WIDGET, {
-    onCompleted: () => {
-      refetch();
-    },
-    onError: (error) => {
-      console.error('Ошибка при удалении виджета:', error);
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить этот виджет?')) {
-      deleteWidget({ variables: { id } });
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center">
@@ -115,11 +115,7 @@ function WidgetsPage() {
       <div className="flex items-center justify-between gap-4">
         <Typography variant="h4">Виджеты</Typography>
         <Link href="/admin/widgets/add">
-          <Button
-            variant="contained"
-          >
-            Добавить виджет
-          </Button>
+          <Button variant="contained">Добавить виджет</Button>
         </Link>
       </div>
 
@@ -128,7 +124,7 @@ function WidgetsPage() {
           <WidgetCard
             key={widget.id}
             widget={widget}
-            onDelete={handleDelete}
+            onDelete={refetch}
           />
         ))}
       </div>
