@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Edit, AccessTime, Delete,
@@ -9,16 +9,12 @@ import {
   Card,
   CardContent,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   IconButton,
   Typography,
   CircularProgress,
 } from '@mui/material';
 
 import { IWidget } from '@/components/entities/IWidget';
-import WidgetEdit from '@/components/WidgetEdit';
 
 const GET_WIDGETS = gql`
   query GetAllWidgets {
@@ -89,10 +85,6 @@ function WidgetCard({
 }
 
 function WidgetsPage() {
-  // todo: Рассмотреть возможность удаления isModalOpen state и соответсвующего Dialog в return.
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
-
   const { data, loading, refetch } = useQuery(GET_WIDGETS);
 
   const [deleteWidget] = useMutation(DELETE_WIDGET, {
@@ -110,11 +102,6 @@ function WidgetsPage() {
     }
   };
 
-  const handleCloseModal = () => {
-    setSelectedWidgetId(null);
-    setIsModalOpen(false);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center">
@@ -125,19 +112,6 @@ function WidgetsPage() {
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <Dialog
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        maxWidth="md"
-        fullScreen
-      >
-        <DialogTitle>
-          {selectedWidgetId ? 'Редактировать виджет' : 'Создать новый виджет'}
-        </DialogTitle>
-        <DialogContent>
-          <WidgetEdit id={selectedWidgetId as string} onClose={handleCloseModal} />
-        </DialogContent>
-      </Dialog>
       <div className="flex items-center justify-between gap-4">
         <Typography variant="h4">Виджеты</Typography>
         <Link href="/admin/widgets/add">
