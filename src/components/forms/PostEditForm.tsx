@@ -7,10 +7,10 @@ import HistoryIcon from '@mui/icons-material/History';
 import {
   Button,
   CircularProgress,
-  TextField,
-  Stack,
-  Typography,
   IconButton,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
 
 import BlockEditor from '../BlockEditor';
