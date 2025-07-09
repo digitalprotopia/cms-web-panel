@@ -1,4 +1,9 @@
+import { MuiChipsInput } from 'mui-chips-input';
 import { useState } from 'react';
+import DefaultEditor from 'react-simple-wysiwyg';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { BlockNoteEditor } from '@blocknote/core';
+import HistoryIcon from '@mui/icons-material/History';
 import {
   Button,
   CircularProgress,
@@ -7,19 +12,15 @@ import {
   Typography,
   IconButton,
 } from '@mui/material';
-import HistoryIcon from '@mui/icons-material/History';
-import { MuiChipsInput } from 'mui-chips-input';
-import DefaultEditor from 'react-simple-wysiwyg';
-import { gql, useMutation, useQuery } from '@apollo/client';
-import { BlockNoteEditor } from '@blocknote/core';
+
+import BlockEditor from '../BlockEditor';
+import PostHistoryDialog from '../dialogs/PostHistoryDialog';
 import { ICategory } from '../entities/ICategory';
 import { IPost } from '../entities/IPost';
+import { IRole } from '../entities/IRole';
 import { ITag } from '../entities/ITag';
 import S3Autocomplete, { Option } from '../guiElements/S3Autocomplete';
-import BlockEditor from '../BlockEditor';
 import { flattenIndexedTree, ItemWithParentId, makeIndexedTree } from '../guiElements/Tree';
-import { IRole } from '../entities/IRole';
-import PostHistoryDialog from '../dialogs/PostHistoryDialog';
 
 const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {

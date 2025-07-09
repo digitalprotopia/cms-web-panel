@@ -1,5 +1,10 @@
+import dayjs from 'dayjs';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
+import {
+  Edit, AccessTime, Delete,
+} from '@mui/icons-material';
 import {
   Card,
   CardContent,
@@ -11,13 +16,9 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
-import {
-  Edit, AccessTime, Delete,
-} from '@mui/icons-material';
-import dayjs from 'dayjs';
+
 import { IWidget } from '@/components/entities/IWidget';
 import WidgetEdit from '@/components/WidgetEdit';
-import Link from 'next/link';
 
 const GET_WIDGETS = gql`
   query GetAllWidgets {

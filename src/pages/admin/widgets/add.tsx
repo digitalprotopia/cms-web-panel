@@ -1,6 +1,7 @@
-import WidgetEdit from '@/components/WidgetEdit';
-import { Typography } from '@mui/material';
 import { useRouter } from 'next/router';
+import { Typography } from '@mui/material';
+
+import WidgetEdit from '@/components/WidgetEdit';
 
 export default function WidgetAddPage() {
   const router = useRouter();
