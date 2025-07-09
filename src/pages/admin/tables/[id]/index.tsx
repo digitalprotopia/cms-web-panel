@@ -45,6 +45,7 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
+import { useTranslation } from 'react-i18next'; // add by Roman 05.07.25 for i18mext translations 
 import useTable, {
   TableField,
   TableMeta,
@@ -54,7 +55,6 @@ import useTable, {
   useEditField,
   useEditRow,
 } from '../../../../components/use-table';
-import { useTranslation } from 'react-i18next'; // add by Roman 05.07.25 for i18mext translations 
 
 
 interface AddRowFormProps {
