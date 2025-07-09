@@ -63,21 +63,24 @@ function DynamicPage() {
   useEffect(() => {
     let prevPage = '';
     if (!slug || !slug.length) {
-      setCurrentPage(pages.find((p) => p.url === '' && !p.parentId)?.id || null);
-      return;
-    }
+      prevPage = pages.find((p) => p.url === '' && !p.parentId)?.id || '';
+    } else {
     // eslint-disable-next-line no-restricted-syntax, guard-for-in
-    for (const i in slug) {
-      const item = slug[i];
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      const page = pages.find((p) => (p.type === SiteItemType.DYNAMIC || p.url === item)
+      for (const i in slug) {
+        const item = slug[i];
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        const page = pages.find((p) => (p.type === SiteItemType.DYNAMIC || p.url === item)
         && ((!prevPage && !p.parentId) || p.parentId === prevPage));
-      if (page) {
-        prevPage = page.id;
-      } else {
-        prevPage = '';
-        break;
+        if (page) {
+          prevPage = page.id;
+        } else {
+          prevPage = '';
+          break;
+        }
       }
+    }
+    if (!prevPage) {
+      prevPage = pages.find((p) => p.is404 === true)?.id || '';
     }
     setCurrentPage(prevPage);
   }, [pages, slug]);

@@ -20,6 +20,7 @@ export interface ISiteItem extends IEntity {
   site: ISite;
   parentId?: string;
   isRoot: boolean;
+  is404: boolean;
   seotag: string;
   html: string;
   blockContent: any;

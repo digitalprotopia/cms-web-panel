@@ -112,6 +112,8 @@ function CMSLayout({
             title
             url
             parentId
+            isRoot
+            is404
             type
             createdAt
           }
