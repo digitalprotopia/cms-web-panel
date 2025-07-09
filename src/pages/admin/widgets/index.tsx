@@ -16,7 +16,7 @@ import {
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { IWidget } from '@/components/entities/IWidget';
-import WidgetEdit from '@/components/WidgetEdit';
+import WidgetAddEdit from '@/components/WidgetAddEdit';
 import Link from 'next/link';
 
 const GET_WIDGETS = gql`
@@ -134,7 +134,7 @@ function WidgetsPage() {
           {selectedWidgetId ? 'Редактировать виджет' : 'Создать новый виджет'}
         </DialogTitle>
         <DialogContent>
-          <WidgetEdit id={selectedWidgetId as string} onClose={handleCloseModal} />
+          <WidgetAddEdit id={selectedWidgetId as string} onClose={handleCloseModal} />
         </DialogContent>
       </Dialog>
       <div className="flex items-center justify-between gap-4">
