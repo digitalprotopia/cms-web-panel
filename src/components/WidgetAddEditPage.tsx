@@ -26,11 +26,6 @@ import { WidgetViewType } from './entities/IWidget';
 // Задержка рендеринга превью, милисекунды.
 const RENDER_PREVIEW_DELAY = 2000;
 
-interface WidgetAddEditProps {
-  id?: string;
-  onClose: () => void;
-}
-
 const GET_TABLES = gql`
   query {
     getTables {
@@ -165,6 +160,11 @@ function WidgetMarkupEditor({
   );
 }
 
+interface WidgetAddEditPageProps {
+  id?: string;
+  onClose: () => void;
+}
+
 interface IForm {
   name: string,
   title: string,
@@ -179,7 +179,7 @@ interface IForm {
 
 // Добавить новый виджет если id не передан.
 // Изменить виджет если id передан.
-function WidgetAddEdit({ id, onClose }: WidgetAddEditProps) {
+function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
   const [form, setForm] = useState<IForm>({
     name: '',
     title: '',
@@ -311,11 +311,10 @@ function WidgetAddEdit({ id, onClose }: WidgetAddEditProps) {
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
+      <Typography variant="h4">
+        { isEditMode ? 'Редактировать виджет' : 'Добавить виджет'}
+      </Typography>
       <div className="flex flex-col gap-4 py-2">
-        <Typography variant="h4" sx={{ display: 'block' }}>
-          { isEditMode ? 'Редактировать виджет' : 'Добавить виджет'}
-        </Typography>
-
         {/* todo: Рассмотреть возможность переноса настроек виджета в отдельный компонент. */}
         <TextField
           label="Название"
@@ -475,4 +474,4 @@ function WidgetAddEdit({ id, onClose }: WidgetAddEditProps) {
   );
 }
 
-export default WidgetAddEdit;
+export default WidgetAddEditPage;
