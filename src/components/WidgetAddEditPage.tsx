@@ -22,6 +22,7 @@ import { ITable } from '@/components/entities/ITable';
 import { getReactTemplateType } from './reactTemplates';
 import useTable, { TableField } from './use-table';
 import { RenderWidget } from './ParseWidgets';
+import WidgetHistoryDialog from './dialogs/WidgetHistoryDialog';
 import { FieldType, IField } from './entities/IField';
 import { TemplateLanguage } from './entities/ITemplate';
 import { WidgetViewType } from './entities/IWidget';
@@ -201,6 +202,8 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
   const [previewStyle, setPreviewStyle] = useState<string>('');
 
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+
   // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
     const interval = setInterval(() => {
@@ -313,186 +316,194 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
   });
 
   return (
-    <div className="rounded p-4 shadow-lg bg-white">
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">
-          { isEditMode ? 'Редактировать виджет' : 'Добавить виджет'}
-        </Typography>
-        {isEditMode && (
-          <IconButton
-            color="secondary"
-            aria-label="История изменений"
-            // WIP: Adjust.
-            onClick={() => {}}
-            sx={{
-              color: 'black',
-              '&:hover': {
-                backgroundColor: 'rgba(233, 30, 99, 0.1)',
-              },
+    <>
+      <div className="rounded p-4 shadow-lg bg-white">
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h4">
+            { isEditMode ? 'Редактировать виджет' : 'Добавить виджет'}
+          </Typography>
+          {isEditMode && (
+            <IconButton
+              color="secondary"
+              aria-label="История изменений"
+              onClick={() => setIsHistoryDialogOpen(true)}
+              sx={{
+                color: 'black',
+                '&:hover': {
+                  backgroundColor: 'rgba(233, 30, 99, 0.1)',
+                },
+              }}
+            >
+              <HistoryIcon />
+            </IconButton>
+          )}
+        </Stack>
+
+        <div className="flex flex-col gap-4 py-2">
+          {/* todo: Рассмотреть возможность переноса настроек виджета в отдельный компонент. */}
+          <TextField
+            label="Название"
+            variant="outlined"
+            fullWidth
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
+
+          />
+
+          <TextField
+            label="Код"
+            variant="outlined"
+            fullWidth
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
+
+          />
+
+          <TextField
+            label="CSS class"
+            variant="outlined"
+            fullWidth
+            value={form.cssClass}
+            onChange={(e) => setForm({ ...form, cssClass: e.target.value })}
+          />
+
+          <TextField
+            select
+            label="Тип виджета"
+            variant="outlined"
+            fullWidth
+            value={form.widgetViewType}
+            onChange={(e) => {
+              setForm({ ...form,
+                widgetViewType: e.target.value,
+                tableId: e.target.value === WidgetViewType.STATIC ? null as any : form.tableId });
             }}
           >
-            <HistoryIcon />
-          </IconButton>
-        )}
-      </Stack>
-
-      <div className="flex flex-col gap-4 py-2">
-        {/* todo: Рассмотреть возможность переноса настроек виджета в отдельный компонент. */}
-        <TextField
-          label="Название"
-          variant="outlined"
-          fullWidth
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          slotProps={{
-            htmlInput: { maxLength: 255 },
-          }}
-
-        />
-
-        <TextField
-          label="Код"
-          variant="outlined"
-          fullWidth
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          slotProps={{
-            htmlInput: { maxLength: 255 },
-          }}
-
-        />
-
-        <TextField
-          label="CSS class"
-          variant="outlined"
-          fullWidth
-          value={form.cssClass}
-          onChange={(e) => setForm({ ...form, cssClass: e.target.value })}
-        />
-
-        <TextField
-          select
-          label="Тип виджета"
-          variant="outlined"
-          fullWidth
-          value={form.widgetViewType}
-          onChange={(e) => {
-            setForm({ ...form,
-              widgetViewType: e.target.value,
-              tableId: e.target.value === WidgetViewType.STATIC ? null as any : form.tableId });
-          }}
-        >
-          {Object.values(WidgetViewType).map((type) => (
-            <MenuItem key={type} value={type}>
-              {type}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        {form.widgetViewType !== WidgetViewType.STATIC && (
-        <FormControl fullWidth variant="outlined">
-          <InputLabel id="table-select-label">Выберите таблицу</InputLabel>
-          <Select
-            labelId="table-select-label"
-            label="Выберите таблицу"
-            value={form.tableId}
-            onChange={(e) => setForm({ ...form, tableId: e.target.value })}
-          >
-            <MenuItem key={0} value={null as any}>
-              Без таблицы
-            </MenuItem>
-            {tablesQuery?.getTables.map((table: ITable) => (
-              <MenuItem key={table.id} value={table.id}>
-                {table.name}
-                {' '}
-                (
-                {table.dbName}
-                )
+            {Object.values(WidgetViewType).map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
               </MenuItem>
             ))}
-          </Select>
-        </FormControl>
-        )}
+          </TextField>
 
-        <TextField
-          select
-          label="Язык"
-          variant="outlined"
-          fullWidth
-          value={form.language}
-          onChange={(e) => setForm({ ...form, language: e.target.value as TemplateLanguage })}
-        >
-          {Object.values(TemplateLanguage).map((type) => (
-            <MenuItem key={type} value={type}>
-              {type}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        {/* Редактор разметки и стиля. */}
-        <WidgetMarkupEditor
-          markup={form.markup}
-          setMarkup={setMarkup}
-          style={form.style}
-          setStyle={setStyle}
-          markupLanguage={form.language}
-        />
-
-        <div style={{
-          borderWidth: '1px',
-          borderStyle: 'solid',
-          borderRadius: 4,
-          borderColor: 'black',
-          padding: 8,
-        }}
-        >
-          <RenderWidget
-            widgetId={form.widgetId}
-            widgetViewType={form.widgetViewType}
-            html={previewMarkup}
-            fields={widgetTable.meta?.fields as TableField[]}
-            data={widgetTable.meta ? [row] : []}
-            language={form.language}
-            cssClass={form.cssClass}
-            style={previewStyle}
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {form.language === TemplateLanguage.SIMPLE
-          && widgetTable.meta?.fields.map((field: IField) => (
-            <Button
-              key={field.id}
-              variant="contained"
-              color="primary"
-              onClick={() => setForm({
-                ...form,
-                markup: `${form.markup}{${field.dbName}}`,
-              })}
+          {form.widgetViewType !== WidgetViewType.STATIC && (
+          <FormControl fullWidth variant="outlined">
+            <InputLabel id="table-select-label">Выберите таблицу</InputLabel>
+            <Select
+              labelId="table-select-label"
+              label="Выберите таблицу"
+              value={form.tableId}
+              onChange={(e) => setForm({ ...form, tableId: e.target.value })}
             >
-              {`{${field.dbName}}`}
-            </Button>
-          ))}
-          {widgetTable.meta?.fields.length === 0 && (
-            <span>В таблице нет полей</span>
+              <MenuItem key={0} value={null as any}>
+                Без таблицы
+              </MenuItem>
+              {tablesQuery?.getTables.map((table: ITable) => (
+                <MenuItem key={table.id} value={table.id}>
+                  {table.name}
+                  {' '}
+                  (
+                  {table.dbName}
+                  )
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           )}
-        </div>
 
-        <div className="flex gap-4">
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={
-            !form.name || !form.title! || !form.markup
-            // || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
-          }
+          <TextField
+            select
+            label="Язык"
+            variant="outlined"
+            fullWidth
+            value={form.language}
+            onChange={(e) => setForm({ ...form, language: e.target.value as TemplateLanguage })}
           >
-            {isEditMode ? 'Сохранить' : 'Создать'}
-          </Button>
-          <Button variant="contained" onClick={onClose}>Отмена</Button>
+            {Object.values(TemplateLanguage).map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          {/* Редактор разметки и стиля. */}
+          <WidgetMarkupEditor
+            markup={form.markup}
+            setMarkup={setMarkup}
+            style={form.style}
+            setStyle={setStyle}
+            markupLanguage={form.language}
+          />
+
+          <div style={{
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderRadius: 4,
+            borderColor: 'black',
+            padding: 8,
+          }}
+          >
+            <RenderWidget
+              widgetId={form.widgetId}
+              widgetViewType={form.widgetViewType}
+              html={previewMarkup}
+              fields={widgetTable.meta?.fields as TableField[]}
+              data={widgetTable.meta ? [row] : []}
+              language={form.language}
+              cssClass={form.cssClass}
+              style={previewStyle}
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {form.language === TemplateLanguage.SIMPLE
+            && widgetTable.meta?.fields.map((field: IField) => (
+              <Button
+                key={field.id}
+                variant="contained"
+                color="primary"
+                onClick={() => setForm({
+                  ...form,
+                  markup: `${form.markup}{${field.dbName}}`,
+                })}
+              >
+                {`{${field.dbName}}`}
+              </Button>
+            ))}
+            {widgetTable.meta?.fields.length === 0 && (
+              <span>В таблице нет полей</span>
+            )}
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={
+              !form.name || !form.title! || !form.markup
+              // || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
+            }
+            >
+              {isEditMode ? 'Сохранить' : 'Создать'}
+            </Button>
+            <Button variant="contained" onClick={onClose}>Отмена</Button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {isEditMode && (
+        <WidgetHistoryDialog
+          isOpen={isHistoryDialogOpen}
+          onClose={() => setIsHistoryDialogOpen(false)}
+        />
+      )}
+    </>
   );
 }
 
