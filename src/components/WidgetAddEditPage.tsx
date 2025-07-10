@@ -2,12 +2,15 @@ import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Editor, useMonaco } from '@monaco-editor/react';
+import HistoryIcon from '@mui/icons-material/History';
 import {
   Button,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
+  Stack,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -311,9 +314,28 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <Typography variant="h4">
-        { isEditMode ? 'Редактировать виджет' : 'Добавить виджет'}
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4">
+          { isEditMode ? 'Редактировать виджет' : 'Добавить виджет'}
+        </Typography>
+        {isEditMode && (
+          <IconButton
+            color="secondary"
+            aria-label="История изменений"
+            // WIP: Adjust.
+            onClick={() => {}}
+            sx={{
+              color: 'black',
+              '&:hover': {
+                backgroundColor: 'rgba(233, 30, 99, 0.1)',
+              },
+            }}
+          >
+            <HistoryIcon />
+          </IconButton>
+        )}
+      </Stack>
+
       <div className="flex flex-col gap-4 py-2">
         {/* todo: Рассмотреть возможность переноса настроек виджета в отдельный компонент. */}
         <TextField
