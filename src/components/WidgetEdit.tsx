@@ -1,23 +1,32 @@
-import { gql, useMutation, useQuery } from '@apollo/client';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
   Button,
+  Link,
   TextField,
   MenuItem,
   Select,
   FormControl,
   ToggleButtonGroup,
   ToggleButton,
+  Typography,
   InputLabel,
 } from '@mui/material';
-import { ITable } from '@/components/entities/ITable';
-import dayjs from 'dayjs';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Editor, useMonaco } from '@monaco-editor/react';
+
+import { RenderWidget } from './ParseWidgets';
+import { getReactTemplateType } from './reactTemplates';
 import useTable, { TableField } from './use-table';
 import { FieldType, IField } from './entities/IField';
-import { RenderWidget } from './ParseWidgets';
+import { ISiteItem } from './entities/ISiteItem';
+import { ITable } from './entities/ITable';
 import { TemplateLanguage } from './entities/ITemplate';
-import { getReactTemplateType } from './reactTemplates';
 import { WidgetViewType } from './entities/IWidget';
 
 // Задержка рендеринга превью, милисекунды.
@@ -61,6 +70,13 @@ const GET_WIDGET = gql`
         html
         language
         css
+      }
+      siteItems {
+        id,
+        title,
+        site {
+          id
+        }
       }
     }
   }
@@ -174,6 +190,50 @@ interface IForm {
   style: string,
 }
 
+// Используется не ISiteItem, т.к. в SiteItem url неявно это имя последнего
+//  сегмента пути (path), а в IUsingPage urlPath это весь url путь (path).
+interface IUsingPage {
+  title: string,
+  urlPath: string,
+}
+
+// Ссылки на страницы которые используют виждет.
+function PageLinks({ usingPages }: { usingPages: IUsingPage[] }) {
+  const pageLinks = usingPages.map(({ title, urlPath }, index) => (
+    <Box>
+      <Link
+        key={index}
+        href={urlPath}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {title}
+      </Link>
+    </Box>
+  ));
+
+  return (
+    <div>
+      {
+        pageLinks.length === 0
+          ? <Typography component="span">Не используется на страницах</Typography>
+          : (
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ArrowDropDownIcon />}
+                aria-controls="using-pages-content"
+                id="using-pages-header"
+              >
+                <Typography component="span">Используется на страницах</Typography>
+              </AccordionSummary>
+              <AccordionDetails>{ pageLinks }</AccordionDetails>
+            </Accordion>
+          )
+      }
+    </div>
+  );
+}
+
 function WidgetEdit({ id, onClose }: WidgetEditProps) {
   const [form, setForm] = useState<IForm>({
     name: '',
@@ -192,6 +252,8 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
 
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
   const [previewStyle, setPreviewStyle] = useState<string>('');
+
+  const [usingPages, setUsingPages] = useState<IUsingPage[]>([]);
 
   // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
@@ -219,6 +281,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
     variables: { id },
     skip: !isEditMode,
     onCompleted: (data) => {
+      // Обновить данные виджета.
       setForm({
         name: data.getWidget.name,
         title: data.getWidget.title,
@@ -230,6 +293,14 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
         cssClass: data.getWidget.cssClass,
         style: data.getWidget.template.css,
       });
+
+      // Обновить данные страниц использующих виджет.
+      setUsingPages(data.getWidget.siteItems.map(
+        (siteItem: ISiteItem): IUsingPage => ({
+          title: siteItem.title,
+          urlPath: `/admin/sites/${siteItem.site.id}/pages/${siteItem.id}`,
+        }),
+      ));
     },
   });
 
@@ -446,6 +517,10 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
           <span>В таблице нет полей</span>
         )}
       </div>
+
+      <PageLinks
+        usingPages={usingPages}
+      />
 
       <div className="flex gap-4">
         <Button
