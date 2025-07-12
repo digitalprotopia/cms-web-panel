@@ -3,11 +3,17 @@ import { useEffect, useState } from 'react';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Editor, useMonaco } from '@monaco-editor/react';
 import HistoryIcon from '@mui/icons-material/History';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
   Button,
   FormControl,
   IconButton,
   InputLabel,
+  Link,
   MenuItem,
   Select,
   Stack,
@@ -17,13 +23,13 @@ import {
   Typography,
 } from '@mui/material';
 
-import { ITable } from '@/components/entities/ITable';
-
+import { RenderWidget } from './ParseWidgets';
 import { getReactTemplateType } from './reactTemplates';
 import useTable, { TableField } from './use-table';
-import { RenderWidget } from './ParseWidgets';
 import WidgetHistoryDialog from './dialogs/WidgetHistoryDialog';
 import { FieldType, IField } from './entities/IField';
+import { ISiteItem } from './entities/ISiteItem';
+import { ITable } from './entities/ITable';
 import { TemplateLanguage } from './entities/ITemplate';
 import { WidgetViewType } from './entities/IWidget';
 
@@ -63,6 +69,13 @@ const GET_WIDGET = gql`
         html
         language
         css
+      }
+      siteItems {
+        id,
+        title,
+        site {
+          id
+        }
       }
     }
   }
@@ -181,6 +194,50 @@ interface IForm {
   style: string,
 }
 
+// Используется не ISiteItem, т.к. в SiteItem url неявно это имя последнего
+//  сегмента пути (path), а в IUsingPage urlPath это весь url путь (path).
+interface IUsingPage {
+  title: string,
+  urlPath: string,
+}
+
+// Ссылки на страницы которые используют виждет.
+function PageLinks({ usingPages }: { usingPages: IUsingPage[] }) {
+  const pageLinks = usingPages.map(({ title, urlPath }, index) => (
+    <Box>
+      <Link
+        key={index}
+        href={urlPath}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {title}
+      </Link>
+    </Box>
+  ));
+
+  return (
+    <div>
+      {
+        pageLinks.length === 0
+          ? <Typography component="span">Не используется на страницах</Typography>
+          : (
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ArrowDropDownIcon />}
+                aria-controls="using-pages-content"
+                id="using-pages-header"
+              >
+                <Typography component="span">Используется на страницах</Typography>
+              </AccordionSummary>
+              <AccordionDetails>{ pageLinks }</AccordionDetails>
+            </Accordion>
+          )
+      }
+    </div>
+  );
+}
+
 // Добавить новый виджет если id не передан.
 // Изменить виджет если id передан.
 function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
@@ -203,6 +260,8 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
   const [previewStyle, setPreviewStyle] = useState<string>('');
 
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+
+  const [usingPages, setUsingPages] = useState<IUsingPage[]>([]);
 
   // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
@@ -230,6 +289,7 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
     variables: { id },
     skip: !isEditMode,
     onCompleted: (data) => {
+      // Обновить данные виджета.
       setForm({
         name: data.getWidget.name,
         title: data.getWidget.title,
@@ -241,6 +301,14 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
         cssClass: data.getWidget.cssClass,
         style: data.getWidget.template.css,
       });
+
+      // Обновить данные страниц использующих виджет.
+      setUsingPages(data.getWidget.siteItems.map(
+        (siteItem: ISiteItem): IUsingPage => ({
+          title: siteItem.title,
+          urlPath: `/admin/sites/${siteItem.site.id}/pages/${siteItem.id}`,
+        }),
+      ));
     },
   });
 
@@ -480,6 +548,10 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
               <span>В таблице нет полей</span>
             )}
           </div>
+
+          <PageLinks
+            usingPages={usingPages}
+          />
 
           <div className="flex gap-4">
             <Button
