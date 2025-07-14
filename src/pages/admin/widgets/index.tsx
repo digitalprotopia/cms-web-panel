@@ -14,7 +14,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 
-import { IWidget } from '@/components/entities/IWidget';
+import { IWidgetGraphQL as IWidget } from '@/components/entities/IWidget';
 
 const GET_WIDGETS = gql`
   query GetAllWidgets {

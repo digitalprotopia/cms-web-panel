@@ -24,7 +24,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import { WidgetSettingsWithRepresentation, GET_TABLES } from '@/components/WidgetAddEditPage';
+import WidgetSettings from '@/components/WidgetSettings';
 import { ITable } from '@/components/entities/ITable';
 import { IWidgetVersion } from '@/components/entities/IWidgetVersion';
 
@@ -32,6 +32,8 @@ interface WidgetHistoryDialogProps {
   isOpen: boolean;
   widgetId: string;
   onClose: (...args: any[]) => void;
+  tables: ITable[];
+  tablesLoading: boolean;
 }
 
 const GET_WIDGET_HISTORY = gql`
@@ -99,7 +101,7 @@ function WidgetHistoryPanel({
                   selected={
                     typeof selectedWidgetVersion !== 'undefined'
                     && widgetVersion.id === selectedWidgetVersion.id
-}
+                  }
                   onClick={() => setSelectedWidgetVersion(widgetVersion)}
                   sx={{ cursor: 'pointer' }}
                 >
@@ -168,7 +170,7 @@ function WidgetVersionDetails({
   return (
     // WIP: Adjust styles.
     <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
-      <WidgetSettingsWithRepresentation
+      <WidgetSettings
         widget={widget}
         setWidget={() => {}}
         readOnly
@@ -179,7 +181,7 @@ function WidgetVersionDetails({
 }
 
 export default function WidgetHistoryDialog(
-  { isOpen, widgetId, onClose }: WidgetHistoryDialogProps,
+  { isOpen, widgetId, onClose, tables, tablesLoading }: WidgetHistoryDialogProps,
 ) {
   const [
     selectedWidgetVersion, setSelectedWidgetVersion,
@@ -189,8 +191,6 @@ export default function WidgetHistoryDialog(
     variables: { widgetId },
     skip: !widgetId,
   });
-
-  const { data: tablesData, loading: tablesLoading } = useQuery(GET_TABLES);
 
   return (
     <Dialog
@@ -222,7 +222,7 @@ export default function WidgetHistoryDialog(
           <WidgetVersionDetails
             loading={tablesLoading || widgetHistoryLoading}
             widgetVersion={selectedWidgetVersion}
-            tables={tablesData?.getTables}
+            tables={tables}
           />
         </Box>
       </DialogContent>
