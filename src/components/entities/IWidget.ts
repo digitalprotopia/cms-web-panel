@@ -9,6 +9,8 @@ export enum WidgetViewType {
   // CALENDAR = 'calendar',
 }
 
+// Это устаревший интерфейс со времен когда template предпологалось
+//   использоваться для всего. Оставлен до изменения схемы GraphQL.
 export interface IWidgetGraphQL extends IEntity {
   title: string;
   name: string;

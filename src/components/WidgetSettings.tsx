@@ -7,6 +7,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  SelectChangeEvent,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -18,25 +19,10 @@ import useTable, { TableField } from './use-table';
 import { FieldType, IField } from './entities/IField';
 import { ITable } from './entities/ITable';
 import { TemplateLanguage } from './entities/ITemplate';
-import { WidgetViewType } from './entities/IWidget';
+import { IWidgetData, WidgetViewType } from './entities/IWidget';
 
 // Задержка рендеринга превью, милисекунды.
 const RENDER_PREVIEW_DELAY = 2000;
-
-/*
-todo: Переименовать в IWidget и/или переместить в entities,
-  после рефакторинга IWidget */
-interface IForm {
-  name: string,
-  title: string,
-  tableId: string,
-  markup: string,
-  widgetId: string,
-  widgetViewType: string,
-  language: TemplateLanguage,
-  cssClass: string,
-  style: string,
-}
 
 enum EditionTab {
   MARKUP = 'markup',
@@ -129,46 +115,43 @@ function WidgetMarkupEditor({
   );
 }
 
-// setWidget требуется если не режим readOnly
 export default function WidgetSettings({
-  widget,
-  // WIP: change to setWidget default () => {} and readOnly = true
-  setWidget,
+  widgetId,
+  widgetData,
+  setWidgetData = () => {},
   readOnly = false,
   tables,
 }: {
-  widget: IForm,
-  setWidget: (widget: IForm | ((...args: any[]) => IForm)) => void,
+  widgetId?: string,
+  widgetData: IWidgetData,
+  setWidgetData?: (widgetData: IWidgetData | ((...args: any[]) => IWidgetData)) => void,
   readOnly?: boolean,
   tables: ITable[]
 }) {
-  const setStyle = (style: string) => { setWidget((prev) => ({ ...prev, style })); };
-  const setMarkup = (markup: string) => { setWidget((prev) => ({ ...prev, markup })); };
-
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
   const [previewStyle, setPreviewStyle] = useState<string>('');
 
   // Установить (с заданной задержкой) разметку превью равной разметке формы.
   useEffect(() => {
     const interval = setInterval(() => {
-      if (previewMarkup !== widget.markup) {
-        setPreviewMarkup(widget.markup);
+      if (previewMarkup !== widgetData.markup) {
+        setPreviewMarkup(widgetData.markup);
       }
     }, RENDER_PREVIEW_DELAY);
     return () => clearInterval(interval);
-  }, [widget.markup]);
+  }, [widgetData.markup]);
 
   // Установить (с заданной задержкой) стиль превью равный стилю формы.
   useEffect(() => {
     const interval = setInterval(() => {
-      if (previewStyle !== widget.style) {
-        setPreviewStyle(widget.style);
+      if (previewStyle !== widgetData.style) {
+        setPreviewStyle(widgetData.style);
       }
     }, RENDER_PREVIEW_DELAY);
     return () => clearInterval(interval);
-  }, [widget.style]);
+  }, [widgetData.style]);
 
-  const widgetTable = useTable(widget.tableId!);
+  const widgetTable = useTable(widgetData.tableId!);
 
   const row = widgetTable.data?.[0] || {};
   widgetTable.meta?.fields.forEach((field: IField) => {
@@ -180,6 +163,29 @@ export default function WidgetSettings({
     }
   });
 
+  const setStyle = (style: string) => { setWidgetData((prev) => ({ ...prev, style })); };
+  const setMarkup = (markup: string) => { setWidgetData((prev) => ({ ...prev, markup })); };
+  const onTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWidgetData({ ...widgetData, title: e.target.value });
+  };
+  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWidgetData({ ...widgetData, name: e.target.value });
+  };
+  const onCssClassChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWidgetData({ ...widgetData, cssClass: e.target.value });
+  };
+  const onWidgetViewTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWidgetData({ ...widgetData,
+      widgetViewType: WidgetViewType[e.target.value as keyof typeof WidgetViewType],
+      tableId: e.target.value === WidgetViewType.STATIC ? null as any : widgetData.tableId });
+  };
+  const onTableIdChange = (e: SelectChangeEvent<string>) => {
+    setWidgetData({ ...widgetData, tableId: e.target.value });
+  };
+  const onMarkupLanguageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWidgetData({ ...widgetData, markupLanguage: e.target.value as TemplateLanguage });
+  };
+
   return (
     <div className="rounded p-4 shadow-lg bg-white">
       <div className="flex flex-col gap-4 py-2">
@@ -187,9 +193,9 @@ export default function WidgetSettings({
           label="Название"
           variant="outlined"
           fullWidth
-          value={widget.title}
+          value={widgetData.title}
           disabled={readOnly}
-          onChange={(e) => setWidget({ ...widget, title: e.target.value })}
+          onChange={onTitleChange}
           slotProps={{
             htmlInput: { maxLength: 255 },
           }}
@@ -199,9 +205,9 @@ export default function WidgetSettings({
           label="Код"
           variant="outlined"
           fullWidth
-          value={widget.name}
+          value={widgetData.name}
           disabled={readOnly}
-          onChange={(e) => setWidget({ ...widget, name: e.target.value })}
+          onChange={onNameChange}
           slotProps={{
             htmlInput: { maxLength: 255 },
           }}
@@ -211,9 +217,9 @@ export default function WidgetSettings({
           label="CSS class"
           variant="outlined"
           fullWidth
-          value={widget.cssClass}
+          value={widgetData.cssClass}
           disabled={readOnly}
-          onChange={(e) => setWidget({ ...widget, cssClass: e.target.value })}
+          onChange={onCssClassChange}
         />
 
         <TextField
@@ -221,13 +227,9 @@ export default function WidgetSettings({
           label="Тип виджета"
           variant="outlined"
           fullWidth
-          value={widget.widgetViewType}
+          value={widgetData.widgetViewType}
           disabled={readOnly}
-          onChange={(e) => {
-            setWidget({ ...widget,
-              widgetViewType: e.target.value,
-              tableId: e.target.value === WidgetViewType.STATIC ? null as any : widget.tableId });
-          }}
+          onChange={onWidgetViewTypeChange}
         >
           {Object.values(WidgetViewType).map((type) => (
             <MenuItem key={type} value={type}>
@@ -236,15 +238,15 @@ export default function WidgetSettings({
           ))}
         </TextField>
 
-        {widget.widgetViewType !== WidgetViewType.STATIC && (
+        {widgetData.widgetViewType !== WidgetViewType.STATIC && (
         <FormControl fullWidth variant="outlined">
           <InputLabel id="table-select-label">Выберите таблицу</InputLabel>
           <Select
             labelId="table-select-label"
             label="Выберите таблицу"
-            value={widget.tableId}
+            value={widgetData.tableId}
             disabled={readOnly}
-            onChange={(e) => setWidget({ ...widget, tableId: e.target.value })}
+            onChange={onTableIdChange}
           >
             <MenuItem key={0} value={null as any}>
               Без таблицы
@@ -267,9 +269,9 @@ export default function WidgetSettings({
           label="Язык"
           variant="outlined"
           fullWidth
-          value={widget.language}
+          value={widgetData.markupLanguage}
           disabled={readOnly}
-          onChange={(e) => setWidget({ ...widget, language: e.target.value as TemplateLanguage })}
+          onChange={onMarkupLanguageChange}
         >
           {Object.values(TemplateLanguage).map((type) => (
             <MenuItem key={type} value={type}>
@@ -280,11 +282,11 @@ export default function WidgetSettings({
 
         {/* Редактор разметки и стиля. */}
         <WidgetMarkupEditor
-          markup={widget.markup}
+          markup={widgetData.markup}
           setMarkup={setMarkup}
-          style={widget.style}
+          style={widgetData.style}
           setStyle={setStyle}
-          markupLanguage={widget.language}
+          markupLanguage={widgetData.markupLanguage}
           readOnly={readOnly}
         />
 
@@ -298,28 +300,28 @@ export default function WidgetSettings({
         }}
         >
           <RenderWidget
-            widgetId={widget.widgetId}
-            widgetViewType={widget.widgetViewType}
+            widgetId={widgetId}
+            widgetViewType={widgetData.widgetViewType}
             html={previewMarkup}
             fields={widgetTable.meta?.fields as TableField[]}
             data={widgetTable.meta ? [row] : []}
-            language={widget.language}
-            cssClass={widget.cssClass}
+            language={widgetData.markupLanguage}
+            cssClass={widgetData.cssClass}
             style={previewStyle}
           />
         </div>
 
         {readOnly || (
         <div className="flex flex-wrap gap-2">
-          {widget.language === TemplateLanguage.SIMPLE
+          {widgetData.markupLanguage === TemplateLanguage.SIMPLE
               && widgetTable.meta?.fields.map((field: IField) => (
                 <Button
                   key={field.id}
                   variant="contained"
                   color="primary"
-                  onClick={() => setWidget({
-                    ...widget,
-                    markup: `${widget.markup}{${field.dbName}}`,
+                  onClick={() => setWidgetData({
+                    ...widgetData,
+                    markup: `${widgetData.markup}{${field.dbName}}`,
                   })}
                 >
                   {`{${field.dbName}}`}

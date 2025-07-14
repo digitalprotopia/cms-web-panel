@@ -3,16 +3,16 @@ import React from 'react';
 import Link from 'next/link';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
-  Edit, AccessTime, Delete,
+  AccessTime, Delete, Edit,
 } from '@mui/icons-material';
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
-  Button,
+  CircularProgress,
   IconButton,
   Typography,
-  CircularProgress,
 } from '@mui/material';
 
 import { IPost } from '@/components/entities/IPost';

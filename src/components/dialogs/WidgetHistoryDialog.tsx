@@ -159,20 +159,11 @@ function WidgetVersionDetails({
     return <Typography>Выберите версию для просмотра подробностей</Typography>;
   }
 
-  const {
-    id: widgetHistoryId,
-    markupLanguage: language,
-    createdAt,
-    ...widgetFields
-  } = widgetVersion;
-  const widget = { language, ...widgetFields };
-
   return (
     // WIP: Adjust styles.
     <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
       <WidgetSettings
-        widget={widget}
-        setWidget={() => {}}
+        widgetData={widgetVersion}
         readOnly
         tables={tables}
       />

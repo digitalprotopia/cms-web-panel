@@ -17,6 +17,7 @@ import {
 import WidgetHistoryDialog from './dialogs/WidgetHistoryDialog';
 import { ISiteItem } from './entities/ISiteItem';
 import { TemplateLanguage } from './entities/ITemplate';
+import { IWidgetData, WidgetViewType } from './entities/IWidget';
 
 import WidgetSettings from './WidgetSettings';
 
@@ -104,21 +105,6 @@ interface WidgetAddEditPageProps {
   onClose: () => void;
 }
 
-/*
-todo: Переименовать в IWidget и/или переместить в entities,
-  после рефакторинга IWidget */
-interface IForm {
-  name: string,
-  title: string,
-  tableId: string,
-  markup: string,
-  widgetId: string,
-  widgetViewType: string,
-  language: TemplateLanguage,
-  cssClass: string,
-  style: string,
-}
-
 // Используется не ISiteItem, т.к. в SiteItem url неявно это имя последнего
 //  сегмента пути (path), а в IUsingPage urlPath это весь url путь (path).
 interface IUsingPage {
@@ -166,16 +152,15 @@ function PageLinks({ usingPages }: { usingPages: IUsingPage[] }) {
 // Добавить новый виджет если id не передан.
 // Изменить виджет если id передан.
 function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
-  const [form, setForm] = useState<IForm>({
+  const [widgetData, setWidgetData] = useState<IWidgetData>({
     name: '',
     title: '',
+    widgetViewType: WidgetViewType.LIST,
     tableId: '',
     markup: '',
-    widgetId: '',
-    widgetViewType: 'list',
-    language: TemplateLanguage.SIMPLE,
-    cssClass: '',
+    markupLanguage: TemplateLanguage.SIMPLE,
     style: '',
+    cssClass: '',
   });
 
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
@@ -189,16 +174,15 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
     skip: !isEditMode,
     onCompleted: (data) => {
       // Обновить данные виджета.
-      setForm({
+      setWidgetData({
         name: data.getWidget.name,
         title: data.getWidget.title,
+        widgetViewType: data.getWidget.widgetViewType,
         tableId: data.getWidget.tableView.table?.id,
         markup: data.getWidget.template.html,
-        widgetId: data.getWidget.id,
-        widgetViewType: data.getWidget.widgetViewType,
-        language: data.getWidget.template.language,
-        cssClass: data.getWidget.cssClass,
+        markupLanguage: data.getWidget.template.language,
         style: data.getWidget.template.css,
+        cssClass: data.getWidget.cssClass,
       });
 
       // Обновить данные страниц использующих виджет.
@@ -223,21 +207,21 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
   const handleSave = () => {
     const variables = {
       input: {
-        name: form.name,
-        title: form.title,
-        widgetViewType: form.widgetViewType,
-        cssClass: form.cssClass,
+        name: widgetData.name,
+        title: widgetData.title,
+        widgetViewType: widgetData.widgetViewType,
+        cssClass: widgetData.cssClass,
       },
       tableView: {
-        title: form.title,
-        name: form.name,
-        tableId: form.tableId,
+        title: widgetData.title,
+        name: widgetData.name,
+        tableId: widgetData.tableId,
       },
       template: {
-        title: form.title,
-        html: form.markup,
-        language: form.language,
-        css: form.style,
+        title: widgetData.title,
+        html: widgetData.markup,
+        language: widgetData.markupLanguage,
+        css: widgetData.style,
       },
     };
 
@@ -280,8 +264,9 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
         <div className="flex flex-col gap-4 py-2">
           {/* Основная часть */}
           <WidgetSettings
-            widget={form}
-            setWidget={setForm}
+            widgetId={id}
+            widgetData={widgetData}
+            setWidgetData={setWidgetData}
             tables={tablesData?.getTables}
           />
 
@@ -295,8 +280,8 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
               variant="contained"
               onClick={handleSave}
               disabled={
-                !form.name || !form.title! || !form.markup
-                // || (form.widgetViewType !== WidgetViewType.STATIC && !form.tableId)
+                !widgetData.name || !widgetData.title! || !widgetData.markup
+                // || (widgetData.widgetViewType !== WidgetViewType.STATIC && !widgetData.tableId)
               }
             >
               {isEditMode ? 'Сохранить' : 'Создать'}
