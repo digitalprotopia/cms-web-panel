@@ -24,6 +24,8 @@ import {
   Typography,
 } from '@mui/material';
 
+import { WidgetSettingsWithRepresentation, GET_TABLES } from '@/components/WidgetAddEditPage';
+import { ITable } from '@/components/entities/ITable';
 import { IWidgetVersion } from '@/components/entities/IWidgetVersion';
 
 interface WidgetHistoryDialogProps {
@@ -138,16 +140,40 @@ function WidgetHistoryPanel({
   );
 }
 
-function WidgetVersionDetails({ widgetVersion }: { widgetVersion: IWidgetVersion | undefined }) {
+function WidgetVersionDetails({
+  loading,
+  widgetVersion,
+  tables,
+}: {
+  loading: boolean,
+  widgetVersion: IWidgetVersion | undefined,
+  tables: ITable[]
+}) {
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!widgetVersion) {
+    return <Typography>Выберите версию для просмотра подробностей</Typography>;
+  }
+
+  const {
+    id: widgetHistoryId,
+    markupLanguage: language,
+    createdAt,
+    ...widgetFields
+  } = widgetVersion;
+  const widget = { language, ...widgetFields };
+
   return (
+    // WIP: Adjust styles.
     <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
-      {widgetVersion ? (
-        <>
-          { /* WIP: Add selected widget detaisl here. */ }
-        </>
-      ) : (
-        <Typography>Выберите версию для просмотра подробностей</Typography>
-      )}
+      <WidgetSettingsWithRepresentation
+        widget={widget}
+        setWidget={() => {}}
+        readOnly
+        tables={tables}
+      />
     </Box>
   );
 }
@@ -159,10 +185,12 @@ export default function WidgetHistoryDialog(
     selectedWidgetVersion, setSelectedWidgetVersion,
   ] = useState<IWidgetVersion | undefined>(undefined);
 
-  const { loading, error, data } = useQuery(GET_WIDGET_HISTORY, {
+  const { loading: widgetHistoryLoading, error, data } = useQuery(GET_WIDGET_HISTORY, {
     variables: { widgetId },
     skip: !widgetId,
   });
+
+  const { data: tablesData, loading: tablesLoading } = useQuery(GET_TABLES);
 
   return (
     <Dialog
@@ -185,13 +213,17 @@ export default function WidgetHistoryDialog(
         <Box sx={{ display: 'flex', height: '500px' }}>
           {/* Вывести боковую панель списка истории изменения виджета */}
           <WidgetHistoryPanel
-            loading={loading}
+            loading={widgetHistoryLoading}
             widgetHistory={data?.getWidgetHistory}
             selectedWidgetVersion={selectedWidgetVersion}
             setSelectedWidgetVersion={setSelectedWidgetVersion}
           />
           {/* Вывести детали выбранной версии виджета */}
-          <WidgetVersionDetails widgetVersion={selectedWidgetVersion} />
+          <WidgetVersionDetails
+            loading={tablesLoading || widgetHistoryLoading}
+            widgetVersion={selectedWidgetVersion}
+            tables={tablesData?.getTables}
+          />
         </Box>
       </DialogContent>
     </Dialog>
