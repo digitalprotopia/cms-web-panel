@@ -572,6 +572,7 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
       {isEditMode && (
         <WidgetHistoryDialog
           isOpen={isHistoryDialogOpen}
+          widgetId={id as string}
           onClose={() => setIsHistoryDialogOpen(false)}
         />
       )}
