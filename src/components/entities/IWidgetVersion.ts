@@ -2,7 +2,7 @@ import { IEntity } from './IEntity';
 import { TemplateLanguage } from './ITemplate';
 import { WidgetViewType } from './IWidget';
 
-export interface IWidgetHistory extends IEntity {
+export interface IWidgetVersion extends IEntity {
   widgetId: string;
   name: string;
   title: string;

@@ -1,24 +1,35 @@
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import {
+  Person as PersonIcon,
+  Schedule as TimeIcon,
+} from '@mui/icons-material';
+import {
   Alert,
+  Avatar,
   Box,
+  Chip,
   Dialog,
   DialogContent,
   DialogTitle,
+  Divider,
   List,
   ListItem,
+  ListItemAvatar,
+  ListItemButton,
+  ListItemText,
   Paper,
   Skeleton,
   Typography,
 } from '@mui/material';
 
-import { IWidgetHistory } from '@/components/entities/IWidgetHistory';
+import { IWidgetVersion } from '@/components/entities/IWidgetVersion';
 
 interface WidgetHistoryDialogProps {
   isOpen: boolean;
   widgetId: string;
-  onClose: () => void;
+  onClose: (...args: any[]) => void;
 }
 
 const GET_WIDGET_HISTORY = gql`
@@ -40,6 +51,13 @@ const GET_WIDGET_HISTORY = gql`
 `;
 
 /*
+todo: Выбрать шаблоны дат и сделать общий хелпер для проекта. Смотри поиск
+  по регексу `dayjs\(.*\)\.format` в проетке. */
+const formatDateTime = (
+  dateString: dayjs.ConfigType,
+): string => dayjs(dateString).format('D MMMM YYYY года HH:mm');
+
+/*
 todo: Переиспользовать в других модулях. Например в PostHistoryDialog.tsx
   и возможно в add-bot.tsx */
 function ErrorBox({ error }: { error: Error }) {
@@ -53,11 +71,13 @@ function ErrorBox({ error }: { error: Error }) {
 function WidgetHistoryPanel({
   loading,
   widgetHistory,
-  setWidgetVersion,
+  selectedWidgetVersion,
+  setSelectedWidgetVersion,
 }: {
   loading: boolean,
-  widgetHistory?: IWidgetHistory[],
-  setWidgetVersion: (widgetVersion: IWidgetHistory) => void
+  widgetHistory?: IWidgetVersion[],
+  selectedWidgetVersion?: IWidgetVersion,
+  setSelectedWidgetVersion: (widgetVersion: IWidgetVersion) => void
 }) {
   return (
     <Paper
@@ -70,11 +90,47 @@ function WidgetHistoryPanel({
         ))
       ) : (
         <List dense>
-          {/* WIP: Add widget history here. */}
-          {widgetHistory?.map((widgetVersion: IWidgetHistory, index: number) => (
-            <ListItem
-              key={widgetVersion.id}
-            />
+          {widgetHistory?.map((widgetVersion: IWidgetVersion, index: number) => (
+            <div key={widgetVersion.id}>
+              <ListItem>
+                <ListItemButton
+                  selected={
+                    typeof selectedWidgetVersion !== 'undefined'
+                    && widgetVersion.id === selectedWidgetVersion.id
+}
+                  onClick={() => setSelectedWidgetVersion(widgetVersion)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <ListItemAvatar>
+                    <Avatar sx={{ bgcolor: 'grey.300' }}>
+                      <PersonIcon />
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={(
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {`Версия ${widgetHistory.length - index}`}
+                        </Typography>
+                        {index === 0 && (
+                          <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
+                        )}
+                      </Box>
+                    )}
+                    secondary={(
+                      <>
+                        <Box component="span" sx={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}>
+                          <TimeIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
+                          {formatDateTime(widgetVersion.createdAt)}
+                        </Box>
+                        <Typography variant="caption">{widgetVersion.title}</Typography>
+                      </>
+                    )}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <Divider variant="inset" component="li" />
+            </div>
           ))}
         </List>
       )}
@@ -82,7 +138,7 @@ function WidgetHistoryPanel({
   );
 }
 
-function WidgetDetails({ widgetVersion }: { widgetVersion: IWidgetHistory | undefined }) {
+function WidgetVersionDetails({ widgetVersion }: { widgetVersion: IWidgetVersion | undefined }) {
   return (
     <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
       {widgetVersion ? (
@@ -99,7 +155,9 @@ function WidgetDetails({ widgetVersion }: { widgetVersion: IWidgetHistory | unde
 export default function WidgetHistoryDialog(
   { isOpen, widgetId, onClose }: WidgetHistoryDialogProps,
 ) {
-  const [widgetVersion, setWidgetVersion] = useState<IWidgetHistory | undefined>(undefined);
+  const [
+    selectedWidgetVersion, setSelectedWidgetVersion,
+  ] = useState<IWidgetVersion | undefined>(undefined);
 
   const { loading, error, data } = useQuery(GET_WIDGET_HISTORY, {
     variables: { widgetId },
@@ -107,7 +165,15 @@ export default function WidgetHistoryDialog(
   });
 
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="lg" fullWidth>
+    <Dialog
+      open={isOpen}
+      onClose={(args) => {
+        setSelectedWidgetVersion(undefined);
+        onClose(args);
+      }}
+      maxWidth="lg"
+      fullWidth
+    >
       <DialogTitle>
         <Typography variant="h6">История версий</Typography>
       </DialogTitle>
@@ -121,10 +187,11 @@ export default function WidgetHistoryDialog(
           <WidgetHistoryPanel
             loading={loading}
             widgetHistory={data?.getWidgetHistory}
-            setWidgetVersion={setWidgetVersion}
+            selectedWidgetVersion={selectedWidgetVersion}
+            setSelectedWidgetVersion={setSelectedWidgetVersion}
           />
           {/* Вывести детали выбранной версии виджета */}
-          <WidgetDetails widgetVersion={widgetVersion} />
+          <WidgetVersionDetails widgetVersion={selectedWidgetVersion} />
         </Box>
       </DialogContent>
     </Dialog>
