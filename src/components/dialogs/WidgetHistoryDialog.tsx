@@ -3,14 +3,17 @@ import { useState } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import {
   Person as PersonIcon,
+  Restore as RestoreIcon,
   Schedule as TimeIcon,
 } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
   Box,
+  Button,
   Chip,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
@@ -26,14 +29,16 @@ import {
 
 import WidgetSettings from '@/components/WidgetSettings';
 import { ITable } from '@/components/entities/ITable';
+import { IWidgetData } from '@/components/entities/IWidget';
 import { IWidgetVersion } from '@/components/entities/IWidgetVersion';
 
 interface WidgetHistoryDialogProps {
   isOpen: boolean;
   widgetId: string;
-  onClose: (...args: any[]) => void;
   tables: ITable[];
   tablesLoading: boolean;
+  onClose: (...args: any[]) => void;
+  setWidgetData: (widgetData: IWidgetData) => void;
 }
 
 const GET_WIDGET_HISTORY = gql`
@@ -172,7 +177,7 @@ function WidgetVersionDetails({
 }
 
 export default function WidgetHistoryDialog(
-  { isOpen, widgetId, onClose, tables, tablesLoading }: WidgetHistoryDialogProps,
+  { isOpen, widgetId, tables, tablesLoading, onClose, setWidgetData }: WidgetHistoryDialogProps,
 ) {
   const [
     selectedWidgetVersion, setSelectedWidgetVersion,
@@ -203,6 +208,7 @@ export default function WidgetHistoryDialog(
 
         <Box sx={{ display: 'flex', height: '500px' }}>
           {/* Вывести боковую панель списка истории изменения виджета */}
+          {/* WIP: Make current mark work correct */}
           <WidgetHistoryPanel
             loading={widgetHistoryLoading}
             widgetHistory={data?.getWidgetHistory}
@@ -217,6 +223,23 @@ export default function WidgetHistoryDialog(
           />
         </Box>
       </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Отмена</Button>
+        <Button
+          onClick={() => {
+            if (selectedWidgetVersion) {
+              setWidgetData(selectedWidgetVersion);
+              setSelectedWidgetVersion(undefined);
+              onClose();
+            }
+          }}
+          disabled={!selectedWidgetVersion}
+          startIcon={<RestoreIcon />}
+          color="primary"
+        >
+          Восстановить
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

@@ -295,9 +295,10 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
         <WidgetHistoryDialog
           isOpen={isHistoryDialogOpen}
           widgetId={id as string}
-          onClose={() => setIsHistoryDialogOpen(false)}
           tables={tablesData?.getTables}
           tablesLoading={tablesLoading}
+          onClose={() => setIsHistoryDialogOpen(false)}
+          setWidgetData={setWidgetData}
         />
       )}
     </>
