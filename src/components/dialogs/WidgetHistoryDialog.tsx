@@ -39,6 +39,8 @@ interface WidgetHistoryDialogProps {
   tablesLoading: boolean;
   onClose: (...args: any[]) => void;
   setWidgetData: (widgetData: IWidgetData) => void;
+  widgetVersionId: string | undefined;
+  setWidgetVersionId: (widgetVersionId: string | undefined) => void;
 }
 
 const GET_WIDGET_HISTORY = gql`
@@ -82,11 +84,13 @@ function WidgetHistoryPanel({
   widgetHistory,
   selectedWidgetVersion,
   setSelectedWidgetVersion,
+  widgetVersionId,
 }: {
   loading: boolean,
   widgetHistory?: IWidgetVersion[],
   selectedWidgetVersion?: IWidgetVersion,
-  setSelectedWidgetVersion: (widgetVersion: IWidgetVersion) => void
+  setSelectedWidgetVersion: (widgetVersion: IWidgetVersion) => void,
+  widgetVersionId: string | undefined
 }) {
   return (
     <Paper
@@ -121,7 +125,7 @@ function WidgetHistoryPanel({
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
                           {`Версия ${widgetHistory.length - index}`}
                         </Typography>
-                        {index === 0 && (
+                        {widgetVersionId === widgetVersion.id && (
                           <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
                         )}
                       </Box>
@@ -165,7 +169,6 @@ function WidgetVersionDetails({
   }
 
   return (
-    // WIP: Adjust styles.
     <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
       <WidgetSettings
         widgetData={widgetVersion}
@@ -177,7 +180,16 @@ function WidgetVersionDetails({
 }
 
 export default function WidgetHistoryDialog(
-  { isOpen, widgetId, tables, tablesLoading, onClose, setWidgetData }: WidgetHistoryDialogProps,
+  { 
+    isOpen, 
+    widgetId, 
+    tables, 
+    tablesLoading, 
+    onClose, 
+    setWidgetData,
+    widgetVersionId,
+    setWidgetVersionId,
+}: WidgetHistoryDialogProps,
 ) {
   const [
     selectedWidgetVersion, setSelectedWidgetVersion,
@@ -208,12 +220,12 @@ export default function WidgetHistoryDialog(
 
         <Box sx={{ display: 'flex', height: '500px' }}>
           {/* Вывести боковую панель списка истории изменения виджета */}
-          {/* WIP: Make current mark work correct */}
           <WidgetHistoryPanel
             loading={widgetHistoryLoading}
             widgetHistory={data?.getWidgetHistory}
             selectedWidgetVersion={selectedWidgetVersion}
             setSelectedWidgetVersion={setSelectedWidgetVersion}
+            widgetVersionId={widgetVersionId}
           />
           {/* Вывести детали выбранной версии виджета */}
           <WidgetVersionDetails
@@ -229,6 +241,7 @@ export default function WidgetHistoryDialog(
           onClick={() => {
             if (selectedWidgetVersion) {
               setWidgetData(selectedWidgetVersion);
+              setWidgetVersionId(selectedWidgetVersion.id)
               setSelectedWidgetVersion(undefined);
               onClose();
             }

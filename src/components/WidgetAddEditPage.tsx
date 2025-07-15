@@ -162,6 +162,7 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
     style: '',
     cssClass: '',
   });
+  const [widgetVersionId, setWidgetVersionId] = useState<string | undefined>(undefined)
 
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 
@@ -299,6 +300,8 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
           tablesLoading={tablesLoading}
           onClose={() => setIsHistoryDialogOpen(false)}
           setWidgetData={setWidgetData}
+          widgetVersionId={widgetVersionId}
+          setWidgetVersionId={setWidgetVersionId}
         />
       )}
     </>
