@@ -39,8 +39,8 @@ interface WidgetHistoryDialogProps {
   tablesLoading: boolean;
   onClose: (...args: any[]) => void;
   setWidgetData: (widgetData: IWidgetData) => void;
-  widgetVersionId: string | null;
-  setWidgetVersionId: (widgetVersionId: string | null) => void;
+  restoredVersionId: string | null;
+  setRestoredVersionId: (restoredVersionId: string | null) => void;
 }
 
 const GET_WIDGET_HISTORY = gql`
@@ -84,13 +84,13 @@ function WidgetHistoryPanel({
   widgetHistory,
   selectedWidgetVersion,
   setSelectedWidgetVersion,
-  widgetVersionId,
+  restoredVersionId,
 }: {
   loading: boolean,
   widgetHistory?: IWidgetVersion[],
-  selectedWidgetVersion?: IWidgetVersion,
+  selectedWidgetVersion: IWidgetVersion | null,
   setSelectedWidgetVersion: (widgetVersion: IWidgetVersion) => void,
-  widgetVersionId: string | null
+  restoredVersionId: string | null
 }) {
   return (
     <Paper
@@ -108,7 +108,7 @@ function WidgetHistoryPanel({
               <ListItem>
                 <ListItemButton
                   selected={
-                    typeof selectedWidgetVersion !== 'undefined'
+                    selectedWidgetVersion !== null
                     && widgetVersion.id === selectedWidgetVersion.id
                   }
                   onClick={() => setSelectedWidgetVersion(widgetVersion)}
@@ -125,7 +125,7 @@ function WidgetHistoryPanel({
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
                           {`Версия ${widgetHistory.length - index}`}
                         </Typography>
-                        {widgetVersionId === widgetVersion.id && (
+                        {restoredVersionId === widgetVersion.id && (
                           <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
                         )}
                       </Box>
@@ -157,7 +157,7 @@ function WidgetVersionDetails({
   tables,
 }: {
   loading: boolean,
-  widgetVersion: IWidgetVersion | undefined,
+  widgetVersion: IWidgetVersion | null,
   tables: ITable[]
 }) {
   if (loading) {
@@ -187,13 +187,13 @@ export default function WidgetHistoryDialog(
     tablesLoading,
     onClose,
     setWidgetData,
-    widgetVersionId,
-    setWidgetVersionId,
+    restoredVersionId,
+    setRestoredVersionId,
   }: WidgetHistoryDialogProps,
 ) {
   const [
     selectedWidgetVersion, setSelectedWidgetVersion,
-  ] = useState<IWidgetVersion | undefined>(undefined);
+  ] = useState<IWidgetVersion | null>(null);
 
   const { loading: widgetHistoryLoading, error, data } = useQuery(GET_WIDGET_HISTORY, {
     variables: { widgetId },
@@ -204,7 +204,7 @@ export default function WidgetHistoryDialog(
     <Dialog
       open={isOpen}
       onClose={(args) => {
-        setSelectedWidgetVersion(undefined);
+        setSelectedWidgetVersion(null);
         onClose(args);
       }}
       maxWidth="lg"
@@ -225,7 +225,7 @@ export default function WidgetHistoryDialog(
             widgetHistory={data?.getWidgetHistory}
             selectedWidgetVersion={selectedWidgetVersion}
             setSelectedWidgetVersion={setSelectedWidgetVersion}
-            widgetVersionId={widgetVersionId}
+            restoredVersionId={restoredVersionId}
           />
           {/* Вывести детали выбранной версии виджета */}
           <WidgetVersionDetails
@@ -241,8 +241,8 @@ export default function WidgetHistoryDialog(
           onClick={() => {
             if (selectedWidgetVersion) {
               setWidgetData(selectedWidgetVersion);
-              setWidgetVersionId(selectedWidgetVersion.id);
-              setSelectedWidgetVersion(undefined);
+              setRestoredVersionId(selectedWidgetVersion.id);
+              setSelectedWidgetVersion(null);
               onClose();
             }
           }}

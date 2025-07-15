@@ -302,8 +302,8 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
           tablesLoading={tablesLoading}
           onClose={() => setIsHistoryDialogOpen(false)}
           setWidgetData={setWidgetData}
-          widgetVersionId={widgetVersionId}
-          setWidgetVersionId={setWidgetVersionId}
+          restoredVersionId={widgetVersionId}
+          setRestoredVersionId={setWidgetVersionId}
         />
       )}
     </>
