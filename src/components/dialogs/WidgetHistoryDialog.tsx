@@ -200,13 +200,15 @@ export default function WidgetHistoryDialog(
     skip: !widgetId,
   });
 
+  const onCloseAction = (...args: any[]) => {
+    setSelectedWidgetVersion(null);
+    onClose(args);
+  };
+
   return (
     <Dialog
       open={isOpen}
-      onClose={(args) => {
-        setSelectedWidgetVersion(null);
-        onClose(args);
-      }}
+      onClose={onCloseAction}
       maxWidth="lg"
       fullWidth
     >
@@ -236,14 +238,13 @@ export default function WidgetHistoryDialog(
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Отмена</Button>
+        <Button onClick={onCloseAction}>Отмена</Button>
         <Button
           onClick={() => {
             if (selectedWidgetVersion) {
               setWidgetData(selectedWidgetVersion);
               setRestoredVersionId(selectedWidgetVersion.id);
-              setSelectedWidgetVersion(null);
-              onClose();
+              onCloseAction();
             }
           }}
           disabled={!selectedWidgetVersion}
