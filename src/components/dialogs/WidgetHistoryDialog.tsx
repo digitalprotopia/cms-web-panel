@@ -39,8 +39,8 @@ interface WidgetHistoryDialogProps {
   tablesLoading: boolean;
   onClose: (...args: any[]) => void;
   setWidgetData: (widgetData: IWidgetData) => void;
-  widgetVersionId: string | undefined;
-  setWidgetVersionId: (widgetVersionId: string | undefined) => void;
+  widgetVersionId: string | null;
+  setWidgetVersionId: (widgetVersionId: string | null) => void;
 }
 
 const GET_WIDGET_HISTORY = gql`
@@ -90,7 +90,7 @@ function WidgetHistoryPanel({
   widgetHistory?: IWidgetVersion[],
   selectedWidgetVersion?: IWidgetVersion,
   setSelectedWidgetVersion: (widgetVersion: IWidgetVersion) => void,
-  widgetVersionId: string | undefined
+  widgetVersionId: string | null
 }) {
   return (
     <Paper
@@ -180,16 +180,16 @@ function WidgetVersionDetails({
 }
 
 export default function WidgetHistoryDialog(
-  { 
-    isOpen, 
-    widgetId, 
-    tables, 
-    tablesLoading, 
-    onClose, 
+  {
+    isOpen,
+    widgetId,
+    tables,
+    tablesLoading,
+    onClose,
     setWidgetData,
     widgetVersionId,
     setWidgetVersionId,
-}: WidgetHistoryDialogProps,
+  }: WidgetHistoryDialogProps,
 ) {
   const [
     selectedWidgetVersion, setSelectedWidgetVersion,
@@ -241,7 +241,7 @@ export default function WidgetHistoryDialog(
           onClick={() => {
             if (selectedWidgetVersion) {
               setWidgetData(selectedWidgetVersion);
-              setWidgetVersionId(selectedWidgetVersion.id)
+              setWidgetVersionId(selectedWidgetVersion.id);
               setSelectedWidgetVersion(undefined);
               onClose();
             }

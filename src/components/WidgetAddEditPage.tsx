@@ -162,7 +162,7 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
     style: '',
     cssClass: '',
   });
-  const [widgetVersionId, setWidgetVersionId] = useState<string | undefined>(undefined)
+  const [widgetVersionId, setWidgetVersionId] = useState<string | null>(null);
 
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 
@@ -262,32 +262,34 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
           )}
         </Stack>
 
-        <div className="flex flex-col gap-4 py-2">
-          {/* Основная часть */}
-          <WidgetSettings
-            widgetId={id}
-            widgetData={widgetData}
-            setWidgetData={setWidgetData}
-            tables={tablesData?.getTables}
-          />
+        <div className="overflow-auto">
+          <div className="flex flex-col gap-4 py-2">
+            {/* Основная часть */}
+            <WidgetSettings
+              widgetId={id}
+              widgetData={widgetData}
+              setWidgetData={setWidgetData}
+              tables={tablesData?.getTables}
+            />
 
-          <PageLinks
-            usingPages={usingPages}
-          />
+            <PageLinks
+              usingPages={usingPages}
+            />
 
-          {/* Панель кнопок */}
-          <div className="flex gap-4">
-            <Button
-              variant="contained"
-              onClick={handleSave}
-              disabled={
-                !widgetData.name || !widgetData.title! || !widgetData.markup
-                // || (widgetData.widgetViewType !== WidgetViewType.STATIC && !widgetData.tableId)
-              }
-            >
-              {isEditMode ? 'Сохранить' : 'Создать'}
-            </Button>
-            <Button variant="contained" onClick={onClose}>Отмена</Button>
+            {/* Панель кнопок */}
+            <div className="flex gap-4">
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                disabled={
+                  !widgetData.name || !widgetData.title! || !widgetData.markup
+                  // || (widgetData.widgetViewType !== WidgetViewType.STATIC && !widgetData.tableId)
+                }
+              >
+                {isEditMode ? 'Сохранить' : 'Создать'}
+              </Button>
+              <Button variant="contained" onClick={onClose}>Отмена</Button>
+            </div>
           </div>
         </div>
       </div>
