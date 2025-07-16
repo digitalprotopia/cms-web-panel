@@ -121,12 +121,14 @@ export default function WidgetSettings({
   setWidgetData = () => {},
   readOnly = false,
   tables,
+  onChangeSettings = () => {},
 }: {
-  widgetId?: string,
-  widgetData: IWidgetData,
-  setWidgetData?: (widgetData: IWidgetData | ((...args: any[]) => IWidgetData)) => void,
-  readOnly?: boolean,
-  tables: ITable[]
+  widgetId?: string;
+  widgetData: IWidgetData;
+  setWidgetData?: (widgetData: IWidgetData | ((...args: any[]) => IWidgetData)) => void;
+  readOnly?: boolean;
+  tables: ITable[];
+  onChangeSettings?: () => void;
 }) {
   const [previewMarkup, setPreviewMarkup] = useState<string>('');
   const [previewStyle, setPreviewStyle] = useState<string>('');
@@ -163,27 +165,41 @@ export default function WidgetSettings({
     }
   });
 
-  const setStyle = (style: string) => { setWidgetData((prev) => ({ ...prev, style })); };
-  const setMarkup = (markup: string) => { setWidgetData((prev) => ({ ...prev, markup })); };
+  const setStyle = (style: string) => {
+    setWidgetData((prev) => ({ ...prev, style }));
+    onChangeSettings();
+  };
+  const setMarkup = (markup: string) => {
+    setWidgetData((prev) => ({ ...prev, markup }));
+    onChangeSettings();
+  };
   const onTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWidgetData({ ...widgetData, title: e.target.value });
+    onChangeSettings();
   };
   const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWidgetData({ ...widgetData, name: e.target.value });
+    onChangeSettings();
   };
   const onCssClassChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWidgetData({ ...widgetData, cssClass: e.target.value });
+    onChangeSettings();
   };
   const onWidgetViewTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWidgetData({ ...widgetData,
+    setWidgetData({
+      ...widgetData,
       widgetViewType: WidgetViewType[e.target.value as keyof typeof WidgetViewType],
-      tableId: e.target.value === WidgetViewType.STATIC ? null as any : widgetData.tableId });
+      tableId: e.target.value === WidgetViewType.STATIC ? null as any : widgetData.tableId,
+    });
+    onChangeSettings();
   };
   const onTableIdChange = (e: SelectChangeEvent<string>) => {
     setWidgetData({ ...widgetData, tableId: e.target.value });
+    onChangeSettings();
   };
   const onMarkupLanguageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWidgetData({ ...widgetData, markupLanguage: e.target.value as TemplateLanguage });
+    onChangeSettings();
   };
 
   return (

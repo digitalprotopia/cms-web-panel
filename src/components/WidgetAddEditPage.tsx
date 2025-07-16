@@ -162,7 +162,10 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
     style: '',
     cssClass: '',
   });
-  const [widgetVersionId, setWidgetVersionId] = useState<string | null>(null);
+  // ID версии виджета (из истории) из которого виджет восстановлен.
+  const [restoredVersionId, setRestoredVersionId] = useState<string | null>(null);
+  // Отредактирован ли открытый либо восстановленный из истории виждет.
+  const [isEdited, setIsEdited] = useState<boolean>(false);
 
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 
@@ -239,7 +242,7 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
 
   return (
     <>
-      <div className="rounded p-4 shadow-lg bg-white">
+      <div className="rounded p-4 shadow-lg bg-white overflow-y-auto">
         {/* Заголовок */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h4">
@@ -262,38 +265,39 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
           )}
         </Stack>
 
-        <div className="overflow-auto">
-          <div className="flex flex-col gap-4 py-2">
-            {/* Основная часть */}
-            <WidgetSettings
-              widgetId={id}
-              widgetData={widgetData}
-              setWidgetData={setWidgetData}
-              tables={tablesData?.getTables}
-            />
+        <div className="flex flex-col gap-4 py-2">
+          {/* Настройки виджета */}
+          <WidgetSettings
+            widgetId={id}
+            widgetData={widgetData}
+            setWidgetData={setWidgetData}
+            tables={tablesData?.getTables}
+            onChangeSettings={() => setIsEdited(true)}
+          />
 
-            <PageLinks
-              usingPages={usingPages}
-            />
+          {/* Страницы использующие виджет */}
+          <PageLinks
+            usingPages={usingPages}
+          />
 
-            {/* Панель кнопок */}
-            <div className="flex gap-4">
-              <Button
-                variant="contained"
-                onClick={handleSave}
-                disabled={
-                  !widgetData.name || !widgetData.title! || !widgetData.markup
-                  // || (widgetData.widgetViewType !== WidgetViewType.STATIC && !widgetData.tableId)
-                }
-              >
-                {isEditMode ? 'Сохранить' : 'Создать'}
-              </Button>
-              <Button variant="contained" onClick={onClose}>Отмена</Button>
-            </div>
+          {/* Панель кнопок */}
+          <div className="flex gap-4">
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={
+                !widgetData.name || !widgetData.title! || !widgetData.markup
+                // || (widgetData.widgetViewType !== WidgetViewType.STATIC && !widgetData.tableId)
+              }
+            >
+              {isEditMode ? 'Сохранить' : 'Создать'}
+            </Button>
+            <Button variant="contained" onClick={onClose}>Отмена</Button>
           </div>
         </div>
       </div>
 
+      {/* Если виджет редактируется, а не новый, то диалог восстановления виждета из истории */}
       {isEditMode && (
         <WidgetHistoryDialog
           isOpen={isHistoryDialogOpen}
@@ -302,8 +306,10 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
           tablesLoading={tablesLoading}
           onClose={() => setIsHistoryDialogOpen(false)}
           setWidgetData={setWidgetData}
-          restoredVersionId={widgetVersionId}
-          setRestoredVersionId={setWidgetVersionId}
+          restoredVersionId={restoredVersionId}
+          setRestoredVersionId={setRestoredVersionId}
+          onRestoreVersion={() => { setIsEdited(false); }}
+          isEdited={isEdited}
         />
       )}
     </>

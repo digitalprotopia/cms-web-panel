@@ -41,6 +41,8 @@ interface WidgetHistoryDialogProps {
   setWidgetData: (widgetData: IWidgetData) => void;
   restoredVersionId: string | null;
   setRestoredVersionId: (restoredVersionId: string | null) => void;
+  onRestoreVersion: () => void;
+  isEdited: boolean;
 }
 
 const GET_WIDGET_HISTORY = gql`
@@ -85,12 +87,14 @@ function WidgetHistoryPanel({
   selectedWidgetVersion,
   setSelectedWidgetVersion,
   restoredVersionId,
+  isEdited,
 }: {
-  loading: boolean,
-  widgetHistory?: IWidgetVersion[],
-  selectedWidgetVersion: IWidgetVersion | null,
-  setSelectedWidgetVersion: (widgetVersion: IWidgetVersion) => void,
-  restoredVersionId: string | null
+  loading: boolean;
+  widgetHistory?: IWidgetVersion[];
+  selectedWidgetVersion: IWidgetVersion | null;
+  setSelectedWidgetVersion: (widgetVersion: IWidgetVersion) => void;
+  restoredVersionId: string | null;
+  isEdited: boolean;
 }) {
   return (
     <Paper
@@ -125,9 +129,12 @@ function WidgetHistoryPanel({
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
                           {`Версия ${widgetHistory.length - index}`}
                         </Typography>
-                        {restoredVersionId === widgetVersion.id && (
-                          <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
-                        )}
+                        {
+                          (!isEdited
+                          && (restoredVersionId === widgetVersion.id
+                            || (restoredVersionId === null && index === 0)))
+                          && <Chip label="Current" size="small" sx={{ ml: 1 }} color="primary" />
+                        }
                       </Box>
                     )}
                     secondary={(
@@ -189,6 +196,8 @@ export default function WidgetHistoryDialog(
     setWidgetData,
     restoredVersionId,
     setRestoredVersionId,
+    onRestoreVersion,
+    isEdited,
   }: WidgetHistoryDialogProps,
 ) {
   const [
@@ -228,6 +237,7 @@ export default function WidgetHistoryDialog(
             selectedWidgetVersion={selectedWidgetVersion}
             setSelectedWidgetVersion={setSelectedWidgetVersion}
             restoredVersionId={restoredVersionId}
+            isEdited={isEdited}
           />
           {/* Вывести детали выбранной версии виджета */}
           <WidgetVersionDetails
@@ -244,6 +254,7 @@ export default function WidgetHistoryDialog(
             if (selectedWidgetVersion) {
               setWidgetData(selectedWidgetVersion);
               setRestoredVersionId(selectedWidgetVersion.id);
+              onRestoreVersion();
               onCloseAction();
             }
           }}
