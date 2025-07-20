@@ -1,6 +1,6 @@
-import {
-  useMemo, useState, useCallback, useRef,
-} from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { mkConfig, generateCsv, download } from 'export-to-csv';
 import {
   MaterialReactTable,
   MRT_Cell,
@@ -8,17 +8,14 @@ import {
   MRT_RowData,
   type MRT_ColumnDef,
 } from 'material-react-table';
+import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import {
-  Button,
-  IconButton,
-  TextField,
-  FormControl,
-  Checkbox,
-  Popover,
-  MenuItem,
-  Select,
-  InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
-} from '@mui/material';
+  useMemo, useState, useCallback, useRef,
+} from 'react';
+import {
+  gql, useApolloClient, useMutation, useQuery,
+} from '@apollo/client';
 import {
   Add,
   ArrowDropDown,
@@ -30,21 +27,24 @@ import {
   Save,
 } from '@mui/icons-material';
 import {
-  gql, useApolloClient, useMutation, useQuery,
-} from '@apollo/client';
+  Button,
+  IconButton,
+  TextField,
+  FormControl,
+  Checkbox,
+  Popover,
+  MenuItem,
+  Select,
+  InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
+} from '@mui/material';
 
-import TableEditor from '@/components/table-editor';
 
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import {
   FieldType, IField, IFieldManyToManyOptions, IFieldOneToManyOptions,
   IFieldOptions,
 } from '@/components/entities/IField';
-import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
-import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
+import TableEditor from '@/components/table-editor';
 import useTable, {
   TableField,
   TableMeta,
@@ -53,7 +53,7 @@ import useTable, {
   useDeleteField,
   useEditField,
   useEditRow,
-} from '../../../../components/use-table';
+} from '@/components/use-table';
 
 interface AddRowFormProps {
   meta: TableMeta;
