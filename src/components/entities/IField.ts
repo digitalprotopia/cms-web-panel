@@ -24,6 +24,7 @@ export enum FieldType {
   USER = 'user',
   HTML = 'html',
   BLOCK = 'block',
+  SLUG = 'slug',
 }
 
 export type IFieldOneToManyOptions = {
