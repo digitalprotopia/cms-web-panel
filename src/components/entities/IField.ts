@@ -37,6 +37,10 @@ export type IFieldManyToManyOptions = {
   secondFieldTitle: string;
 };
 
+export type IFieldSlugOptions = {
+  sourceFieldId: string;
+};
+
 export type IFieldOptions = IFieldOneToManyOptions | IFieldManyToManyOptions;
 
 export interface IField extends IEntity {

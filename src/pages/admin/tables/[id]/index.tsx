@@ -40,6 +40,7 @@ import utc from 'dayjs/plugin/utc';
 import {
   FieldType, IField, IFieldManyToManyOptions, IFieldOneToManyOptions,
   IFieldOptions,
+  IFieldSlugOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
@@ -349,6 +350,10 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
     secondFieldTitle: '',
     secondTableId: '',
   });
+
+  const [slugFieldOptions, setSlugFieldOptions] = useState<IFieldSlugOptions>({
+    sourceFieldId: '',
+  });
   let options:(IFieldOptions | undefined);
   if (form.type === FieldType.ONE_TO_MANY_ONE) {
     options = oneToManyOptions!;
@@ -400,24 +405,6 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
         }}
       />
 
-      {form.type === FieldType.ONE_TO_MANY_ONE
-      && (
-      <TextField
-        fullWidth
-        size="small"
-        label="Таблица"
-        select
-        value={oneToManyOptions.manyTableId}
-        onChange={(e) => setOneToManyOptions((prev) => ({ ...prev, manyTableId: e.target.value }))}
-      >
-        {tables.data.getTables.map((table: any) => (
-          <MenuItem key={table.id} value={table.id}>
-            {table.name}
-          </MenuItem>
-        ))}
-      </TextField>
-      )}
-
       {form.type === FieldType.MANY_TO_MANY_FIRST
       && (
       <TextField
@@ -458,6 +445,62 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
             ))}
         </Select>
       </FormControl>
+
+      {form.type === FieldType.SLUG
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Строковое поле"
+        select
+        value={slugFieldOptions.sourceFieldId}
+        onChange={(e) => setSlugFieldOptions((prev) => ({ ...prev, sourceFieldId: e.target.value }))}
+      >
+        {meta.fields.filter(field => field.type == FieldType.STRING).map((field) => (
+          <MenuItem key={field.id} value={field.id}>
+            {field.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
+
+       {form.type === FieldType.ONE_TO_MANY_ONE
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Таблица"
+        select
+        value={oneToManyOptions.manyTableId}
+        onChange={(e) => setOneToManyOptions((prev) => ({ ...prev, manyTableId: e.target.value }))}
+      >
+        {tables.data.getTables.map((table: any) => (
+          <MenuItem key={table.id} value={table.id}>
+            {table.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
+
+      {form.type === FieldType.MANY_TO_MANY_FIRST
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Таблица"
+        select
+        value={manyToManyOptions.secondTableId}
+        onChange={(e) => setManyToManyOptions(
+          (prev) => ({ ...prev, secondTableId: e.target.value }),
+        )}
+      >
+        {tables.data.getTables.map((table: any) => (
+          <MenuItem key={table.id} value={table.id}>
+            {table.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
 
       <Button
         fullWidth
