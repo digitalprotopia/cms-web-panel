@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { Edit, Delete, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
-import AddButtonComponent from './AddButtonComponent'; // Импорт компонента из той же папки
+import AddButtonComponent from './AddButtonComponent';
 
 const GET_BOT = gql`
   query GetBot($id: ID!) {
@@ -140,7 +140,7 @@ function EditBotPage() {
       enqueueSnackbar('Данные успешно изменены', { variant: 'success' });
     } catch (err) {
       console.error(err);
-      enqueueSnackbar('При редактировании возникла непредвиденная ошибка', { variant: 'success' });
+      enqueueSnackbar('При редактировании возникла непредвиденная ошибка', { variant: 'error' });
     }
   };
 
@@ -154,6 +154,9 @@ function EditBotPage() {
       enqueueSnackbar('Ошибка при удалении страницы бота', { variant: 'error' });
     }
   };
+
+  // Проверка, что id является строкой
+  const botId = typeof id === 'string' ? id : '';
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
@@ -284,7 +287,7 @@ function EditBotPage() {
       </div>
 
       {/* Встраивание компонента AddButtonComponent в самый низ страницы */}
-      <AddButtonComponent botId={id} botItems={itemsData?.getBotItems || []} />
+      <AddButtonComponent botId={botId} botItems={itemsData?.getBotItems || []} />
     </div>
   );
 }

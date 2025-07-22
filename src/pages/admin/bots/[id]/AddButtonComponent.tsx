@@ -3,7 +3,7 @@ import { useMutation, useQuery, gql } from '@apollo/client';
 import { Button, TextField, MenuItem, Typography } from '@mui/material';
 import { Editor } from '@monaco-editor/react';
 import { useSnackbar } from 'notistack';
-import { IBotButton } from '@/components/entities/IBotButton';
+import { IBotButton, BotButtonType } from '@/components/entities/IBotButton';
 
 const GET_BOT_BUTTONS = gql`
   query GetBot($id: ID!) {
@@ -58,7 +58,17 @@ const DELETE_BOT_BUTTON = gql`
   }
 `;
 
-function AddButtonComponent({ botId, botItems }) {
+interface BotItem {
+  id: string;
+  title: string;
+}
+
+interface AddButtonComponentProps {
+  botId: string;
+  botItems: BotItem[];
+}
+
+function AddButtonComponent({ botId, botItems }: AddButtonComponentProps) {
   const { enqueueSnackbar } = useSnackbar();
   const [createBotButton] = useMutation(CREATE_BOT_BUTTON);
   const [editBotButton] = useMutation(EDIT_BOT_BUTTON);
@@ -93,7 +103,16 @@ function AddButtonComponent({ botId, botItems }) {
   };
 
   const handleAddNewButton = () => {
-    setButtons([...buttons, { title: '', type: 'botItem', targetBotItemId: undefined, triggerCode: '' }]);
+    setButtons([
+      ...buttons,
+      {
+        title: '',
+        type: BotButtonType.BotItem, // Используем значение из перечисления
+        botItemId: '', // Обязательное поле
+        targetBotItemId: undefined,
+        triggerCode: '',
+      },
+    ]);
   };
 
   const handleSaveButton = async (index: number) => {
