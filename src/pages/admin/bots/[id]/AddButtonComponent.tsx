@@ -1,13 +1,48 @@
-import { useState } from 'react';
-import { useMutation, gql } from '@apollo/client';
+import { useState, useEffect } from 'react';
+import { useMutation, useQuery, gql } from '@apollo/client';
 import { Button, TextField, MenuItem, Typography } from '@mui/material';
 import { Editor } from '@monaco-editor/react';
 import { useSnackbar } from 'notistack';
 import { IBotButton } from '@/components/entities/IBotButton';
 
+const GET_BOT_BUTTONS = gql`
+  query GetBot($id: ID!) {
+    getBot(id: $id) {
+      id
+      name
+      buttons {
+        id
+        botId
+        botItemId
+        title
+        type
+        targetBotItemId
+        targetTriggerId
+        targetTrigger {
+          serverScript {
+            code
+          }
+        }
+      }
+    }
+  }
+`;
+
 const CREATE_BOT_BUTTON = gql`
   mutation CreateBotButton($input: BotButtonInput! $triggerCode: String) {
     createBotButton(input: $input triggerCode: $triggerCode) {
+      id
+      title
+      type
+      targetBotItemId
+      targetTriggerId
+    }
+  }
+`;
+
+const EDIT_BOT_BUTTON = gql`
+  mutation EditBotButton($id: ID! $input: BotButtonInput! $triggerCode: String) {
+    editBotButton(id: $id input: $input triggerCode: $triggerCode) {
       id
       title
       type
@@ -26,8 +61,30 @@ const DELETE_BOT_BUTTON = gql`
 function AddButtonComponent({ botId, botItems }) {
   const { enqueueSnackbar } = useSnackbar();
   const [createBotButton] = useMutation(CREATE_BOT_BUTTON);
+  const [editBotButton] = useMutation(EDIT_BOT_BUTTON);
   const [deleteBotButton] = useMutation(DELETE_BOT_BUTTON);
   const [buttons, setButtons] = useState<Partial<IBotButton & { triggerCode: string }>[]>([]);
+
+  // Запрос для загрузки существующих кнопок
+  const { data, loading, error } = useQuery(GET_BOT_BUTTONS, {
+    variables: { id: botId },
+    skip: !botId,
+  });
+
+  // Инициализация кнопок при загрузке данных
+  useEffect(() => {
+    if (data && data.getBot && data.getBot.buttons) {
+      setButtons(
+        data.getBot.buttons.map((button: IBotButton) => ({
+          id: button.id,
+          title: button.title,
+          type: button.type,
+          targetBotItemId: button.targetBotItemId,
+          triggerCode: button.targetTriggerId?.serverScript?.code || '',
+        })),
+      );
+    }
+  }, [data]);
 
   const handleButtonChange = (index: number, field: string, value: any) => {
     const newButtons = [...buttons];
@@ -37,6 +94,53 @@ function AddButtonComponent({ botId, botItems }) {
 
   const handleAddNewButton = () => {
     setButtons([...buttons, { title: '', type: 'botItem', targetBotItemId: undefined, triggerCode: '' }]);
+  };
+
+  const handleSaveButton = async (index: number) => {
+    const button = buttons[index];
+    try {
+      if (!button.id) {
+        // Создание новой кнопки
+        const res = await createBotButton({
+          variables: {
+            input: {
+              title: button.title,
+              type: button.type,
+              targetBotItemId: button.targetBotItemId,
+              botId,
+            },
+            triggerCode: button.triggerCode,
+          },
+        });
+        const newButtons = [...buttons];
+        newButtons[index] = {
+          ...newButtons[index],
+          id: res.data.createBotButton.id,
+          targetBotItemId: res.data.createBotButton.targetBotItemId,
+          type: res.data.createBotButton.type,
+          title: res.data.createBotButton.title,
+        };
+        setButtons(newButtons);
+        enqueueSnackbar('Кнопка успешно создана', { variant: 'success' });
+      } else {
+        // Редактирование существующей кнопки
+        await editBotButton({
+          variables: {
+            id: button.id,
+            input: {
+              title: button.title,
+              type: button.type,
+              targetBotItemId: button.targetBotItemId,
+            },
+            triggerCode: button.triggerCode,
+          },
+        });
+        enqueueSnackbar('Кнопка успешно отредактирована', { variant: 'success' });
+      }
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar('Ошибка при сохранении кнопки', { variant: 'error' });
+    }
   };
 
   const handleDeleteButton = async (_id: string) => {
@@ -54,6 +158,9 @@ function AddButtonComponent({ botId, botItems }) {
     const newButtons = buttons.filter((b) => b.id !== _id);
     setButtons(newButtons);
   };
+
+  if (loading) return <p>Загрузка кнопок...</p>;
+  if (error) return <p>Ошибка загрузки кнопок</p>;
 
   return (
     <div className="mt-8">
@@ -111,9 +218,18 @@ function AddButtonComponent({ botId, botItems }) {
             className="mb-2 mt-2"
             disabled
           />
-          <Button variant="outlined" color="error" onClick={() => handleDeleteButton(button.id!)}>
-            Удалить кнопку
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outlined" color="error" onClick={() => handleDeleteButton(button.id!)}>
+              Удалить кнопку
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleSaveButton(index)}
+            >
+              {button.id ? 'Редактировать кнопку' : 'Сохранить кнопку'}
+            </Button>
+          </div>
         </div>
       ))}
       <Button variant="contained" onClick={handleAddNewButton}>
