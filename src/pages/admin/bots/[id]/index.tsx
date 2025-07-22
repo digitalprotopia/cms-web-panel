@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
@@ -9,9 +9,11 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  InputAdornment,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
+import AddButtonComponent from './AddButtonComponent'; // Импорт компонента из той же папки
 
 const GET_BOT = gql`
   query GetBot($id: ID!) {
@@ -92,6 +94,12 @@ function EditBotPage() {
     // idInPlatform: null,
     // clientId: null,
   });
+
+  const [showSecret, setShowSecret] = useState(false);
+
+  const handleToggleShowSecret = useCallback(() => {
+    setShowSecret((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     if (data && data.getBot) {
@@ -220,8 +228,20 @@ function EditBotPage() {
           label="Client Secret"
           name="clientSecret"
           value={data.getBot.client.secret}
+          type={showSecret ? 'text' : 'password'}
           fullWidth
           disabled
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleToggleShowSecret} edge="end">
+                    {showSecret ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
         />
         <Button variant="contained" color="primary" type="submit">
           Сохранить
@@ -262,6 +282,9 @@ function EditBotPage() {
           Добавить страницу
         </Button>
       </div>
+
+      {/* Встраивание компонента AddButtonComponent в самый низ страницы */}
+      <AddButtonComponent botId={id} botItems={itemsData?.getBotItems || []} />
     </div>
   );
 }
