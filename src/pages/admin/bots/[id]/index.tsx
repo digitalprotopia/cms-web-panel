@@ -10,6 +10,8 @@ import {
   ListItemText,
   IconButton,
   InputAdornment,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { Edit, Delete, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
@@ -26,6 +28,7 @@ const GET_BOT = gql`
       apiKey
       platformID
       idInPlatform
+      isAutoRegister
       client {
         id
         secret
@@ -55,6 +58,7 @@ const EDIT_BOT = gql`
       apiKey
       platformID
       idInPlatform
+      isAutoRegister
     }
   }
 `;
@@ -90,6 +94,7 @@ function EditBotPage() {
     favicon: null,
     url: null,
     apiKey: null,
+    isAutoRegister: false,
     // platformID: null,
     // idInPlatform: null,
     // clientId: null,
@@ -109,6 +114,7 @@ function EditBotPage() {
         favicon: data.getBot.favicon || null,
         url: data.getBot.url || null,
         apiKey: data.getBot.apiKey || null,
+        isAutoRegister: data.getBot.isAutoRegister || false,
         // platformID: data.getBot.platformID || null,
         // idInPlatform: data.getBot.idInPlatform || null,
         // clientId: data.getBot.clientId || null,
@@ -198,6 +204,13 @@ function EditBotPage() {
           value={bot.apiKey}
           onChange={handleInputChange}
           fullWidth
+        />
+        <FormControlLabel
+          control={(<Checkbox
+            checked={bot.isAutoRegister}
+            onChange={(e) => setBot({ ...bot, isAutoRegister: e.target.checked })}
+          />)}
+          label="Автоматическая регистрация"
         />
         {/* <TextField
           label="Platform ID"
