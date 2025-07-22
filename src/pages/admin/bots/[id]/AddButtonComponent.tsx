@@ -75,12 +75,12 @@ function AddButtonComponent({ botId, botItems }) {
   useEffect(() => {
     if (data && data.getBot && data.getBot.buttons) {
       setButtons(
-        data.getBot.buttons.map((button: IBotButton) => ({
+        data.getBot.buttons.map((button: any) => ({
           id: button.id,
           title: button.title,
           type: button.type,
           targetBotItemId: button.targetBotItemId,
-          triggerCode: button.targetTriggerId?.serverScript?.code || '',
+          triggerCode: button.targetTrigger?.serverScript?.code || '',
         })),
       );
     }
