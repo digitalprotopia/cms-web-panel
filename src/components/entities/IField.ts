@@ -41,7 +41,7 @@ export type IFieldSlugOptions = {
   sourceFieldId: string;
 };
 
-export type IFieldOptions = IFieldOneToManyOptions | IFieldManyToManyOptions;
+export type IFieldOptions = IFieldOneToManyOptions | IFieldManyToManyOptions | IFieldSlugOptions;
 
 export interface IField extends IEntity {
   dbName: string;

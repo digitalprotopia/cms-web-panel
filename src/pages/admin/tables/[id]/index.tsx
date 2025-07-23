@@ -361,6 +361,9 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
   if (form.type === FieldType.MANY_TO_MANY_FIRST) {
     options = manyToManyOptions!;
   }
+  if (form.type === FieldType.SLUG) {
+    options = slugFieldOptions!;
+  }
   const addField = useAddField(meta.id, form.type!);
   const { enqueueSnackbar } = useSnackbar();
   const tables = useQuery(gql`
