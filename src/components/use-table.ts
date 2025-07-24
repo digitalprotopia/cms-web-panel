@@ -415,6 +415,18 @@ export const useAddField = (
   }
   `;
   }
+  if (fieldType === FieldType.SLUG) {
+    query = gql`
+  mutation($tableId: ID! $input: FieldInput! $options: FieldSlugOptions!) {
+    addSlugField(tableId: $tableId input: $input options: $options) {
+      id
+      name
+      type
+      tableId
+    }
+  }
+  `;
+  }
   const [addField] = useMutation(query);
 
   return (data: Partial<IField>, options?: IFieldOptions) => addField({
