@@ -1,3 +1,10 @@
+# [0.15.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.14.1...v0.15.0) (2025-07-24)
+
+
+### Features
+
+* Добавить тип поля "Slug" ([c68e846](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/c68e846e71c8b3dbdf21290ff163d1adaa4eacf3)), closes [#54](https://gitlab.com/digitalprotopia/cms/cms-web-panel/issues/54)
+
 ## [0.14.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.14.0...v0.14.1) (2025-04-01)
 
 
