@@ -1,3 +1,10 @@
+## [0.15.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.15.0...v0.15.1) (2025-07-24)
+
+
+### Bug Fixes
+
+* Исправить проблему с package-lock ([4702c14](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/4702c149990be7a125db7a8b04b8940dc09cc443)), closes [#57](https://gitlab.com/digitalprotopia/cms/cms-web-panel/issues/57)
+
 # [0.15.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.14.1...v0.15.0) (2025-07-24)
 
 
