@@ -457,9 +457,11 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
         label="Строковое поле"
         select
         value={slugFieldOptions.sourceFieldId}
-        onChange={(e) => setSlugFieldOptions((prev) => ({ ...prev, sourceFieldId: e.target.value }))}
+        onChange={(e) => setSlugFieldOptions(
+          (prev) => ({ ...prev, sourceFieldId: e.target.value }),
+        )}
       >
-        {meta.fields.filter(field => field.type == FieldType.STRING).map((field) => (
+        {meta.fields.filter((field) => field.type === FieldType.STRING).map((field) => (
           <MenuItem key={field.id} value={field.id}>
             {field.name}
           </MenuItem>
@@ -467,7 +469,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
       </TextField>
       )}
 
-       {form.type === FieldType.ONE_TO_MANY_ONE
+      {form.type === FieldType.ONE_TO_MANY_ONE
       && (
       <TextField
         fullWidth
