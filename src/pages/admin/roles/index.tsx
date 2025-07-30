@@ -104,7 +104,6 @@ function RolesPage() {
         name
         title
         isSystem
-        isDeleted
       }
     }
   `);
@@ -147,13 +146,10 @@ function RolesPage() {
         Cell: ({ row }) => (
           <span style={{
             fontWeight: row.original.isSystem ? 'bold' : 'normal',
-            textDecoration: row.original.isDeleted ? 'line-through' : 'none',
-            opacity: row.original.isDeleted ? 0.6 : 1,
           }}
           >
             {row.original.title}
             {row.original.isSystem && ' (системная)'}
-            {row.original.isDeleted && ' (удалена)'}
           </span>
         ),
       },

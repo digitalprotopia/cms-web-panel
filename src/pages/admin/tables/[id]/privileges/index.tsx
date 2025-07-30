@@ -3,6 +3,7 @@ import { gql, useQuery, useMutation } from '@apollo/client';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { IRole } from '@/components/entities/IRole';
+import { useRouter } from 'next/router';
 import { ITablePrivilege, Privilege } from '../../../../../components/entities/ITablePrivilege';
 
 const GET_ROLES = gql`
@@ -32,9 +33,8 @@ mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [Pri
 `;
 
 function PrivilegesPage() {
-  const currentUrl = window.location.pathname;
-  const parts = currentUrl.split('/');
-  const tableId = parts[parts.indexOf('tables') + 1];
+  const router = useRouter();
+  const tableId = router.query.id as string;
 
   const { data: rolesData, loading: rolesLoading, error: rolesError } = useQuery(GET_ROLES);
   const { data: privilegesData,
@@ -93,9 +93,7 @@ function PrivilegesPage() {
       await Promise.all(Object.entries(privilegesState).map(([roleId, privileges]) => {
         const role = rolesData.getRoles.find((_role: IRole) => _role.id === roleId);
         if (role) {
-          const validPrivileges = privileges.filter((priv) => Object.values(Privilege)
-            .includes(priv.privilege!));
-          return updatePrivileges({ variables: { tableId, roleId, privileges: validPrivileges } });
+          return updatePrivileges({ variables: { tableId, roleId, privileges } });
         }
         return Promise.resolve();
       }));
