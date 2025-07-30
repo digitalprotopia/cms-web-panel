@@ -121,6 +121,7 @@ function RolesPage() {
         variables: { id: roleId },
         refetchQueries: ['getRoles'],
       });
+      refetch();
     } catch (error) {
       console.error('Ошибка при удалении роли:', error);
       alert('Не удалось удалить роль');

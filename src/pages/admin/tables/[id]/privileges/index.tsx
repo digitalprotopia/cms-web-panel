@@ -187,10 +187,19 @@ function PrivilegesPage() {
             })}
           </TableBody>
         </Table>
-        <Button variant="contained" color="primary" onClick={handleSave} sx={{ mt: 2 }}>
+      </TableContainer>
+      <div style={{ display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        paddingTop: 20 }}
+      >
+        <Button variant="contained" color="primary" onClick={handleSave}>
           Сохранить
         </Button>
-      </TableContainer>
+        <Button onClick={() => router.push(`/admin/tables/${tableId}`)}>
+          Вернуться к таблице
+        </Button>
+      </div>
     </div>
   );
 }

@@ -41,7 +41,7 @@ function FieldPrivilegesDialog({
   field: IField | null;
 }) {
   const { enqueueSnackbar } = useSnackbar();
-  const [privileges, setPrivileges] = useState<Record<string, Privilege>>({});
+  const [privilegesForm, setPrivilegesForm] = useState<Record<string, Privilege>>({});
 
   const {
     data: rolesData,
@@ -78,12 +78,12 @@ function FieldPrivilegesDialog({
           acc[roleId] = privilege;
           return acc;
         }, {});
-      setPrivileges(newPrivileges);
+      setPrivilegesForm(newPrivileges);
     }
   }, [privilegesData]);
 
   const handlePrivilegeChange = (roleId: string, newPrivilege: Privilege) => {
-    setPrivileges((prev) => ({
+    setPrivilegesForm((prev) => ({
       ...prev,
       [roleId]: newPrivilege,
     }));
@@ -93,7 +93,7 @@ function FieldPrivilegesDialog({
     if (!field?.id) return;
     try {
       await Promise.all(
-        Object.entries(privileges).map(([roleId, privilege]) => updateFieldPrivilege({
+        Object.entries(privilegesForm).map(([roleId, privilege]) => updateFieldPrivilege({
           variables: {
             fieldId: field.id,
             roleId,
@@ -165,7 +165,7 @@ function FieldPrivilegesDialog({
               </Typography>
               <FormControl fullWidth size="small">
                 <Select
-                  value={privileges[role.id] || Privilege.READ}
+                  value={privilegesForm[role.id] || Privilege.READ}
                   onChange={(e) => handlePrivilegeChange(role.id, e.target.value as Privilege)}
                 >
                   <MenuItem value={Privilege.READ}>Чтение</MenuItem>
