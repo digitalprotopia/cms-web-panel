@@ -68,6 +68,7 @@ const GET_ME = gql`
     me {
       id
       name
+      phone
       role {
         id
         name

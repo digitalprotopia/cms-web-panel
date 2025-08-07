@@ -37,9 +37,13 @@ export default function Account() {
 
   const [form, setForm] = useState({
     name: user.user?.name,
+    phone: user.user?.phone || '',
     email: '',
     password: '',
     passwordConfirm: '',
+  });
+  const [phoneForm, setPhoneForm] = useState({
+    phone: user.user?.phone || '',
   });
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
@@ -81,10 +85,11 @@ export default function Account() {
             <AccountCircle className="size-10 mr-4 text-black/60" />
             <div className="flex flex-col">
               <span className="text-base">{user.user?.name}</span>
-              <span
-                className="text-black/60 text-sm"
-              >
+              <span className="text-black/60 text-sm">
                 {user.user?.role.name === 'admin' ? 'Администратор' : 'Пользователь'}
+              </span>
+              <span className="text-black/60 text-sm mt-1">
+                {user.user?.phone ? `Телефон: ${user.user.phone}` : 'Телефон не указан'}
               </span>
             </div>
           </div>
@@ -96,20 +101,39 @@ export default function Account() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               variant="outlined"
             />
-          </div>
-          <div style={{ marginBottom: '40px' }}>
             <Button
               className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
               variant="contained"
-              disabled={
-                      form.name === user.user?.name
-                  }
+              disabled={form.name === user.user?.name}
               onClick={async () => {
                 await editMe({
                   variables: { user: { name: form.name } },
                 });
                 await user.refetch();
-                enqueueSnackbar('Данные успешно изменены', { variant: 'success' });
+                enqueueSnackbar('Имя успешно изменено', { variant: 'success' });
+              }}
+            >
+              Сохранить
+            </Button>
+          </div>
+          <div style={{ marginBottom: '40px', marginTop: '24px' }}>
+            <TextField
+              label="Номер телефона"
+              className="w-full"
+              value={phoneForm.phone}
+              onChange={(e) => setPhoneForm({ ...phoneForm, phone: e.target.value })}
+              variant="outlined"
+            />
+            <Button
+              className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
+              variant="contained"
+              disabled={phoneForm.phone === (user.user?.phone || '')}
+              onClick={async () => {
+                await editMe({
+                  variables: { user: { phone: phoneForm.phone } },
+                });
+                await user.refetch();
+                enqueueSnackbar('Телефон успешно изменён', { variant: 'success' });
               }}
             >
               Сохранить

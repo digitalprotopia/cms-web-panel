@@ -20,6 +20,7 @@ export function Register() {
     email: '',
     password: '',
     repeatPassword: '',
+    phone: '',
     acceptedPrivacy: false,
   });
   const [signUp] = useMutation(SIGN_UP);
@@ -70,6 +71,16 @@ export function Register() {
         {/*  preferredCountries={["RU"]} */}
         {/*  defaultCountry="RU" */}
         {/* /> */}
+        <TextField
+          margin="normal"
+          label="Номер телефона"
+          name="phone"
+          value={registerForm.phone}
+          onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
+          slotProps={{
+            htmlInput: { maxLength: 32 },
+          }}
+        />
         <TextField
           margin="normal"
           label="Пароль"
@@ -147,6 +158,7 @@ export function Register() {
                     name: registerForm.name,
                     email: registerForm.email,
                     password: registerForm.password,
+                    ...(registerForm.phone ? { phone: registerForm.phone } : {}),
                   },
                 },
                 onCompleted: () => {
