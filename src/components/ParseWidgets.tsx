@@ -4,7 +4,7 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar, enqueueSnackbar } from 'notistack';
-import { Button, Typography } from '@mui/material';
+import { Button, Typography, Skeleton } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
@@ -559,6 +559,7 @@ export function PageWidget(props: {
                   name
                   widgetViewType
                   cssClass
+                  height
                   template {
                       html
                       language
@@ -597,16 +598,14 @@ export function PageWidget(props: {
   const table = useTable(data?.getWidgetByName?.tableView.tableId, params);
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
-    return null;
     return (
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'center',
-        }}
-      >
-        <Mui.CircularProgress />
+      <div>
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={data?.getWidgetByName?.height || 200}
+          sx={{ borderRadius: '4px' }}
+        />
       </div>
     );
   }
