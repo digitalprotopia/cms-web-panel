@@ -177,10 +177,11 @@ function BotPage() {
         isCustomGraphql: fetched.isCustomGraphql || false,
         customGraphql: fetched.customGraphql || '',
       });
-      setButtons(fetched.buttons?.map((button: IBotButton) => ({
+      setButtons(fetched.buttons?.map((button: IBotButton): (typeof buttons)[0] => ({
         id: button.id,
         title: button.title,
         type: button.type,
+        link: button.link,
         targetBotItemId: button.targetBotItemId,
         triggerCode: (button as any).targetTrigger?.serverScript?.code || '',
       }))
@@ -247,6 +248,7 @@ function BotPage() {
               input: {
                 title: button.title,
                 type: button.type,
+                link: button.link,
                 targetBotItemId: button.targetBotItemId,
                 botItemId: newPageId,
               },
@@ -261,6 +263,7 @@ function BotPage() {
               input: {
                 title: button.title,
                 type: button.type,
+                link: button.link,
                 targetBotItemId: button.targetBotItemId,
               },
               triggerCode: button.triggerCode,
@@ -289,7 +292,10 @@ function BotPage() {
   };
 
   const handleAddNewButton = () => {
-    setButtons([...buttons, { title: '', type: BotButtonType.BotItem, targetBotItemId: undefined, triggerCode: '' }]);
+    setButtons([...buttons, { title: '',
+      type: BotButtonType.BotItem,
+      targetBotItemId: undefined,
+      triggerCode: '' }]);
   };
 
   const handleDeleteButton = async (_id: string) => {
@@ -448,6 +454,7 @@ function BotPage() {
             >
               <MenuItem value="botItem">Переход</MenuItem>
               <MenuItem value="trigger">Триггер</MenuItem>
+              <MenuItem value="link">Ссылка</MenuItem>
             </TextField>
             {button.type === 'botItem' && (
               <TextField
@@ -471,6 +478,15 @@ function BotPage() {
                 defaultLanguage="javascript"
                 value={button.triggerCode}
                 onChange={(value) => handleButtonChange(index, 'triggerCode', value!)}
+              />
+            )}
+            {button.type === 'link' && (
+              <TextField
+                label="Ссылка"
+                value={button.link}
+                onChange={(e) => handleButtonChange(index, 'link', e.target.value)}
+                fullWidth
+                className="mb-2"
               />
             )}
             <Button variant="outlined" color="error" onClick={() => handleDeleteButton(button.id!)}>

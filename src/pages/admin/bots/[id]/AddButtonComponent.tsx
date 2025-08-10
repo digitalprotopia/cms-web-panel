@@ -18,6 +18,7 @@ const GET_BOT_BUTTONS = gql`
         type
         targetBotItemId
         targetTriggerId
+        link
         targetTrigger {
           serverScript {
             code
@@ -85,10 +86,11 @@ function AddButtonComponent({ botId, botItems }: AddButtonComponentProps) {
   useEffect(() => {
     if (data && data.getBot && data.getBot.buttons) {
       setButtons(
-        data.getBot.buttons.map((button: any) => ({
+        data.getBot.buttons.map((button: any): (typeof buttons)[0] => ({
           id: button.id,
           title: button.title,
           type: button.type,
+          link: button.link,
           targetBotItemId: button.targetBotItemId,
           triggerCode: button.targetTrigger?.serverScript?.code || '',
         })),
@@ -108,6 +110,7 @@ function AddButtonComponent({ botId, botItems }: AddButtonComponentProps) {
       {
         title: '',
         type: BotButtonType.BotItem, // Используем значение из перечисления
+        link: '',
         botItemId: '', // Обязательное поле
         targetBotItemId: undefined,
         triggerCode: '',
@@ -125,6 +128,7 @@ function AddButtonComponent({ botId, botItems }: AddButtonComponentProps) {
             input: {
               title: button.title,
               type: button.type,
+              link: button.link,
               targetBotItemId: button.targetBotItemId,
               botId,
             },
@@ -149,6 +153,7 @@ function AddButtonComponent({ botId, botItems }: AddButtonComponentProps) {
             input: {
               title: button.title,
               type: button.type,
+              link: button.link,
               targetBotItemId: button.targetBotItemId,
             },
             triggerCode: button.triggerCode,
@@ -205,6 +210,7 @@ function AddButtonComponent({ botId, botItems }: AddButtonComponentProps) {
           >
             <MenuItem value="botItem">Переход</MenuItem>
             <MenuItem value="trigger">Триггер</MenuItem>
+            <MenuItem value="link">Ссылка</MenuItem>
           </TextField>
           {button.type === 'botItem' && (
             <TextField
@@ -228,6 +234,15 @@ function AddButtonComponent({ botId, botItems }: AddButtonComponentProps) {
               defaultLanguage="javascript"
               value={button.triggerCode}
               onChange={(value) => handleButtonChange(index, 'triggerCode', value!)}
+            />
+          )}
+          {button.type === 'link' && (
+            <TextField
+              label="Ссылка"
+              value={button.link}
+              onChange={(e) => handleButtonChange(index, 'link', e.target.value)}
+              fullWidth
+              className="mb-2"
             />
           )}
           <TextField
