@@ -91,7 +91,23 @@ export function BlockSettings(
                 props: { cssClass: e.target.value },
               });
             }}
+            fullWidth
           />
+          <TextField
+            title="Высота виджета"
+            label="Высота виджета (px)"
+            type="number"
+            value={props.block.props.height}
+            onChange={(e) => {
+              const { value } = e.target;
+              props.editor.updateBlock(props.block, {
+                props: { height: value ? parseInt(value, 10) : 1 },
+              });
+            }}
+            fullWidth
+            margin="normal"
+          />
+
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialog(false)}>Закрыть</Button>

@@ -551,26 +551,26 @@ export function RenderWidget(
 
 export function PageWidget(props: {
   widgetName: string;
+  blockProps?: { type: string; cssClass?: string; height?: string };
 }) {
   const { data } = useQuery(gql`
-          query($name: String!) {
-              getWidgetByName(name: $name) {
-                  id
-                  name
-                  widgetViewType
-                  cssClass
-                  height
-                  template {
-                      html
-                      language
-                      css
-                  }
-                  tableView {
-                      tableId
-                  }
-              }
-          }
-      `, {
+    query($name: String!) {
+      getWidgetByName(name: $name) {
+        id
+        name
+        widgetViewType
+        cssClass
+        template {
+          html
+          language
+          css
+        }
+        tableView {
+          tableId
+        }
+      }
+    }
+  `, {
     variables: { name: props.widgetName },
   });
 
@@ -603,7 +603,7 @@ export function PageWidget(props: {
         <Skeleton
           variant="rectangular"
           width="100%"
-          height={data?.getWidgetByName?.height || 200}
+          height={props.blockProps?.height}
           sx={{ borderRadius: '4px' }}
         />
       </div>
@@ -617,7 +617,7 @@ export function PageWidget(props: {
       resultData = table.data.filter(filter);
     }
   } catch {
-    //
+    // Handle filter errors silently
   }
 
   return (
@@ -628,7 +628,7 @@ export function PageWidget(props: {
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
-      cssClass={data.getWidgetByName.cssClass || ''}
+      cssClass={props.blockProps?.cssClass || data.getWidgetByName.cssClass || ''}
       style={data.getWidgetByName.template.css}
     />
   );
