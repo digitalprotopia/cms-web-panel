@@ -5,12 +5,19 @@ import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import { useState } from 'react';
 import { Checkbox, FormControlLabel } from '@mui/material';
+import toBase64 from '@/components/utils/toBase64';
 
 const SIGN_UP = gql`
   mutation ($user: UserRegister!) {
     signUp(user: $user) {
       id
     }
+  }
+`;
+
+const CREATE_FILE = gql`
+  mutation CreateFile($input: FileInput!) {
+    createFile(input: $input) { id }
   }
 `;
 
@@ -22,14 +29,38 @@ export function Register() {
     repeatPassword: '',
     phone: '',
     acceptedPrivacy: false,
+    avatarFile: '' as string,
+    avatarName: '' as string,
   });
   const [signUp] = useMutation(SIGN_UP);
+  const [createFile] = useMutation(CREATE_FILE);
   const { enqueueSnackbar } = useSnackbar();
 
   return (
     <div className="flex flex-col justify-between items-center bg-white rounded p-5 shadow-lg w-full max-w-md">
       <span className="text-2xl font-medium">Регистрация</span>
       <div className="flex flex-col w-full">
+        <div className="mt-2 flex flex-col">
+          <span className="mb-1 text-gray-400 text-base font-normal text-left">Аватар</span>
+          <label htmlFor="avatar" className="block cursor-pointer border border-gray-300 rounded px-3 py-2 text-base text-gray-700 hover:border-blue-400 transition w-full text-center">
+            {registerForm.avatarName || 'Выберите файл'}
+            <input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                if (e.target.files?.[0]) {
+                  setRegisterForm({
+                    ...registerForm,
+                    avatarFile: await toBase64(e.target.files[0]),
+                    avatarName: e.target.files[0].name,
+                  });
+                }
+              }}
+            />
+          </label>
+        </div>
         <TextField
           margin="normal"
           label="ФИО"
@@ -152,6 +183,11 @@ export function Register() {
             }
           onClick={async () => {
             try {
+              let avatarId: string | undefined;
+              if (registerForm.avatarFile) {
+                const res = await createFile({ variables: { input: { name: registerForm.avatarName || 'avatar.png', file: registerForm.avatarFile } } });
+                avatarId = res.data?.createFile?.id;
+              }
               await signUp({
                 variables: {
                   user: {
@@ -159,6 +195,7 @@ export function Register() {
                     email: registerForm.email,
                     password: registerForm.password,
                     ...(registerForm.phone ? { phone: registerForm.phone } : {}),
+                    ...(avatarId ? { avatarId } : {}),
                   },
                 },
                 onCompleted: () => {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Dialog, DialogContent, Snackbar } from '@mui/material';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import { MaterialReactTable } from 'material-react-table';
-import { toBase64 } from './form';
+import toBase64 from '@/components/utils/toBase64';
 
 const GET_FILES = gql`
     query GetFiles {

@@ -19,4 +19,6 @@ export interface IUser extends IEntity {
   confirmEmailCode?: string;
   role: IRole;
   phone?: string;
+  avatar?: import('./IFile').IFile;
+  avatarId?: string;
 }

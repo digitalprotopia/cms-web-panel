@@ -9,10 +9,11 @@ import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
 import { MaterialReactTable, MRT_ColumnDef, MRT_RowData } from 'material-react-table';
 import { IFile } from '@/components/entities/IFile';
-import { toBase64 } from '@/components/form';
+import toBase64 from '@/components/utils/toBase64';
 import { Delete } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import dayjs from 'dayjs';
+import Image from 'next/image';
 
 function FilesPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ function FilesPage() {
         extension
         createdAt
         updatedAt
+        type
       }
     }
   `);
@@ -68,6 +70,11 @@ function FilesPage() {
         Cell: ({ cell }) => dayjs(cell.getValue()).format('DD.MM.YYYY'),
       },
       {
+        accessorKey: 'type',
+        header: 'Тип',
+        size: 150,
+      },
+      {
         accessorKey: 'actions',
         header: 'Действия',
         size: 300,
@@ -75,10 +82,13 @@ function FilesPage() {
           <div className="flex gap-2">
             {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(row.original.extension) ? (
               <a href={`${window.config.server}/download/?id=${row.original.id}&mode=view`} target="_blank" rel="noreferrer">
-                <img
+                <Image
                   src={`${window.config.server}/download/?id=${row.original.id}&mode=view`}
                   alt={row.original.name}
+                  width={80}
+                  height={80}
                   className="w-20 h-20"
+                  unoptimized
                 />
               </a>
             ) : null}
@@ -104,7 +114,7 @@ function FilesPage() {
         ),
       },
     ],
-    [router],
+    [router, deleteFile, refetch],
   );
 
   if (loading) {

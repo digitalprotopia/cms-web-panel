@@ -1,10 +1,17 @@
 import { gql, useMutation } from '@apollo/client';
 import Head from 'next/head';
 import { useContext, useState } from 'react';
-import { Button, TextField } from '@mui/material';
+import { Button, TextField, Avatar } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { AccountCircle } from '@mui/icons-material';
 import UserContext from '@/components/UserContext';
+import toBase64 from '@/components/utils/toBase64';
+
+const getInitials = (name: string) => name
+  .split(' ')
+  .slice(0, 2)
+  .map((word) => word[0])
+  .join('')
+  .toUpperCase();
 
 const EDIT_ME = gql`
     mutation($user: UserInput!) {
@@ -14,6 +21,12 @@ const EDIT_ME = gql`
         }
     }
   `;
+
+const CREATE_FILE = gql`
+  mutation CreateFile($input: FileInput!) {
+    createFile(input: $input) { id }
+  }
+`;
 
 const CHANGE_PASSWORD = gql`
   mutation($oldPassword: String!, $newPassword: String!) {
@@ -50,8 +63,11 @@ export default function Account() {
     newPassword: '',
     newPasswordConfirm: '',
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarName, setAvatarName] = useState<string>('');
 
   const [editMe] = useMutation(EDIT_ME);
+  const [createFile] = useMutation(CREATE_FILE);
   const [changePassword] = useMutation(CHANGE_PASSWORD);
   const [sendEmailConfirmationLink] = useMutation(SEND_EMAIL_CONFIRMATION_LINK);
 
@@ -81,8 +97,10 @@ export default function Account() {
             РЕДАКТИРОВАТЬ ДАННЫЕ
             {' '}
           </span>
-          <div className="flex my-6">
-            <AccountCircle className="size-10 mr-4 text-black/60" />
+          <div className="flex my-6 items-center gap-4">
+            <Avatar src={user.user?.avatar?.id ? `${window.config.server}/download/?id=${user.user.avatar.id}&mode=view` : undefined}>
+              {!user.user?.avatar?.id ? getInitials(user.user?.name || '') : null}
+            </Avatar>
             <div className="flex flex-col">
               <span className="text-base">{user.user?.name}</span>
               <span className="text-black/60 text-sm">
@@ -167,6 +185,55 @@ export default function Account() {
               onClick={async () => {
                 await sendEmailConfirmationLink({ variables: { email: form.email } });
                 enqueueSnackbar('Письмо с подтверждением отправлено', { variant: 'success' });
+              }}
+            >
+              Сохранить
+            </Button>
+          </div>
+          {/* Смена аватара */}
+          <div className="mt-8">
+            <span className="mb-1 block text-gray-400 text-base font-normal text-left">Аватар</span>
+            <label htmlFor="avatar-account" className="block cursor-pointer border border-gray-300 rounded px-3 py-2 text-base text-gray-700 hover:border-blue-400 transition w-full text-center">
+              {avatarName || user.user?.avatar?.id ? 'Выберите новый файл' : 'Выберите файл'}
+              <input
+                id="avatar-account"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    setAvatarFile(e.target.files[0]);
+                    setAvatarName(e.target.files[0].name);
+                  }
+                }}
+              />
+            </label>
+            {avatarName && (
+              <div className="text-sm text-gray-500 mt-2 text-center">{avatarName}</div>
+            )}
+            <Button
+              className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
+              variant="contained"
+              disabled={!avatarFile}
+              onClick={async () => {
+                if (!avatarFile) return;
+                const fileB64 = await toBase64(avatarFile);
+                const res = await createFile({
+                  variables: {
+                    input: {
+                      name: avatarFile.name,
+                      file: fileB64,
+                    },
+                  },
+                });
+                const newId = res.data?.createFile?.id as string;
+                if (newId) {
+                  await editMe({ variables: { user: { avatarId: newId } } });
+                  await user.refetch();
+                  enqueueSnackbar('Аватар обновлён', { variant: 'success' });
+                  setAvatarFile(null);
+                  setAvatarName('');
+                }
               }}
             >
               Сохранить

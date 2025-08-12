@@ -9,7 +9,7 @@ import { MaterialReactTable } from 'material-react-table';
 import { TextInput } from '@mantine/core';
 import { IFile } from '../../entities/IFile';
 // eslint-disable-next-line import/no-cycle
-import { toBase64 } from '../../form';
+import toBase64 from '@/components/utils/toBase64';
 
 function FileDialog(props: {
   fileId?: string,
