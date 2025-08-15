@@ -3,6 +3,7 @@ import { Button, Dialog, DialogContent, Snackbar } from '@mui/material';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import { MaterialReactTable } from 'material-react-table';
 import toBase64 from '@/components/utils/toBase64';
+import Image from 'next/image';
 
 const GET_FILES = gql`
     query GetFiles {
@@ -72,11 +73,14 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
       Cell: ({ row }: { row: any }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp'].includes(row.original.extension) && (
-          <img
-            src={`${window.config.server}/download/?id=${row.original.id}`}
-            alt={row.original.name}
-            style={{ width: 50, height: 50, marginRight: 10 }}
-          />
+            <Image
+              src={`${window.config.server}/download/?id=${row.original.id}`}
+              alt={row.original.name}
+              width={50}
+              height={50}
+              className="mr-2.5"
+              unoptimized
+            />
           )}
           <Button onClick={() => handleSelectFile(row.original.id)}>
             Выбрать
@@ -109,10 +113,13 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
             Выбранный файл:
             {' '}
             <div>
-              <img
+              <Image
                 src={`${window.config.server}/download/?id=${fileData.getFile.id}`}
                 alt={fileData.getFile.name}
-                style={{ width: 50, height: 50, marginRight: 10 }}
+                width={50}
+                height={50}
+                className="mr-2.5"
+                unoptimized
               />
             </div>
             <div>

@@ -263,7 +263,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       }
     }, RENDER_PREVIEW_DELAY);
     return () => clearInterval(interval);
-  }, [form.markup]);
+  }, [form.markup, previewMarkup]);
 
   // Установить (с заданной задержкой) стиль превью равный стилю формы.
   useEffect(() => {
@@ -273,7 +273,7 @@ function WidgetEdit({ id, onClose }: WidgetEditProps) {
       }
     }, RENDER_PREVIEW_DELAY);
     return () => clearInterval(interval);
-  }, [form.style]);
+  }, [form.style, previewStyle]);
 
   const isEditMode = !!id;
 

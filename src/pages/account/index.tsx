@@ -24,7 +24,10 @@ const EDIT_ME = gql`
 
 const CREATE_FILE = gql`
   mutation CreateFile($input: FileInput!) {
-    createFile(input: $input) { id }
+    createFile(input: $input) { 
+      id
+      type 
+    }
   }
 `;
 
@@ -223,6 +226,7 @@ export default function Account() {
                     input: {
                       name: avatarFile.name,
                       file: fileB64,
+                      type: 'userPic',
                     },
                   },
                 });
