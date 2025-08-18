@@ -1,3 +1,30 @@
+# [0.16.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.15.1...v0.16.0) (2025-08-14)
+
+
+### Bug Fixes
+
+* blocknote version ([819334a](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/819334a32287929649d0738af33f4d0ec712d94c))
+
+
+### Features
+
+* Авторизация через Telegram и WebApp ([def2cfa](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/def2cfacd8de7947d08b1c84bb0ca23218a8a77f))
+* Отправка в бот сообщений с кнопками ([a4532c8](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/a4532c8efff813d45a804675ce5062c9ca26e7f1))
+
+## [0.15.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.15.0...v0.15.1) (2025-07-24)
+
+
+### Bug Fixes
+
+* Исправить проблему с package-lock ([4702c14](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/4702c149990be7a125db7a8b04b8940dc09cc443)), closes [#57](https://gitlab.com/digitalprotopia/cms/cms-web-panel/issues/57)
+
+# [0.15.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.14.1...v0.15.0) (2025-07-24)
+
+
+### Features
+
+* Добавить тип поля "Slug" ([c68e846](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/c68e846e71c8b3dbdf21290ff163d1adaa4eacf3)), closes [#54](https://gitlab.com/digitalprotopia/cms/cms-web-panel/issues/54)
+
 ## [0.14.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.14.0...v0.14.1) (2025-04-01)
 
 

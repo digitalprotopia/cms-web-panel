@@ -3,6 +3,7 @@ import { IEntity } from './IEntity';
 export enum BotButtonType {
   BotItem = 'botItem',
   trigger = 'trigger',
+  link = 'link',
 }
 
 export interface IBotButton extends IEntity {
@@ -12,4 +13,5 @@ export interface IBotButton extends IEntity {
   type: BotButtonType
   targetBotItemId?: string
   targetTriggerId?: string
+  link?: string
 }

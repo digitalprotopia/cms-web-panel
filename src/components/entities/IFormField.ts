@@ -24,6 +24,7 @@ export enum FormFieldType {
   CURRENCY = 'currency',
   USER = 'user',
   RANGE = 'range',
+  SLUG = 'slug',
 }
 
 export interface IFormField extends IEntity {
