@@ -1,3 +1,10 @@
+# [0.18.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.17.0...v0.18.0) (2025-08-18)
+
+
+### Features
+
+* Добавить переводы для FieldType ([74ef49c](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/74ef49c2cf262287cce2c1095794c29006063441))
+
 # [0.17.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.16.1...v0.17.0) (2025-08-18)
 
 
