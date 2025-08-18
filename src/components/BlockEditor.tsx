@@ -94,8 +94,8 @@ export function BlockSettings(
             fullWidth
           />
           <TextField
-            title="Высота виджета"
-            label="Высота виджета (px)"
+            title="Высота заглушки для виджета"
+            label="Высота заглушки для виджета (px)"
             type="number"
             value={props.block.props.height}
             onChange={(e) => {

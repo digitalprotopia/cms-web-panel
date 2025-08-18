@@ -44,7 +44,7 @@ export const BlockEditorWidget = createReactBlockSpec(
       },
       height: {
         type: 'string',
-        default: '1',
+        default: '',
       },
     },
     content: 'inline',

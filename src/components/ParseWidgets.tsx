@@ -601,10 +601,11 @@ export function PageWidget(props: {
     return (
       <div>
         <Skeleton
-          variant="rectangular"
-          width="100%"
-          height={props.blockProps?.height}
-          sx={{ borderRadius: '4px' }}
+          variant="rounded"
+          style={{
+            width: '100%',
+            height: props.blockProps?.height || 200,
+          }}
         />
       </div>
     );
