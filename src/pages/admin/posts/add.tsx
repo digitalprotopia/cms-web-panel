@@ -1,6 +1,7 @@
-import PostEditForm from '@/components/forms/PostEditForm';
-import { Typography } from '@mui/material';
 import { useRouter } from 'next/router';
+import { Typography } from '@mui/material';
+
+import PostEditForm from '@/components/forms/PostEditForm';
 
 export default function PostAddPost() {
   const router = useRouter();

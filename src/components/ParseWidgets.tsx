@@ -447,10 +447,17 @@ function WidgetStyle(
     children: React.JSX.Element,
     cssClass?: string,
     style?: string,
-    widgetId: string,
+    widgetId?: string,
   },
 ) {
   let style;
+  /*
+  todo: Пофиксить возможный баг при undefined widgetId (class: widget-undefined).
+    Варианты проявления бага:
+    * стиль применяется ко множеству виджетов.
+    Вариант решения:
+    * если виджет новый и id undefined, то сперва сохранить виджет, чтобы получить id
+    * потом обновить стиль и разметку использовав id. */
   const className = `widget-${props.widgetId}`;
   // Если нужно применять стиль, применить класс с id виджета к стилю виджета и элементу потомку.
   if (props.style) {
@@ -481,7 +488,7 @@ function WidgetStyle(
 
 export function RenderWidget(
   props: {
-    widgetId: string,
+    widgetId?: string,
     widgetViewType: string,
     html: string,
     fields: TableField[],

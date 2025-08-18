@@ -5,7 +5,7 @@ import { Menu } from '@mantine/core';
 import { WidgetsOutlined } from '@mui/icons-material';
 import Link from 'next/link';
 
-import { IWidget } from '../../entities/IWidget';
+import { IWidgetGraphQL as IWidget } from '../../entities/IWidget';
 // eslint-disable-next-line import/no-cycle
 import { PageWidget } from '../../ParseWidgets';
 import { BlockSettings } from '../../BlockEditor';
