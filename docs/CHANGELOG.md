@@ -1,3 +1,10 @@
+## [0.16.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.16.0...v0.16.1) (2025-08-18)
+
+
+### Bug Fixes
+
+* Client secret field ([61be8e7](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/61be8e7a9369097667ad0f5e89e96bcf579a0a96))
+
 # [0.16.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.15.1...v0.16.0) (2025-08-14)
 
 
