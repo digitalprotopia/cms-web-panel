@@ -4,7 +4,7 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar, enqueueSnackbar } from 'notistack';
-import { Button, Typography } from '@mui/material';
+import { Button, Typography, Skeleton } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
@@ -551,25 +551,26 @@ export function RenderWidget(
 
 export function PageWidget(props: {
   widgetName: string;
+  blockProps?: { type: string; cssClass?: string; height?: string };
 }) {
   const { data } = useQuery(gql`
-          query($name: String!) {
-              getWidgetByName(name: $name) {
-                  id
-                  name
-                  widgetViewType
-                  cssClass
-                  template {
-                      html
-                      language
-                      css
-                  }
-                  tableView {
-                      tableId
-                  }
-              }
-          }
-      `, {
+    query($name: String!) {
+      getWidgetByName(name: $name) {
+        id
+        name
+        widgetViewType
+        cssClass
+        template {
+          html
+          language
+          css
+        }
+        tableView {
+          tableId
+        }
+      }
+    }
+  `, {
     variables: { name: props.widgetName },
   });
 
@@ -597,16 +598,15 @@ export function PageWidget(props: {
   const table = useTable(data?.getWidgetByName?.tableView.tableId, params);
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
-    return null;
     return (
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'center',
-        }}
-      >
-        <Mui.CircularProgress />
+      <div>
+        <Skeleton
+          variant="rounded"
+          style={{
+            width: '100%',
+            height: props.blockProps?.height || 200,
+          }}
+        />
       </div>
     );
   }
@@ -618,7 +618,7 @@ export function PageWidget(props: {
       resultData = table.data.filter(filter);
     }
   } catch {
-    //
+    // Handle filter errors silently
   }
 
   return (
@@ -629,7 +629,7 @@ export function PageWidget(props: {
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
-      cssClass={data.getWidgetByName.cssClass || ''}
+      cssClass={props.blockProps?.cssClass || data.getWidgetByName.cssClass || ''}
       style={data.getWidgetByName.template.css}
     />
   );

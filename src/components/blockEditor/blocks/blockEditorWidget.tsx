@@ -42,6 +42,10 @@ export const BlockEditorWidget = createReactBlockSpec(
         type: 'string',
         default: '',
       },
+      height: {
+        type: 'string',
+        default: '',
+      },
     },
     content: 'inline',
   },
@@ -120,7 +124,16 @@ export const BlockEditorWidget = createReactBlockSpec(
             }}
             className={props.block.props.cssClass || undefined}
           >
-            {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
+            {props.block.props.type ? (
+              <PageWidget
+                widgetName={props.block.props.type}
+                blockProps={{
+                  type: props.block.props.type,
+                  cssClass: props.block.props.cssClass,
+                  height: props.block.props.height,
+                }}
+              />
+            ) : null}
           </div>
         </div>
       );
