@@ -576,6 +576,7 @@ function TablePage() {
             name: field.name,
             dbName: field.dbName,
           });
+          const { t } = useTranslation();
           return (
             <div
               onClick={(e) => {
@@ -614,7 +615,7 @@ function TablePage() {
                   <div className="text-sm">
                     Тип:
                     {' '}
-                    {field.type}
+                    {t(field.type)}
                   </div>
                   <h4>Редактировать поле</h4>
                   <TextField
