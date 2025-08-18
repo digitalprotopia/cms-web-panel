@@ -14,6 +14,6 @@ export interface IWidget extends IEntity {
   tableViewId: string;
   templateId: string;
   cssClass: string;
-  height: number
+  // height: number
   // TODO: Доступы
 }
