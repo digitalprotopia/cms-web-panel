@@ -1,3 +1,10 @@
+# [0.19.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.18.0...v0.19.0) (2025-08-18)
+
+
+### Features
+
+* Widget edit history ([62f0f08](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/62f0f083e23adac10ec18b0ef6d1b0574d7095a7))
+
 # [0.18.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.17.0...v0.18.0) (2025-08-18)
 
 
