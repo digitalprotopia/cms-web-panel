@@ -1,3 +1,10 @@
+# [0.17.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.16.1...v0.17.0) (2025-08-18)
+
+
+### Features
+
+* Widget preview ([9862665](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/9862665a8f837cc078f6970f0ee14c675f6668e8))
+
 ## [0.16.1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.16.0...v0.16.1) (2025-08-18)
 
 
