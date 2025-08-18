@@ -30,6 +30,8 @@ import { ISiteItem } from '@/components/entities/ISiteItem';
 import { YMaps } from '@pbe/react-yandex-maps';
 import { PageProvider } from '@/components/PageContext';
 
+import '../i18n/i18n';
+
 declare global {
   interface Window {
     config: Config;
