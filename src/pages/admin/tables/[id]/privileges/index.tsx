@@ -134,9 +134,6 @@ function PrivilegesPage() {
           </TableHead>
           <TableBody>
             {rolesData.getRoles.map(({ id, name, title }: IRole) => {
-              if (name === 'admin') {
-                return null;
-              }
               const privileges: Partial<ITablePrivilege>[] = privilegesState[id] || [];
               return (
                 <TableRow key={id}>
