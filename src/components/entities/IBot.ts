@@ -10,4 +10,5 @@ export interface IBot extends IEntity {
   platformID: string;
   idInPlatform: string;
   clientId: string;
+  isAutoRegister: string;
 }

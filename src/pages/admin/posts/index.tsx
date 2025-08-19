@@ -1,20 +1,21 @@
+import dayjs from 'dayjs';
 import React from 'react';
+import Link from 'next/link';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
+  AccessTime, Delete, Edit,
+} from '@mui/icons-material';
+import {
+  Button,
   Card,
   CardContent,
   CardHeader,
-  Button,
+  CircularProgress,
   IconButton,
   Typography,
-  CircularProgress,
 } from '@mui/material';
-import {
-  Edit, AccessTime, Delete,
-} from '@mui/icons-material';
-import dayjs from 'dayjs';
+
 import { IPost } from '@/components/entities/IPost';
-import Link from 'next/link';
 
 const GET_POSTS = gql`
   query GetPosts {
