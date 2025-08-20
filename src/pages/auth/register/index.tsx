@@ -15,12 +15,6 @@ const SIGN_UP = gql`
   }
 `;
 
-const CREATE_FILE = gql`
-  mutation CreateFile($input: FileInput!) {
-    createFile(input: $input) { id }
-  }
-`;
-
 export function Register() {
   const [registerForm, setRegisterForm] = useState({
     name: '',
@@ -33,7 +27,6 @@ export function Register() {
     avatarName: '' as string,
   });
   const [signUp] = useMutation(SIGN_UP);
-  const [createFile] = useMutation(CREATE_FILE);
   const { enqueueSnackbar } = useSnackbar();
 
   return (
@@ -183,11 +176,6 @@ export function Register() {
             }
           onClick={async () => {
             try {
-              let avatarId: string | undefined;
-              if (registerForm.avatarFile) {
-                const res = await createFile({ variables: { input: { name: registerForm.avatarName || 'avatar.png', file: registerForm.avatarFile } } });
-                avatarId = res.data?.createFile?.id;
-              }
               await signUp({
                 variables: {
                   user: {
@@ -195,7 +183,15 @@ export function Register() {
                     email: registerForm.email,
                     password: registerForm.password,
                     ...(registerForm.phone ? { phone: registerForm.phone } : {}),
-                    ...(avatarId ? { avatarId } : {}),
+                    ...(registerForm.avatarFile
+                      ? {
+                        avatar: {
+                          name: registerForm.avatarName || 'avatar.png',
+                          file: registerForm.avatarFile,
+                          type: 'userPic',
+                        },
+                      }
+                      : {}),
                   },
                 },
                 onCompleted: () => {

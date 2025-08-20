@@ -22,14 +22,7 @@ const EDIT_ME = gql`
     }
   `;
 
-const CREATE_FILE = gql`
-  mutation CreateFile($input: FileInput!) {
-    createFile(input: $input) { 
-      id
-      type 
-    }
-  }
-`;
+// standalone file creation is no longer used for avatar updates on this page
 
 const CHANGE_PASSWORD = gql`
   mutation($oldPassword: String!, $newPassword: String!) {
@@ -70,7 +63,6 @@ export default function Account() {
   const [avatarName, setAvatarName] = useState<string>('');
 
   const [editMe] = useMutation(EDIT_ME);
-  const [createFile] = useMutation(CREATE_FILE);
   const [changePassword] = useMutation(CHANGE_PASSWORD);
   const [sendEmailConfirmationLink] = useMutation(SEND_EMAIL_CONFIRMATION_LINK);
 
@@ -221,23 +213,21 @@ export default function Account() {
               onClick={async () => {
                 if (!avatarFile) return;
                 const fileB64 = await toBase64(avatarFile);
-                const res = await createFile({
+                await editMe({
                   variables: {
-                    input: {
-                      name: avatarFile.name,
-                      file: fileB64,
-                      type: 'userPic',
+                    user: {
+                      avatar: {
+                        name: avatarFile.name,
+                        file: fileB64,
+                        type: 'userPic',
+                      },
                     },
                   },
                 });
-                const newId = res.data?.createFile?.id as string;
-                if (newId) {
-                  await editMe({ variables: { user: { avatarId: newId } } });
-                  await user.refetch();
-                  enqueueSnackbar('Аватар обновлён', { variant: 'success' });
-                  setAvatarFile(null);
-                  setAvatarName('');
-                }
+                await user.refetch();
+                enqueueSnackbar('Аватар обновлён', { variant: 'success' });
+                setAvatarFile(null);
+                setAvatarName('');
               }}
             >
               Сохранить
