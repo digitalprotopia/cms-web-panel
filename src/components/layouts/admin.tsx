@@ -55,6 +55,11 @@ const menuItems: ISidebarItem[] = [
     href: '/admin/accounts',
   },
   {
+    icon: PeopleAltOutlined,
+    label: 'Роли',
+    href: '/admin/roles',
+  },
+  {
     icon: ArticleOutlined,
     label: 'Записи',
     href: '/admin/posts',
