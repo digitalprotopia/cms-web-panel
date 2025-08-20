@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Button,
   CircularProgress,
@@ -20,6 +20,7 @@ import BlockEditor from '../BlockEditor';
 import { flattenIndexedTree, ItemWithParentId, makeIndexedTree } from '../guiElements/Tree';
 import { IRole } from '../entities/IRole';
 import PostHistoryDialog from '../dialogs/PostHistoryDialog';
+import FileDialog from '../FileDialog';
 
 const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {
@@ -53,7 +54,7 @@ interface PostFormProps {
 }
 
 export default function PostForm({ id, onClose }: PostFormProps) {
-  const [formData, setFormData] = useState<Partial<IPost>>({
+  const [formData, setFormData] = useState<Partial<IPost> & { image?: string | null }>({
     title: '',
     content: '',
     blockContent: [],
@@ -61,11 +62,22 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     tags: [],
     categoryIds: [],
     roleIds: [],
+    image: id ? localStorage.getItem(`post-${id}-image`) || null : null, // Восстанавливаем image из localStorage
   });
 
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
+
+  useEffect(() => {
+    if (id && formData.image !== undefined) {
+      if (formData.image) {
+        localStorage.setItem(`post-${id}-image`, formData.image);
+      } else {
+        localStorage.removeItem(`post-${id}-image`);
+      }
+    }
+  }, [id, formData.image]);
 
   const handleSelectedPost = (selectedPost: {
     title: string;
@@ -139,6 +151,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         tags: data.getPost.tags.map((tag: ITag) => tag.title),
         categoryIds: data.getPost.categories.map((category: ICategory) => category.id),
         roleIds: data.getPost.roles.map((role: IRole) => role.id),
+        image: id ? localStorage.getItem(`post-${id}-image`) || null : null,
       });
     },
   });
@@ -168,16 +181,20 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     }),
   );
 
-  const handleCreate = async (_formData: Partial<IPost>) => {
-    await createPost({ variables: { input: _formData } });
+  const handleCreate = async (_formData: Partial<IPost> & { image?: string | null }) => {
+    // Исключаем image из данных, отправляемых на сервер
+    const { image, ...inputData } = _formData;
+    await createPost({ variables: { input: inputData } });
     onClose();
   };
 
-  const handleUpdate = async (_formData: Partial<IPost>) => {
+  const handleUpdate = async (_formData: Partial<IPost> & { image?: string | null }) => {
+    // Исключаем image из данных, отправляемых на сервер
+    const { image, ...inputData } = _formData;
     await updatePost({
       variables: {
         id,
-        input: _formData,
+        input: inputData,
       },
     });
     onClose();
@@ -279,6 +296,16 @@ export default function PostForm({ id, onClose }: PostFormProps) {
             />
           </div>
         </div>
+
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <h4>Изображение поста</h4>
+          <FileDialog
+            fileId={formData.image}
+            onChange={(image) => {
+              setFormData({ ...formData, image });
+            }}
+          />
+        </Stack>
 
         <h4>Блочный редактор</h4>
         <BlockEditor
