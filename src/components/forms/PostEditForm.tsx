@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Button,
   CircularProgress,
@@ -20,7 +20,7 @@ import BlockEditor from '../BlockEditor';
 import { flattenIndexedTree, ItemWithParentId, makeIndexedTree } from '../guiElements/Tree';
 import { IRole } from '../entities/IRole';
 import PostHistoryDialog from '../dialogs/PostHistoryDialog';
-import FileDialog from '../FileDialog';
+import FileDialog from '../FileDialog'; // Импорт из src\components\FileDialog.tsx
 
 const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {
@@ -30,6 +30,7 @@ const CREATE_POST = gql`
       content
       blockContent
       preview
+      file
       createdAt
     }
   }
@@ -43,6 +44,7 @@ const UPDATE_POST = gql`
       content
       preview
       blockContent
+      file
       createdAt
     }
   }
@@ -54,35 +56,24 @@ interface PostFormProps {
 }
 
 export default function PostForm({ id, onClose }: PostFormProps) {
-  const [formData, setFormData] = useState<Partial<IPost> & { image?: string | null }>({
+  const [formData, setFormData] = useState<Partial<IPost>>({
     title: '',
     content: '',
     blockContent: [],
     preview: '',
+    file: null,
     tags: [],
     categoryIds: [],
     roleIds: [],
-    image: id ? localStorage.getItem(`post-${id}-image`) || null : null, // Восстанавливаем image из localStorage
   });
 
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
-
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
-
-  useEffect(() => {
-    if (id && formData.image !== undefined) {
-      if (formData.image) {
-        localStorage.setItem(`post-${id}-image`, formData.image);
-      } else {
-        localStorage.removeItem(`post-${id}-image`);
-      }
-    }
-  }, [id, formData.image]);
 
   const handleSelectedPost = (selectedPost: {
     title: string;
     blockContent: any;
-    preview: string
+    preview: string;
   }) => {
     if (editor !== null) {
       editor.replaceBlocks(editor.document, selectedPost.blockContent);
@@ -124,6 +115,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         content
         blockContent
         preview
+        file
         createdAt
         categories {
           id
@@ -148,10 +140,10 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         content: data.getPost.content,
         blockContent: data.getPost.blockContent,
         preview: data.getPost.preview,
+        file: data.getPost.file,
         tags: data.getPost.tags.map((tag: ITag) => tag.title),
         categoryIds: data.getPost.categories.map((category: ICategory) => category.id),
         roleIds: data.getPost.roles.map((role: IRole) => role.id),
-        image: id ? localStorage.getItem(`post-${id}-image`) || null : null,
       });
     },
   });
@@ -168,33 +160,30 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     },
   });
 
-  const categoriesWithParentIds: ItemWithParentId[] = linkData.data?.getCategories
-    .map((category: ICategory) => ({
+  const categoriesWithParentIds: ItemWithParentId[] = linkData.data?.getCategories?.map(
+    (category: ICategory) => ({
       ...category,
       parentId: category.parentCategory?.id,
-    }));
+    }),
+  );
 
-  const roles: Option[] | undefined = linkData.data?.getRoles.map(
+  const roles: Option[] | undefined = linkData.data?.getRoles?.map(
     (role: IRole) => ({
       id: role.id,
       name: role.name,
     }),
   );
 
-  const handleCreate = async (_formData: Partial<IPost> & { image?: string | null }) => {
-    // Исключаем image из данных, отправляемых на сервер
-    const { image, ...inputData } = _formData;
-    await createPost({ variables: { input: inputData } });
+  const handleCreate = async (_formData: Partial<IPost>) => {
+    await createPost({ variables: { input: _formData } });
     onClose();
   };
 
-  const handleUpdate = async (_formData: Partial<IPost> & { image?: string | null }) => {
-    // Исключаем image из данных, отправляемых на сервер
-    const { image, ...inputData } = _formData;
+  const handleUpdate = async (_formData: Partial<IPost>) => {
     await updatePost({
       variables: {
         id,
-        input: inputData,
+        input: _formData,
       },
     });
     onClose();
@@ -271,20 +260,19 @@ export default function PostForm({ id, onClose }: PostFormProps) {
               multiple
               label="Категории"
               value={formData.categoryIds}
-              options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds))
-                .map((category) => ({
+              options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds))?.map(
+                (category) => ({
                   id: category.id,
                   name: category.title,
                   level: category.level,
-                }))}
+                }),
+              )}
               onChange={(categoryIds) => setFormData({
                 ...formData,
                 categoryIds: categoryIds as string[],
               })}
               renderOption={(option) => (
-                <div style={{ paddingLeft: option.level * 20 }}>
-                  {option.name}
-                </div>
+                <div style={{ paddingLeft: option.level * 20 }}>{option.name}</div>
               )}
             />
             <S3Autocomplete
@@ -297,12 +285,13 @@ export default function PostForm({ id, onClose }: PostFormProps) {
           </div>
         </div>
 
-        <Stack direction="row" alignItems="center" spacing={2}>
+        {/* Поле для выбора изображения поста */}
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
           <h4>Изображение поста</h4>
           <FileDialog
-            fileId={formData.image}
-            onChange={(image) => {
-              setFormData({ ...formData, image });
+            fileId={formData.file}
+            onChange={(file) => {
+              setFormData({ ...formData, file });
             }}
           />
         </Stack>
