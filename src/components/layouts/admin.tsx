@@ -229,7 +229,9 @@ export default function AdminLayout({
                       flexItem
                     />
                     <div className="flex items-center gap-2">
-                      <Avatar className="size-8 text-sm">{getInitials(user.user.name)}</Avatar>
+                      <Avatar className="size-8 text-sm" src={user.user?.avatar?.id ? `${window.config.server}/download/?id=${user.user.avatar.id}&mode=view` : undefined}>
+                        {(!user.user?.avatar?.id) ? getInitials(user.user.name) : null}
+                      </Avatar>
                       <Button
                         variant="text"
                         className="normal-case text-cms-gray-dark !text-base"
