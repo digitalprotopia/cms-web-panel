@@ -45,7 +45,7 @@ export default function Account() {
   const user = useContext(UserContext);
 
   const [form, setForm] = useState({
-    name: user.user?.name,
+    name: user.user?.name || '',
     phone: user.user?.phone || '',
     email: '',
     password: '',
@@ -219,7 +219,6 @@ export default function Account() {
                       avatar: {
                         name: avatarFile.name,
                         file: fileB64,
-                        type: 'userPic',
                       },
                     },
                   },

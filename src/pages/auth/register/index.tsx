@@ -188,7 +188,6 @@ export function Register() {
                         avatar: {
                           name: registerForm.avatarName || 'avatar.png',
                           file: registerForm.avatarFile,
-                          type: 'userPic',
                         },
                       }
                       : {}),
