@@ -17,7 +17,11 @@ import {
   Popover,
   MenuItem,
   Select,
-  InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
+  InputLabel,
+  DialogTitle,
+  DialogContent,
+  Dialog,
+  DialogActions,
 } from '@mui/material';
 import {
   Add,
@@ -43,9 +47,11 @@ import {
   IFieldSlugOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
+import { useSnackbar } from 'notistack';
+import FieldPrivilegesDialog from '@/components/dialogs/FieldPrivilegeDialog';
+import { useTranslation } from 'react-i18next'; // add by Roman 05.07.25 for i18mext translations
 import useTable, {
   TableField,
   TableMeta,
@@ -337,6 +343,7 @@ interface AddFieldProps {
 }
 
 function AddField({ onClose, refetch, meta }: AddFieldProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<Partial<IField>>({
     name: '',
     dbName: '',
@@ -443,7 +450,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
               FieldType.MANY_TO_MANY_SECOND].includes(key))
             .map((key) => (
               <MenuItem key={key} value={key}>
-                {key}
+                {t(key)}
               </MenuItem>
             ))}
         </Select>
@@ -566,6 +573,8 @@ function TablePage() {
 
   const fields = meta?.fields ? [...meta.fields] : [];
   fields.sort((a, b) => a.position - b.position);
+  const [isFieldPrivilegesDialogOpen, setIsFieldPrivilegesDialogOpen] = useState(false);
+  const [selectedField, setSelectedField] = useState<IField | null>(null);
 
   const columns = useMemo(() => {
     // if (!meta?.fields) return [];
@@ -622,6 +631,7 @@ function TablePage() {
             name: field.name,
             dbName: field.dbName,
           });
+          const { t } = useTranslation();
           return (
             <div
               onClick={(e) => {
@@ -653,14 +663,14 @@ function TablePage() {
               >
                 <div className="p-4">
                   <div className="text-sm">
-                    Службеное название:
+                    Служебное название:
                     {' '}
                     {field.dbName}
                   </div>
                   <div className="text-sm">
                     Тип:
                     {' '}
-                    {field.type}
+                    {t(field.type)}
                   </div>
                   <h4>Редактировать поле</h4>
                   <TextField
@@ -689,6 +699,19 @@ function TablePage() {
                   >
                     Редактировать
                   </Button>
+                  <div>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setSelectedField(field);
+                        setDropDownOpen(false);
+                        setIsFieldPrivilegesDialogOpen(true);
+                      }}
+                      style={{ marginTop: '8px', display: 'none' }}
+                    >
+                      Редактировать права поля
+                    </Button>
+                  </div>
                   <h4>Удалить поле</h4>
                   <Button
                     variant="contained"
@@ -956,6 +979,14 @@ function TablePage() {
         <div className="flex gap-4">
           <Button
             variant="contained"
+            color="primary"
+            onClick={() => router.push(`/admin/tables/${id}/privileges`)}
+            className="normal-case"
+          >
+            Настроить права
+          </Button>
+          <Button
+            variant="contained"
             onClick={handleExportCSV}
             className="normal-case"
             startIcon={<Download />}
@@ -1043,6 +1074,11 @@ function TablePage() {
       />
 
       <AddRowForm meta={meta} refetch={handleRefetch} />
+      <FieldPrivilegesDialog
+        open={isFieldPrivilegesDialogOpen}
+        onClose={() => setIsFieldPrivilegesDialogOpen(false)}
+        field={selectedField}
+      />
     </div>
   );
 }
