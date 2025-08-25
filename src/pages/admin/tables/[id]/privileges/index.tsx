@@ -26,6 +26,17 @@ query GetPrivilegesByTableId($tableId: String!) {
 }
 `;
 
+const GET_TABLE = gql`
+query GetTable($id: ID!) {
+    getTable(id: $id) {
+        id
+        name
+        dbName
+        isSystem
+    }
+}
+`;
+
 const UPDATE_PRIVILEGES = gql`
 mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [PrivilegeInput!]!) {
     updatePrivileges(tableId: $tableId, roleId: $roleId, privileges: $privileges)
@@ -41,6 +52,9 @@ function PrivilegesPage() {
     loading: privilegesLoading,
     error: privilegesError,
     refetch } = useQuery(GET_PRIVILEGES, { variables: { tableId } });
+  const { data: tableData,
+    loading: tableLoading,
+    error: tableError } = useQuery(GET_TABLE, { variables: { id: tableId } });
   const [updatePrivileges] = useMutation(UPDATE_PRIVILEGES);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -104,7 +118,7 @@ function PrivilegesPage() {
     }
   };
 
-  if (rolesLoading || privilegesLoading) return <p>Loading...</p>;
+  if (rolesLoading || privilegesLoading || tableLoading) return <p>Loading...</p>;
   if (rolesError) {
     return (
       <p>
@@ -121,9 +135,21 @@ function PrivilegesPage() {
       </p>
     );
   }
+  if (tableError) {
+    return (
+      <p>
+        Error:
+        {tableError.message}
+      </p>
+    );
+  }
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
+      <h2 className="text-2xl font-semibold">
+        {'Права таблицы '}
+        {tableData.getTable.name}
+      </h2>
       <TableContainer>
         <Table>
           <TableHead>
@@ -140,15 +166,21 @@ function PrivilegesPage() {
                   <TableCell>{title}</TableCell>
                   <TableCell>
                     <FormGroup>
-                      {Object.values(Privilege).map((priv) => {
-                        const isChecked = privileges.some((p) => p.privilege === priv);
-                        const onlyCreatorChecked = privileges.some(
-                          (p) => p.privilege === priv && p.onlyCreator,
-                        );
-                        return (
-                          <div key={priv} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <FormControlLabel
-                              control={
+                      {Object.values(Privilege).filter((priv) => {
+                        if (tableData.getTable.isSystem) {
+                          return priv !== Privilege.CREATE && priv !== Privilege.DELETE;
+                        }
+                        return true;
+                      })
+                        .map((priv) => {
+                          const isChecked = privileges.some((p) => p.privilege === priv);
+                          const onlyCreatorChecked = privileges.some(
+                            (p) => p.privilege === priv && p.onlyCreator,
+                          );
+                          return (
+                            <div key={priv} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <FormControlLabel
+                                control={
                                 (<Checkbox
                                   checked={isChecked}
                                   onChange={
@@ -156,11 +188,11 @@ function PrivilegesPage() {
 }
                                 />)
                                                             }
-                              label={priv}
-                              style={{ flex: 1 }}
-                            />
-                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-100px' }}>
-                              {name !== 'guest' && priv !== Privilege.CREATE && isChecked && (
+                                label={priv}
+                                style={{ flex: 1 }}
+                              />
+                              <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-100px' }}>
+                                {name !== 'guest' && priv !== Privilege.CREATE && isChecked && (
                                 <FormControlLabel
                                   control={
                                     (<Checkbox
@@ -172,11 +204,11 @@ function PrivilegesPage() {
                                     }
                                   label="Только владелец"
                                 />
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </FormGroup>
                   </TableCell>
                 </TableRow>
