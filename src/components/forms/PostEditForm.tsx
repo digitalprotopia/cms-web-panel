@@ -30,7 +30,7 @@ const CREATE_POST = gql`
       content
       blockContent
       preview
-      file
+      pictureFileId
       createdAt
     }
   }
@@ -44,7 +44,7 @@ const UPDATE_POST = gql`
       content
       preview
       blockContent
-      file
+      pictureFileId
       createdAt
     }
   }
@@ -61,7 +61,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     content: '',
     blockContent: [],
     preview: '',
-    file: null,
+    pictureFileId: null,
     tags: [],
     categoryIds: [],
     roleIds: [],
@@ -115,7 +115,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         content
         blockContent
         preview
-        file
+        pictureFileId
         createdAt
         categories {
           id
@@ -140,7 +140,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         content: data.getPost.content,
         blockContent: data.getPost.blockContent,
         preview: data.getPost.preview,
-        file: data.getPost.file,
+        pictureFileId: data.getPost.pictureFileId,
         tags: data.getPost.tags.map((tag: ITag) => tag.title),
         categoryIds: data.getPost.categories.map((category: ICategory) => category.id),
         roleIds: data.getPost.roles.map((role: IRole) => role.id),
@@ -289,9 +289,9 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
           <h4>Изображение поста</h4>
           <FileDialog
-            fileId={formData.file}
-            onChange={(file) => {
-              setFormData({ ...formData, file });
+            fileId={formData.pictureFileId}
+            onChange={(pictureFileId) => {
+              setFormData({ ...formData, pictureFileId });
             }}
           />
         </Stack>
