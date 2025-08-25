@@ -1,9 +1,13 @@
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import Head from 'next/head';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { Button, TextField } from '@mui/material';
 import { useSnackbar } from 'notistack';
+import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
+// import { AccountCircle, Delete } from '@mui/icons-material';
 import { AccountCircle } from '@mui/icons-material';
+import dayjs from 'dayjs';
+
 import UserContext from '@/components/UserContext';
 
 const EDIT_ME = gql`
@@ -50,6 +54,51 @@ export default function Account() {
   const [editMe] = useMutation(EDIT_ME);
   const [changePassword] = useMutation(CHANGE_PASSWORD);
   const [sendEmailConfirmationLink] = useMutation(SEND_EMAIL_CONFIRMATION_LINK);
+
+  const { loading, data } = useQuery(gql`
+    query GetSessionsByUserId($userId: ID!) {
+      getSessionsByUserId(userId: $userId) {
+        id
+        deviceUserName
+        createdAt
+      }
+    }
+  `, {
+    variables: { userId: user.user?.id },
+    skip: !user.user?.id,
+  });
+
+  const columns: MRT_ColumnDef<any, any>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        size: 400,
+      },
+      {
+        accessorKey: 'deviceUserName',
+        header: 'Имя устройства',
+        size: 250,
+        Cell: ({ row }) => (
+          <div className="text-base">
+            {row.original.deviceUserName}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Дата и время начала сессии',
+        size: 310,
+        Cell: ({ row }: { row: any }) => (
+          <div className="text-base">
+            {dayjs(row.original.createdAt).format('DD.MM.YYYY HH:mm:ss')}
+          </div>
+        ),
+      },
+
+    ],
+    [],
+  );
 
   return (
     <div className="size-full">
@@ -209,6 +258,42 @@ export default function Account() {
             </Button>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col bg-white rounded p-5 shadow-lg w-full grow">
+        {/* <span className="text-black/60 text-xl font-medium mb-6">
+          УПРАВЛЕНИЕ СЕССИЯМИ
+        </span> */}
+        {loading ? <div>Loading...</div> : (
+          <MaterialReactTable
+            columns={columns}
+            data={data?.getSessionsByUserId || []}
+            enableColumnResizing
+            enableFullScreenToggle={false}
+            enableDensityToggle
+            enableColumnFilters
+            enablePagination
+            enableSorting
+            initialState={{
+              columnVisibility: {
+                id: false,
+              },
+            }}
+            muiTableProps={{
+              sx: {
+                tableLayout: 'fixed',
+                '& .MuiTableHead-root .MuiTableCell-head': { fontSize: 16 },
+              },
+            }}
+            renderTopToolbarCustomActions={() => (
+              <div className="p-3">
+                <h1 className="text-black/60 text-xl font-medium mb-6">УПРАВЛЕНИЕ СЕССИЯМИ</h1>
+              </div>
+            )}
+          />
+        )}
+
+        {/* <Delete /> */}
       </div>
     </div>
   );
