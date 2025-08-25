@@ -70,6 +70,8 @@ const GET_ME = gql`
     me {
       id
       name
+      phone
+      avatar { id extension }
       role {
         id
         name
