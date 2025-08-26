@@ -1,11 +1,10 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
 import Head from 'next/head';
 import { useContext, useMemo, useState } from 'react';
-import { Button, TextField } from '@mui/material';
+import { Button, TextField, IconButton } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
-// import { AccountCircle, Delete } from '@mui/icons-material';
-import { AccountCircle } from '@mui/icons-material';
+import { AccountCircle, Delete } from '@mui/icons-material';
 import dayjs from 'dayjs';
 
 import UserContext from '@/components/UserContext';
@@ -34,6 +33,12 @@ const SEND_EMAIL_CONFIRMATION_LINK = gql`
   }
 `;
 
+const DELETE_SESSION = gql`
+  mutation DeleteSession($id: ID!) {
+    deleteSession(id: $id)
+  }
+`;
+
 export default function Account() {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -54,8 +59,9 @@ export default function Account() {
   const [editMe] = useMutation(EDIT_ME);
   const [changePassword] = useMutation(CHANGE_PASSWORD);
   const [sendEmailConfirmationLink] = useMutation(SEND_EMAIL_CONFIRMATION_LINK);
+  const [deleteSession] = useMutation(DELETE_SESSION);
 
-  const { loading, data } = useQuery(gql`
+  const { loading, data, refetch } = useQuery(gql`
     query GetSessionsByUserId($userId: ID!) {
       getSessionsByUserId(userId: $userId) {
         id
@@ -95,9 +101,29 @@ export default function Account() {
           </div>
         ),
       },
-
+      {
+        accessorKey: 'actions',
+        header: 'Действия',
+        size: 175,
+        Cell: ({ row }: { row: any }) => (
+          <IconButton
+            size="small"
+            onClick={async () => {
+              try {
+                await deleteSession({ variables: { id: row.original.id } });
+                await refetch();
+                enqueueSnackbar('Сессия удалена', { variant: 'success' });
+              } catch (e: any) {
+                enqueueSnackbar(e.message || 'Не удалось удалить сессию', { variant: 'error' });
+              }
+            }}
+          >
+            <Delete />
+          </IconButton>
+        ),
+      },
     ],
-    [],
+    [deleteSession, refetch, enqueueSnackbar],
   );
 
   return (
