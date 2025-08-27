@@ -6,6 +6,8 @@ import { useSnackbar } from 'notistack';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 import { AccountCircle, Delete } from '@mui/icons-material';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
 import UserContext from '@/components/UserContext';
 
@@ -41,6 +43,9 @@ const DELETE_SESSION = gql`
 
 export default function Account() {
   const { enqueueSnackbar } = useSnackbar();
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const user = useContext(UserContext);
 
@@ -97,7 +102,7 @@ export default function Account() {
         size: 310,
         Cell: ({ row }: { row: any }) => (
           <div className="text-base">
-            {dayjs(row.original.createdAt).format('DD.MM.YYYY HH:mm:ss')}
+            {dayjs.tz(row.original.createdAt, browserTz).format('DD.MM.YYYY HH:mm:ss')}
           </div>
         ),
       },
