@@ -32,6 +32,9 @@ const CREATE_POST = gql`
       preview
       pictureFileId
       createdAt
+
+
+      
     }
   }
 `;
