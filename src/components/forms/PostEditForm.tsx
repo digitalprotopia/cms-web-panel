@@ -290,7 +290,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         <Stack direction="column" spacing={2} sx={{ mb: 2 }}>
           <h4>Изображение поста</h4>
           {formData.pictureFileId ? (
-            <div style={{ position: 'relative', display: 'block', maxWidth: '600px' }}>
+            <div style={{ position: 'relative', display: 'block', maxWidth: '400px' }}>
               <img
                 src={`${window.config.server}/download/?id=${formData.pictureFileId}`}
                 alt="Post"
