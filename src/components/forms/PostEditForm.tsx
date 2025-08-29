@@ -297,7 +297,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
                 style={{
                   width: '100%',
                   height: 'auto',
-                  maxWidth: '600px',
+                  maxWidth: '400px',
                   objectFit: 'contain',
                   marginBottom: '10px',
                 }}
