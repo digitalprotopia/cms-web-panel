@@ -7,6 +7,7 @@ import {
   Typography,
   IconButton,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close'; // Импорт иконки крестика
 import HistoryIcon from '@mui/icons-material/History';
 import { MuiChipsInput } from 'mui-chips-input';
 import DefaultEditor from 'react-simple-wysiwyg';
@@ -30,11 +31,8 @@ const CREATE_POST = gql`
       content
       blockContent
       preview
-      pictureFileId
+      pictureFileId 
       createdAt
-
-
-      
     }
   }
 `;
@@ -289,14 +287,45 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         </div>
 
         {/* Поле для выбора изображения поста */}
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+        <Stack direction="column" spacing={2} sx={{ mb: 2 }}>
           <h4>Изображение поста</h4>
-          <FileDialog
-            fileId={formData.pictureFileId}
-            onChange={(pictureFileId) => {
-              setFormData({ ...formData, pictureFileId });
-            }}
-          />
+          {formData.pictureFileId ? (
+            <div style={{ position: 'relative', display: 'block', maxWidth: '600px' }}>
+              <img
+                src={`${window.config.server}/download/?id=${formData.pictureFileId}`}
+                alt="Post"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  maxWidth: '600px',
+                  objectFit: 'contain',
+                  marginBottom: '10px',
+                }}
+              />
+              <IconButton
+                onClick={() => setFormData({ ...formData, pictureFileId: null })}
+                sx={{
+                  position: 'absolute',
+                  top: '5px', // Небольшой отступ от верхнего края
+                  right: '5px', // Небольшой отступ от правого края
+                  color: 'white',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  },
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+          ) : (
+            <FileDialog
+              fileId={formData.pictureFileId}
+              onChange={(pictureFileId) => {
+                setFormData({ ...formData, pictureFileId });
+              }}
+            />
+          )}
         </Stack>
 
         <h4>Блочный редактор</h4>
