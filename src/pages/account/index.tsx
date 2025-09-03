@@ -72,6 +72,7 @@ export default function Account() {
         id
         deviceUserName
         createdAt
+        deviceType
       }
     }
   `, {
@@ -103,6 +104,16 @@ export default function Account() {
         Cell: ({ row }: { row: any }) => (
           <div className="text-base">
             {dayjs.tz(row.original.createdAt, browserTz).format('DD.MM.YYYY HH:mm:ss')}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'deviceType',
+        header: 'Тип устройства',
+        size: 250,
+        Cell: ({ row }) => (
+          <div className="text-base">
+            {row.original.deviceType}
           </div>
         ),
       },

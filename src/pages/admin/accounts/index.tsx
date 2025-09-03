@@ -131,6 +131,7 @@ function AccountsPage() {
         id
         deviceUserName
         createdAt
+        deviceType
       }
     }
   `, {
@@ -216,6 +217,7 @@ function AccountsPage() {
                 <div className="text-black/60">
                   {dayjs.tz(session.createdAt, browserTz).format('DD.MM.YYYY HH:mm:ss')}
                 </div>
+                <div className="text-black/80">{session.deviceType || '—'}</div>
                 <div>
                   <IconButton
                     size="small"
@@ -235,7 +237,7 @@ function AccountsPage() {
               </div>
             ))}
             {selectedUser && (!sessionsData || sessionsData.getSessionsByUserId?.length === 0) && (
-              <div className="text-black/60 py-4">Нет активных сессий</div>
+              <div className="text-black/60 py-4">Нет активных внешних сессий</div>
             )}
           </div>
         </DialogContent>
