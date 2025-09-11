@@ -9,7 +9,7 @@ import {
   Dialog, DialogActions, DialogContent, IconButton, TextField,
 } from '@mui/material';
 import { IRole } from '@/components/entities/IRole';
-import { Edit } from '@mui/icons-material';
+import { Delete, Edit } from '@mui/icons-material';
 
 function EditRole(props: {
   role?: IRole;
@@ -103,12 +103,30 @@ function RolesPage() {
         id
         name
         title
+        isSystem
       }
     }
   `);
 
   const [editDialogId, setEditDialogId] = useState<number | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteRole] = useMutation(gql`
+    mutation($id: ID!) {
+      deleteRole(id: $id)
+    }
+  `);
+  const handleDeleteRole = async (roleId: string) => {
+    try {
+      await deleteRole({
+        variables: { id: roleId },
+        refetchQueries: ['getRoles'],
+      });
+      refetch();
+    } catch (error) {
+      console.error('Ошибка при удалении роли:', error);
+      alert('Не удалось удалить роль');
+    }
+  };
 
   const columns: MRT_ColumnDef<any, any>[] = useMemo(
     () => [
@@ -126,19 +144,50 @@ function RolesPage() {
         accessorKey: 'title',
         header: 'Название',
         size: 150,
-      },
-      {
-        accessorKey: 'id-2',
-        header: '',
         Cell: ({ row }) => (
-          <IconButton
-            onClick={() => {
-              setEditDialogId(row.index);
-              setEditDialogOpen(true);
-            }}
+          <span style={{
+            fontWeight: row.original.isSystem ? 'bold' : 'normal',
+          }}
           >
-            <Edit />
-          </IconButton>
+            {row.original.title}
+            {row.original.isSystem && ' (системная)'}
+          </span>
+        ),
+      },
+
+      {
+        accessorKey: 'actions',
+        header: 'Действия',
+        size: 120,
+        Cell: ({ row }) => (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <IconButton
+              onClick={() => {
+                if (!row.original.isSystem) {
+                  setEditDialogId(row.index);
+                  setEditDialogOpen(true);
+                }
+              }}
+              disabled={row.original.isSystem}
+              title={row.original.isSystem ? 'Системную роль нельзя изменить' : 'Редактировать'}
+            >
+              <Edit />
+            </IconButton>
+            <IconButton
+              onClick={() => {
+                if (!row.original.isSystem) {
+                  if (window.confirm(`Удалить роль "${row.original.title}"?`)) {
+                    handleDeleteRole(row.original.id);
+                  }
+                }
+              }}
+              disabled={row.original.isSystem}
+              title={row.original.isSystem ? 'Системную роль нельзя удалить' : 'Удалить'}
+              color="error"
+            >
+              <Delete />
+            </IconButton>
+          </div>
         ),
       },
     ],

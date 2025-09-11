@@ -2,18 +2,19 @@ import { useMemo, useState } from 'react';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Button, Dialog, DialogContent, MenuItem, TextField } from '@mui/material';
 import { Editor } from '@monaco-editor/react';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import { MaterialReactTable } from 'material-react-table';
+import toBase64 from '@/components/utils/toBase64';
+import Image from 'next/image';
 import { ITemplate, TemplateType } from './entities/ITemplate';
 import { IFile } from './entities/IFile';
-import { toBase64 } from './form';
 import TemplateBlocks from './blockEditor/blocks/templates/TemplateBlocks';
 
 function TemplateFile(props: {
   fileId?: string,
   onChange: (fileId: string, name: string) => void
 }) {
-  const router = useRouter();
+  // const router = useRouter();
   const { loading, data, refetch } = useQuery(gql`
     query {
       getFiles {
@@ -60,10 +61,13 @@ function TemplateFile(props: {
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
             {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(row.original.extension) ? (
-              <img
+              <Image
                 src={`${window.config.server}/download/?id=${row.original.id}`}
                 alt={row.original.name}
+                width={80}
+                height={80}
                 className="w-20 h-20"
+                unoptimized
               />
             ) : null}
             <Button
@@ -78,7 +82,7 @@ function TemplateFile(props: {
         ),
       },
     ],
-    [router],
+    [props],
   );
 
   if (loading) {
@@ -93,10 +97,13 @@ function TemplateFile(props: {
   return (
     <>
       {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(selectedFile?.extension) ? (
-        <img
+        <Image
           src={`${window.config.server}/download/?id=${selectedFile?.id}`}
           alt={selectedFile.name}
+          width={80}
+          height={80}
           className="w-20 h-20"
+          unoptimized
         />
       ) : null}
       {selectedFile?.name}
