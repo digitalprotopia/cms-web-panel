@@ -225,6 +225,7 @@ function AccountsPage() {
                       try {
                         await deleteSession({ variables: { id: session.id } });
                         await refetch();
+                        await refetchSessions();
                         enqueueSnackbar('Сессия удалена', { variant: 'success' });
                       } catch (e: any) {
                         enqueueSnackbar(e.message || 'Не удалось удалить сессию', { variant: 'error' });
