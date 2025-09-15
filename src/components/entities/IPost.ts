@@ -9,4 +9,5 @@ export interface IPost extends IEntity {
   tags?: string[];
   categoryIds?: string[];
   roleIds?: string[];
+  pictureFileId?: string | null;
 }

@@ -1,26 +1,28 @@
-import { MuiChipsInput } from 'mui-chips-input';
 import { useState } from 'react';
-import DefaultEditor from 'react-simple-wysiwyg';
-import { gql, useMutation, useQuery } from '@apollo/client';
-import { BlockNoteEditor } from '@blocknote/core';
-import HistoryIcon from '@mui/icons-material/History';
 import {
   Button,
   CircularProgress,
-  IconButton,
-  Stack,
   TextField,
+  Stack,
   Typography,
+  IconButton,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close'; // Импорт иконки крестика
+import HistoryIcon from '@mui/icons-material/History';
+import { MuiChipsInput } from 'mui-chips-input';
+import DefaultEditor from 'react-simple-wysiwyg';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { BlockNoteEditor } from '@blocknote/core';
 
 import BlockEditor from '../BlockEditor';
-import PostHistoryDialog from '../dialogs/PostHistoryDialog';
 import { ICategory } from '../entities/ICategory';
 import { IPost } from '../entities/IPost';
-import { IRole } from '../entities/IRole';
 import { ITag } from '../entities/ITag';
 import S3Autocomplete, { Option } from '../guiElements/S3Autocomplete';
 import { flattenIndexedTree, ItemWithParentId, makeIndexedTree } from '../guiElements/Tree';
+import PostHistoryDialog from '../dialogs/PostHistoryDialog';
+import FileDialog from '../FileDialog'; // Импорт из src\components\FileDialog.tsx
+import { IRole } from '../entities/IRole';
 
 const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {
@@ -30,6 +32,7 @@ const CREATE_POST = gql`
       content
       blockContent
       preview
+      pictureFileId 
       createdAt
     }
   }
@@ -43,6 +46,7 @@ const UPDATE_POST = gql`
       content
       preview
       blockContent
+      pictureFileId
       createdAt
     }
   }
@@ -59,19 +63,19 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     content: '',
     blockContent: [],
     preview: '',
+    pictureFileId: null,
     tags: [],
     categoryIds: [],
     roleIds: [],
   });
 
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
-
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
 
   const handleSelectedPost = (selectedPost: {
     title: string;
     blockContent: any;
-    preview: string
+    preview: string;
   }) => {
     if (editor !== null) {
       editor.replaceBlocks(editor.document, selectedPost.blockContent);
@@ -113,6 +117,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         content
         blockContent
         preview
+        pictureFileId
         createdAt
         categories {
           id
@@ -137,6 +142,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
         content: data.getPost.content,
         blockContent: data.getPost.blockContent,
         preview: data.getPost.preview,
+        pictureFileId: data.getPost.pictureFileId,
         tags: data.getPost.tags.map((tag: ITag) => tag.title),
         categoryIds: data.getPost.categories.map((category: ICategory) => category.id),
         roleIds: data.getPost.roles.map((role: IRole) => role.id),
@@ -156,13 +162,14 @@ export default function PostForm({ id, onClose }: PostFormProps) {
     },
   });
 
-  const categoriesWithParentIds: ItemWithParentId[] = linkData.data?.getCategories
-    .map((category: ICategory) => ({
+  const categoriesWithParentIds: ItemWithParentId[] = linkData.data?.getCategories?.map(
+    (category: ICategory) => ({
       ...category,
       parentId: category.parentCategory?.id,
-    }));
+    }),
+  );
 
-  const roles: Option[] | undefined = linkData.data?.getRoles.map(
+  const roles: Option[] | undefined = linkData.data?.getRoles?.map(
     (role: IRole) => ({
       id: role.id,
       name: role.name,
@@ -255,20 +262,19 @@ export default function PostForm({ id, onClose }: PostFormProps) {
               multiple
               label="Категории"
               value={formData.categoryIds}
-              options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds))
-                .map((category) => ({
+              options={flattenIndexedTree(makeIndexedTree(categoriesWithParentIds))?.map(
+                (category) => ({
                   id: category.id,
                   name: category.title,
                   level: category.level,
-                }))}
+                }),
+              )}
               onChange={(categoryIds) => setFormData({
                 ...formData,
                 categoryIds: categoryIds as string[],
               })}
               renderOption={(option) => (
-                <div style={{ paddingLeft: option.level * 20 }}>
-                  {option.name}
-                </div>
+                <div style={{ paddingLeft: option.level * 20 }}>{option.name}</div>
               )}
             />
             <S3Autocomplete
@@ -280,6 +286,48 @@ export default function PostForm({ id, onClose }: PostFormProps) {
             />
           </div>
         </div>
+
+        {/* Поле для выбора изображения поста */}
+        <Stack direction="column" spacing={2} sx={{ mb: 2 }}>
+          <h4>Изображение поста</h4>
+          {formData.pictureFileId ? (
+            <div style={{ position: 'relative', display: 'block', maxWidth: '400px' }}>
+              <img
+                src={`${window.config.server}/download/?id=${formData.pictureFileId}`}
+                alt="Post"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  maxWidth: '400px',
+                  objectFit: 'contain',
+                  marginBottom: '10px',
+                }}
+              />
+              <IconButton
+                onClick={() => setFormData({ ...formData, pictureFileId: null })}
+                sx={{
+                  position: 'absolute',
+                  top: '5px', // Небольшой отступ от верхнего края
+                  right: '5px', // Небольшой отступ от правого края
+                  color: 'white',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  },
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+          ) : (
+            <FileDialog
+              fileId={formData.pictureFileId}
+              onChange={(pictureFileId) => {
+                setFormData({ ...formData, pictureFileId });
+              }}
+            />
+          )}
+        </Stack>
 
         <h4>Блочный редактор</h4>
         <BlockEditor
