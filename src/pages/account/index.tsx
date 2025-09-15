@@ -1,15 +1,23 @@
 import { gql, useMutation, useQuery } from '@apollo/client';
 import Head from 'next/head';
 import { useContext, useMemo, useState } from 'react';
-import { Button, TextField, IconButton } from '@mui/material';
+import { Button, TextField, IconButton, Avatar } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
-import { AccountCircle, Delete } from '@mui/icons-material';
+import { Delete } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
 import UserContext from '@/components/UserContext';
+import toBase64 from '@/components/utils/toBase64';
+
+const getInitials = (name: string) => name
+  .split(' ')
+  .slice(0, 2)
+  .map((word) => word[0])
+  .join('')
+  .toUpperCase();
 
 const EDIT_ME = gql`
     mutation($user: UserInput!) {
@@ -19,6 +27,8 @@ const EDIT_ME = gql`
         }
     }
   `;
+
+// standalone file creation is no longer used for avatar updates on this page
 
 const CHANGE_PASSWORD = gql`
   mutation($oldPassword: String!, $newPassword: String!) {
@@ -50,16 +60,22 @@ export default function Account() {
   const user = useContext(UserContext);
 
   const [form, setForm] = useState({
-    name: user.user?.name,
+    name: user.user?.name || '',
+    phone: user.user?.phone || '',
     email: '',
     password: '',
     passwordConfirm: '',
+  });
+  const [phoneForm, setPhoneForm] = useState({
+    phone: user.user?.phone || '',
   });
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
     newPassword: '',
     newPasswordConfirm: '',
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarName, setAvatarName] = useState<string>('');
 
   const [editMe] = useMutation(EDIT_ME);
   const [changePassword] = useMutation(CHANGE_PASSWORD);
@@ -168,14 +184,17 @@ export default function Account() {
             РЕДАКТИРОВАТЬ ДАННЫЕ
             {' '}
           </span>
-          <div className="flex my-6">
-            <AccountCircle className="size-10 mr-4 text-black/60" />
+          <div className="flex my-6 items-center gap-4">
+            <Avatar src={user.user?.avatar?.id ? `${window.config.server}/download/?id=${user.user.avatar.id}&mode=view` : undefined}>
+              {!user.user?.avatar?.id ? getInitials(user.user?.name || '') : null}
+            </Avatar>
             <div className="flex flex-col">
               <span className="text-base">{user.user?.name}</span>
-              <span
-                className="text-black/60 text-sm"
-              >
+              <span className="text-black/60 text-sm">
                 {user.user?.role.name === 'admin' ? 'Администратор' : 'Пользователь'}
+              </span>
+              <span className="text-black/60 text-sm mt-1">
+                {user.user?.phone ? `Телефон: ${user.user.phone}` : 'Телефон не указан'}
               </span>
             </div>
           </div>
@@ -187,20 +206,39 @@ export default function Account() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               variant="outlined"
             />
-          </div>
-          <div style={{ marginBottom: '40px' }}>
             <Button
               className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
               variant="contained"
-              disabled={
-                      form.name === user.user?.name
-                  }
+              disabled={form.name === user.user?.name}
               onClick={async () => {
                 await editMe({
                   variables: { user: { name: form.name } },
                 });
                 await user.refetch();
-                enqueueSnackbar('Данные успешно изменены', { variant: 'success' });
+                enqueueSnackbar('Имя успешно изменено', { variant: 'success' });
+              }}
+            >
+              Сохранить
+            </Button>
+          </div>
+          <div style={{ marginBottom: '40px', marginTop: '24px' }}>
+            <TextField
+              label="Номер телефона"
+              className="w-full"
+              value={phoneForm.phone}
+              onChange={(e) => setPhoneForm({ ...phoneForm, phone: e.target.value })}
+              variant="outlined"
+            />
+            <Button
+              className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
+              variant="contained"
+              disabled={phoneForm.phone === (user.user?.phone || '')}
+              onClick={async () => {
+                await editMe({
+                  variables: { user: { phone: phoneForm.phone } },
+                });
+                await user.refetch();
+                enqueueSnackbar('Телефон успешно изменён', { variant: 'success' });
               }}
             >
               Сохранить
@@ -234,6 +272,53 @@ export default function Account() {
               onClick={async () => {
                 await sendEmailConfirmationLink({ variables: { email: form.email } });
                 enqueueSnackbar('Письмо с подтверждением отправлено', { variant: 'success' });
+              }}
+            >
+              Сохранить
+            </Button>
+          </div>
+          {/* Смена аватара */}
+          <div className="mt-8">
+            <span className="mb-1 block text-gray-400 text-base font-normal text-left">Аватар</span>
+            <label htmlFor="avatar-account" className="block cursor-pointer border border-gray-300 rounded px-3 py-2 text-base text-gray-700 hover:border-blue-400 transition w-full text-center">
+              {avatarName || user.user?.avatar?.id ? 'Выберите новый файл' : 'Выберите файл'}
+              <input
+                id="avatar-account"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    setAvatarFile(e.target.files[0]);
+                    setAvatarName(e.target.files[0].name);
+                  }
+                }}
+              />
+            </label>
+            {avatarName && (
+              <div className="text-sm text-gray-500 mt-2 text-center">{avatarName}</div>
+            )}
+            <Button
+              className="normal-case bg-primary/20 text-primary text-lg font-normal mt-4"
+              variant="contained"
+              disabled={!avatarFile}
+              onClick={async () => {
+                if (!avatarFile) return;
+                const fileB64 = await toBase64(avatarFile);
+                await editMe({
+                  variables: {
+                    user: {
+                      avatar: {
+                        name: avatarFile.name,
+                        file: fileB64,
+                      },
+                    },
+                  },
+                });
+                await user.refetch();
+                enqueueSnackbar('Аватар обновлён', { variant: 'success' });
+                setAvatarFile(null);
+                setAvatarName('');
               }}
             >
               Сохранить

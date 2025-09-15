@@ -318,7 +318,7 @@ function BlockEditor({
 
   useEffect(() => {
     setEditor(editor);
-  }, []);
+  }, [editor, setEditor]);
 
   const ref = useRef<HTMLDivElement>();
 
@@ -353,7 +353,7 @@ function BlockEditor({
         });
       }, 200);
     }
-  }, [ref.current, initialData]);
+  }, [ref.current, initialData, isEditable]);
 
   const templateInserts = [
     insertBlockEditorCssView(editor as any),
