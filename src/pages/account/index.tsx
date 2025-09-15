@@ -83,12 +83,14 @@ export default function Account() {
   const [deleteSession] = useMutation(DELETE_SESSION);
 
   const { loading, data, refetch } = useQuery(gql`
-    query GetSessionsByUserId($userId: ID!) {
-      getSessionsByUserId(userId: $userId) {
-        id
-        deviceUserName
-        createdAt
-        deviceType
+    query {
+      me {
+        sessions {
+          id
+          deviceUserName
+          createdAt
+          deviceType
+        }
       }
     }
   `, {
@@ -394,7 +396,7 @@ export default function Account() {
         {loading ? <div>Loading...</div> : (
           <MaterialReactTable
             columns={columns}
-            data={data?.getSessionsByUserId || []}
+            data={data?.me.sessions || []}
             enableColumnResizing
             enableFullScreenToggle={false}
             enableDensityToggle
