@@ -1,3 +1,11 @@
+# [0.20.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.19.0...v0.20.0) (2025-08-25)
+
+
+### Features
+
+* Добавление поля phone и аватара пользователю ([47e327d](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/47e327d9c8b97631264ab25d252c43424c6bd5a3))
+* Релиз 0.20.0: реактирование постов в телеграме, телефон и аватарка в профиле, роли и права на таблицы ([42acdd4](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/42acdd4f7032c9e68eb6e357f3f797dc451e6724))
+
 # [0.19.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.18.0...v0.19.0) (2025-08-18)
 
 

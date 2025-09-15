@@ -1,8 +1,14 @@
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import Head from 'next/head';
-import { useContext, useState } from 'react';
-import { Button, TextField, Avatar } from '@mui/material';
+import { useContext, useMemo, useState } from 'react';
+import { Button, TextField, IconButton, Avatar } from '@mui/material';
 import { useSnackbar } from 'notistack';
+import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
+import { Delete } from '@mui/icons-material';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
 import UserContext from '@/components/UserContext';
 import toBase64 from '@/components/utils/toBase64';
 
@@ -39,8 +45,17 @@ const SEND_EMAIL_CONFIRMATION_LINK = gql`
   }
 `;
 
+const DELETE_SESSION = gql`
+  mutation DeleteSession($id: ID!) {
+    deleteSession(id: $id)
+  }
+`;
+
 export default function Account() {
   const { enqueueSnackbar } = useSnackbar();
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const user = useContext(UserContext);
 
@@ -65,6 +80,85 @@ export default function Account() {
   const [editMe] = useMutation(EDIT_ME);
   const [changePassword] = useMutation(CHANGE_PASSWORD);
   const [sendEmailConfirmationLink] = useMutation(SEND_EMAIL_CONFIRMATION_LINK);
+  const [deleteSession] = useMutation(DELETE_SESSION);
+
+  const { loading, data, refetch } = useQuery(gql`
+    query {
+      me {
+        sessions {
+          id
+          deviceUserName
+          createdAt
+          deviceType
+        }
+      }
+    }
+  `, {
+    variables: { userId: user.user?.id },
+    skip: !user.user?.id,
+  });
+
+  const columns: MRT_ColumnDef<any, any>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        size: 400,
+      },
+      {
+        accessorKey: 'deviceUserName',
+        header: 'Имя устройства',
+        size: 250,
+        Cell: ({ row }) => (
+          <div className="text-base">
+            {row.original.deviceUserName}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Дата и время начала сессии',
+        size: 310,
+        Cell: ({ row }: { row: any }) => (
+          <div className="text-base">
+            {dayjs.tz(row.original.createdAt, browserTz).format('DD.MM.YYYY HH:mm:ss')}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'deviceType',
+        header: 'Тип устройства',
+        size: 250,
+        Cell: ({ row }) => (
+          <div className="text-base">
+            {row.original.deviceType}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'actions',
+        header: 'Действия',
+        size: 175,
+        Cell: ({ row }: { row: any }) => (
+          <IconButton
+            size="small"
+            onClick={async () => {
+              try {
+                await deleteSession({ variables: { id: row.original.id } });
+                await refetch();
+                enqueueSnackbar('Сессия удалена', { variant: 'success' });
+              } catch (e: any) {
+                enqueueSnackbar(e.message || 'Не удалось удалить сессию', { variant: 'error' });
+              }
+            }}
+          >
+            <Delete />
+          </IconButton>
+        ),
+      },
+    ],
+    [deleteSession, refetch, enqueueSnackbar],
+  );
 
   return (
     <div className="size-full">
@@ -293,6 +387,42 @@ export default function Account() {
             </Button>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col bg-white rounded p-5 shadow-lg w-full grow">
+        {/* <span className="text-black/60 text-xl font-medium mb-6">
+          УПРАВЛЕНИЕ СЕССИЯМИ
+        </span> */}
+        {loading ? <div>Loading...</div> : (
+          <MaterialReactTable
+            columns={columns}
+            data={data?.me.sessions || []}
+            enableColumnResizing
+            enableFullScreenToggle={false}
+            enableDensityToggle
+            enableColumnFilters
+            enablePagination
+            enableSorting
+            initialState={{
+              columnVisibility: {
+                id: false,
+              },
+            }}
+            muiTableProps={{
+              sx: {
+                tableLayout: 'fixed',
+                '& .MuiTableHead-root .MuiTableCell-head': { fontSize: 16 },
+              },
+            }}
+            renderTopToolbarCustomActions={() => (
+              <div className="p-3">
+                <h1 className="text-black/60 text-xl font-medium mb-6">УПРАВЛЕНИЕ СЕССИЯМИ</h1>
+              </div>
+            )}
+          />
+        )}
+
+        {/* <Delete /> */}
       </div>
     </div>
   );
