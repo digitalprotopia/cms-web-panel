@@ -5,9 +5,9 @@ import {
 import { useState, useMemo } from 'react';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 import TableEditor from '@/components/table-editor';
-import { Dialog, DialogContent, DialogTitle, IconButton, MenuItem, TextField } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, IconButton, MenuItem, TextField, Tooltip } from '@mui/material';
 import { IRole } from '@/components/entities/IRole';
-import { Edit, Save, Delete } from '@mui/icons-material';
+import { Edit, Save, Delete, Devices } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import Link from 'next/link';
 import dayjs from 'dayjs';
@@ -47,6 +47,23 @@ function AccountsPage() {
     }
   `);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSessionsOpen, setIsSessionsOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string, name: string } | null>(null);
+  const { data: sessionsData, refetch: refetchSessions } = useQuery(gql`
+    query GetSessionsByUserId($userId: ID!) {
+      getSessionsByUserId(userId: $userId) {
+        id
+        deviceUserName
+        createdAt
+        deviceType
+      }
+    }
+  `, {
+    variables: { userId: selectedUser?.id },
+    skip: !selectedUser?.id,
+  });
+
   const columns: MRT_ColumnDef<any, any>[] = useMemo(
     () => [
       {
@@ -61,11 +78,6 @@ function AccountsPage() {
         Cell: ({ row }) => (
           <div>
             {row.original.name}
-            <Link href={`/admin/accounts/${row.original.id}`}>
-              <IconButton size="small">
-                <Edit />
-              </IconButton>
-            </Link>
           </div>
         ),
       },
@@ -118,26 +130,38 @@ function AccountsPage() {
         header: 'Email',
         size: 150,
       },
+      {
+        header: 'Действия',
+        Cell: ({ row }) => (
+          <div>
+            <Link href={`/admin/accounts/${row.original.id}`}>
+              <Tooltip title="Редактировать пользователя">
+                <IconButton size="small">
+                  <Edit />
+                </IconButton>
+              </Tooltip>
+            </Link>
+            <Tooltip title="Просмотреть сессии пользователя">
+              <IconButton
+                size="small"
+                onClick={async () => {
+                  const userRow = row.original as { id: string, name: string };
+                  setSelectedUser({ id: userRow.id, name: userRow.name });
+                  setIsSessionsOpen(true);
+                  setTimeout(() => {
+                    refetchSessions();
+                  }, 0);
+                }}
+              >
+                <Devices />
+              </IconButton>
+            </Tooltip>
+          </div>
+        ),
+      },
     ],
     [data, changeUserRole, refetch],
   );
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSessionsOpen, setIsSessionsOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<{ id: string, name: string } | null>(null);
-  const { data: sessionsData, refetch: refetchSessions } = useQuery(gql`
-    query GetSessionsByUserId($userId: ID!) {
-      getSessionsByUserId(userId: $userId) {
-        id
-        deviceUserName
-        createdAt
-        deviceType
-      }
-    }
-  `, {
-    variables: { userId: selectedUser?.id },
-    skip: !selectedUser?.id,
-  });
 
   dayjs.extend(utc);
   dayjs.extend(timezone);
@@ -168,17 +192,6 @@ function AccountsPage() {
         enableColumnFilters
         enablePagination
         enableSorting
-        muiTableBodyRowProps={({ row }) => ({
-          onClick: async () => {
-            const userRow = row.original as { id: string, name: string };
-            setSelectedUser({ id: userRow.id, name: userRow.name });
-            setIsSessionsOpen(true);
-            setTimeout(() => {
-              refetchSessions();
-            }, 0);
-          },
-          sx: { cursor: 'pointer' },
-        })}
         initialState={{
           columnVisibility: {
             id: false,
