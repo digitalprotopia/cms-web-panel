@@ -4,8 +4,12 @@ import { BlockNoteSchema,
   locales,
   combineByGroup,
   Block,
+  BlockNoteEditor,
   defaultStyleSpecs,
-  CustomBlockConfig, InlineContentSchema, StyleSchema } from '@blocknote/core';
+  CustomBlockConfig,
+  InlineContentSchema,
+  StyleSchema } from '@blocknote/core';
+
 import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote,
 
   useBlockNoteEditor,
@@ -87,7 +91,23 @@ export function BlockSettings(
                 props: { cssClass: e.target.value },
               });
             }}
+            fullWidth
           />
+          <TextField
+            title="Высота заглушки для виджета"
+            label="Высота заглушки для виджета (px)"
+            type="number"
+            value={props.block.props.height}
+            onChange={(e) => {
+              const { value } = e.target;
+              props.editor.updateBlock(props.block, {
+                props: { height: value ? parseInt(value, 10) : 1 },
+              });
+            }}
+            fullWidth
+            margin="normal"
+          />
+
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialog(false)}>Закрыть</Button>
@@ -148,6 +168,7 @@ interface BlockEditorProps {
   onChange: (data: any) => void;
   isEditable?: boolean;
   type?: 'page' | 'template';
+  setEditor?: (editor: BlockNoteEditor<any>) => void;
 }
 
 export function AddBlocksItem(props: DragHandleMenuProps) {
@@ -253,8 +274,11 @@ export const schema = BlockNoteSchema.create({
 });
 
 function BlockEditor({
-  initialData, onChange, isEditable = true,
+  initialData,
+  onChange,
+  isEditable = true,
   type = 'page',
+  setEditor = () => {},
 }: BlockEditorProps) {
   const snippets = useQuery(gql`
     query {
@@ -275,8 +299,7 @@ function BlockEditor({
   });
 
   const editor = useCreateBlockNote({
-    // eslint-disable-next-line no-nested-ternary
-    initialContent: initialData ? (initialData.length ? initialData : null) : null,
+    initialContent: initialData && initialData.length ? initialData : null,
     schema: withMultiColumn(schema),
     // The default drop cursor only shows up above and below blocks - we replace
     // it with the multi-column one that also shows up on the sides of blocks.
@@ -292,6 +315,10 @@ function BlockEditor({
       },
     },
   });
+
+  useEffect(() => {
+    setEditor(editor);
+  }, [editor, setEditor]);
 
   const ref = useRef<HTMLDivElement>();
 
@@ -326,7 +353,7 @@ function BlockEditor({
         });
       }, 200);
     }
-  }, [ref.current, initialData]);
+  }, [ref.current, initialData, isEditable]);
 
   const templateInserts = [
     insertBlockEditorCssView(editor as any),
@@ -380,6 +407,7 @@ function BlockEditor({
           editor={editor}
           editable={isEditable}
           contentEditable={isEditable === false ? false : undefined}
+          theme="light"
           onChange={() => {
             onChange(editor.document);
             // editor.blocksToFullHTML(editor.document).then((html) => {

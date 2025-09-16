@@ -2,7 +2,6 @@ import React from 'react';
 import { gql, useQuery } from '@apollo/client';
 import {
   Card,
-  CardHeader,
   Button,
   IconButton,
   Typography,
@@ -30,11 +29,11 @@ function FormCard({ form, onDelete }: {
 }) {
   return (
     <Card>
-      <CardHeader
-        title={form.title}
-        subheader={(
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-600">
+      <div className="flex items-start justify-between p-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-medium scrollable-title">{form.title}</h2>
+          <div className="flex flex-col gap-1 mt-1">
+            <span className="text-sm text-gray-600 scrollable-title">
               Код:
               {form.name}
             </span>
@@ -44,24 +43,22 @@ function FormCard({ form, onDelete }: {
               {dayjs(form.createdAt).format('DD.MM.YYYY')}
             </span>
           </div>
-        )}
-        action={(
-          <div className="flex gap-2">
-            <Link href={`/admin/forms/${form.id}`}>
-              <IconButton size="small">
-                <Edit />
-              </IconButton>
-            </Link>
-            <IconButton
-              onClick={() => onDelete(form.id!)}
-              size="small"
-              color="error"
-            >
-              <Delete />
+        </div>
+        <div className="flex-shrink-0 flex gap-2 ml-4">
+          <Link href={`/admin/forms/${form.id}`}>
+            <IconButton size="small">
+              <Edit />
             </IconButton>
-          </div>
-        )}
-      />
+          </Link>
+          <IconButton
+            onClick={() => onDelete(form.id!)}
+            size="small"
+            color="error"
+          >
+            <Delete />
+          </IconButton>
+        </div>
+      </div>
     </Card>
   );
 }

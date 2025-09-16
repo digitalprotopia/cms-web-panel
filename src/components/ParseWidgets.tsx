@@ -3,14 +3,15 @@ import {
 } from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
-import { Button, Typography } from '@mui/material';
+import { useSnackbar, enqueueSnackbar } from 'notistack';
+import { Button, Typography, Skeleton } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
   Map, useYMaps,
 } from '@pbe/react-yandex-maps';
 import dayjs from 'dayjs';
+import { compileString } from 'sass';
 
 import * as Mui from '@mui/material';
 
@@ -62,7 +63,6 @@ export function parseReact(
     const babelCode = babel.transform(code, {
       presets: ['react', 'es2017'],
     }).code;
-
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     const data = {
       React,
@@ -75,6 +75,8 @@ export function parseReact(
       router,
       Head,
       FullCalendar,
+      useSnackbar,
+      enqueueSnackbar,
       dayGridPlugin,
       listPlugin,
       ruLocale,
@@ -439,32 +441,79 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
   return <MapComponent {...mapProps} />;
 };
 
+// Применить style и cssClass к дочернему компоненту если они переданны.
+function WidgetStyle(
+  props: {
+    children: React.JSX.Element,
+    cssClass?: string,
+    style?: string,
+    widgetId?: string,
+  },
+) {
+  let style;
+  /*
+  todo: Пофиксить возможный баг при undefined widgetId (class: widget-undefined).
+    Варианты проявления бага:
+    * стиль применяется ко множеству виджетов.
+    Вариант решения:
+    * если виджет новый и id undefined, то сперва сохранить виджет, чтобы получить id
+    * потом обновить стиль и разметку использовав id. */
+  const className = `widget-${props.widgetId}`;
+  // Если нужно применять стиль, применить класс с id виджета к стилю виджета и элементу потомку.
+  if (props.style) {
+    const SCSS_STYLE = `.${className} {${props.style}}`;
+    // Попытаться скомпилировать SCSS, ничего не менять если SCSS не валидный.
+    try {
+      style = compileString(SCSS_STYLE).css;
+    } catch (error) {
+      // Логируем в dev среде ожидаемые ошибки разбора не валидного SCSS.
+      if (process.env.NODE_ENV === 'development') {
+        console.error(error);
+      }
+    }
+  }
+  return (
+    <>
+      <style>
+        {style}
+      </style>
+      <div className={props.cssClass || undefined}>
+        {style
+          ? <div className={className}>{props.children}</div>
+          : props.children}
+      </div>
+    </>
+  );
+}
+
 export function RenderWidget(
   props: {
+    widgetId?: string,
     widgetViewType: string,
     html: string,
     fields: TableField[],
     data: any,
     language: TemplateLanguage,
     cssClass: string,
+    style?: string,
   },
 ) {
   const {
-    widgetViewType, html, fields, data, language,
+    widgetId, widgetViewType, html, fields, data, language,
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
 
   if (widgetViewType === WidgetViewType.MAP) {
     return (
-      <div className={props.cssClass || undefined}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
         <WidgetMap
           data={data}
           fields={fields}
           html={html}
           language={language}
         />
-      </div>
+      </WidgetStyle>
     );
   }
   if (language === TemplateLanguage.REACT) {
@@ -481,52 +530,54 @@ export function RenderWidget(
           resetKeys={[html]}
           onError={(err) => { console.log(err); }}
         >
-          <div className={props.cssClass || undefined}>
+          <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
             <template.ListComponent data={data} Component={template.Component} />
-          </div>
+          </WidgetStyle>
         </ErrorBoundary>
       );
     }
   }
   if (language === TemplateLanguage.SIMPLE && widgetViewType === WidgetViewType.STATIC) {
     return (
-      <div className={props.cssClass || undefined}>
+      <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
         <div dangerouslySetInnerHTML={{ __html: html }} />
-      </div>
+      </WidgetStyle>
     );
   }
   return (
-    <div className={props.cssClass || undefined}>
+    <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
       <WidgetList
         data={data}
         fields={fields}
         html={html}
         language={language}
       />
-    </div>
+    </WidgetStyle>
   );
 }
 
 export function PageWidget(props: {
   widgetName: string;
+  blockProps?: { type: string; cssClass?: string; height?: string };
 }) {
   const { data } = useQuery(gql`
-          query($name: String!) {
-              getWidgetByName(name: $name) {
-                  id
-                  name
-                  widgetViewType
-                  cssClass
-                  template {
-                      html
-                      language
-                  }
-                  tableView {
-                      tableId
-                  }
-              }
-          }
-      `, {
+    query($name: String!) {
+      getWidgetByName(name: $name) {
+        id
+        name
+        widgetViewType
+        cssClass
+        template {
+          html
+          language
+          css
+        }
+        tableView {
+          tableId
+        }
+      }
+    }
+  `, {
     variables: { name: props.widgetName },
   });
 
@@ -554,16 +605,15 @@ export function PageWidget(props: {
   const table = useTable(data?.getWidgetByName?.tableView.tableId, params);
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
-    return null;
     return (
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'center',
-        }}
-      >
-        <Mui.CircularProgress />
+      <div>
+        <Skeleton
+          variant="rounded"
+          style={{
+            width: '100%',
+            height: props.blockProps?.height || 200,
+          }}
+        />
       </div>
     );
   }
@@ -575,17 +625,19 @@ export function PageWidget(props: {
       resultData = table.data.filter(filter);
     }
   } catch {
-    //
+    // Handle filter errors silently
   }
 
   return (
     <RenderWidget
+      widgetId={data.getWidgetByName.id}
       widgetViewType={data.getWidgetByName.widgetViewType}
       html={data.getWidgetByName.template.html}
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
-      cssClass={data.getWidgetByName.cssClass || ''}
+      cssClass={props.blockProps?.cssClass || data.getWidgetByName.cssClass || ''}
+      style={data.getWidgetByName.template.css}
     />
   );
 }
@@ -698,7 +750,6 @@ export function FormWidget(props: {
   });
   const addRow = useAddRow(data?.getFormByName.table.dbName);
   const editRow = useEditRow(data?.getFormByName.table.dbName);
-  const { enqueueSnackbar } = useSnackbar();
   if (!data?.getFormByName) {
     return null;
   }

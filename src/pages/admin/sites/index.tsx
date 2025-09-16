@@ -3,7 +3,6 @@ import { gql, useQuery, useMutation } from '@apollo/client';
 import {
   Card,
   CardContent,
-  CardHeader,
   Button,
   IconButton,
   Typography,
@@ -85,37 +84,40 @@ function SiteCard({
 }) {
   return (
     <Card className="w-full">
-      <CardHeader
-        title={(
-          <ClickableTitle variant="h6">
+      <div className="flex items-start justify-between p-4">
+        {/* Левый блок с заголовком */}
+        <div className="flex-1 min-w-0">
+          <ClickableTitle variant="h6" className="scrollable-title">
             <Link href={`/admin/sites/${site.id}/pages`}>
               {site.title}
             </Link>
           </ClickableTitle>
-        )}
-        action={(
-          <div>
-            <IconButton onClick={() => onEdit(site)} size="small">
-              <Edit />
-            </IconButton>
-            <IconButton
-              onClick={() => onDelete(site.id)}
-              size="small"
-              color="error"
-            >
-              <Delete />
-            </IconButton>
-          </div>
-        )}
-      />
+        </div>
+
+        {/* Правый блок с кнопками, закрепленный вверху справа */}
+        <div className="flex-shrink-0 flex gap-2 ml-4">
+          <IconButton onClick={() => onEdit(site)} size="small">
+            <Edit />
+          </IconButton>
+          <IconButton
+            onClick={() => onDelete(site.id)}
+            size="small"
+            color="error"
+          >
+            <Delete />
+          </IconButton>
+        </div>
+      </div>
       <CardContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" className="scrollable-title" sx={{ mb: 2 }}>
           {site.domain}
         </Typography>
         <div className="flex items-center">
           <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
           <Typography variant="caption" color="text.secondary">
-            {dayjs(site.createdAt).toString()}
+            Создано:
+            {' '}
+            {dayjs(site.createdAt).format('DD.MM.YYYY')}
           </Typography>
         </div>
       </CardContent>

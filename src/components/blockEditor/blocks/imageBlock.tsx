@@ -3,19 +3,20 @@ import { BlockNoteEditor, insertOrUpdateBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
 import { Article } from '@mui/icons-material';
 import { Button, Dialog, DialogContent } from '@mui/material';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import { MaterialReactTable } from 'material-react-table';
 import { TextInput } from '@mantine/core';
+import toBase64 from '@/components/utils/toBase64';
+import Image from 'next/image';
 import { IFile } from '../../entities/IFile';
 // eslint-disable-next-line import/no-cycle
-import { toBase64 } from '../../form';
 
 function FileDialog(props: {
   fileId?: string,
   onChange: (fileId: string, name: string) => void
 }) {
-  const router = useRouter();
+  // const router = useRouter();
   const [openFileDialog, setOpenFileDialog] = useState(false);
 
   const { loading, data, refetch } = useQuery(gql`
@@ -64,11 +65,14 @@ function FileDialog(props: {
         size: 300,
         Cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
-            {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(row.original.extension) ? (
-              <img
+            {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(row.original.extension) ? (
+              <Image
                 src={`${window.config.server}/download/?id=${row.original.id}`}
                 alt={row.original.name}
+                width={80}
+                height={80}
                 className="w-20 h-20"
+                unoptimized
               />
             ) : null}
             <Button
@@ -83,7 +87,7 @@ function FileDialog(props: {
         ),
       },
     ],
-    [router],
+    [props],
   );
 
   if (loading) {
@@ -97,11 +101,14 @@ function FileDialog(props: {
 
   return (
     <>
-      {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(selectedFile?.extension) ? (
-        <img
+      {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(selectedFile?.extension) ? (
+        <Image
           src={`${window.config.server}/download/?id=${selectedFile?.id}`}
           alt={selectedFile.name}
+          width={80}
+          height={80}
           className="w-20 h-20"
+          unoptimized
         />
       ) : null}
       {selectedFile?.name}
@@ -289,9 +296,9 @@ export const BlockEditorImageBlock = createReactBlockSpec(
               </div>
             )
           }
-          {(data?.getFile && ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(data.getFile.extension)) ? (
+          {(data?.getFile && ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(data.getFile.extension)) ? (
             <div className={props.block.props.cssClass}>
-              <img
+              <Image
                 src={`${window.config.server}/download/?id=${data.getFile.id}`}
                 alt={data.getFile.id}
                 style={{

@@ -81,7 +81,7 @@ function DynamicParse(props: {
         },
       };
       return parse(props.html, options);
-    }, [props.html]);
+    }, [props.html, props.replace]);
 
     return (
       <ReplaceContext.Provider value={props.replace}>

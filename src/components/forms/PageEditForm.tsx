@@ -1,7 +1,7 @@
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
 import { useState } from 'react';
 import {
-  Button, CircularProgress, MenuItem, TextField,
+  Button, Checkbox, CircularProgress, FormControlLabel, MenuItem, TextField,
 } from '@mui/material';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { useRouter } from 'next/router';
@@ -18,6 +18,7 @@ const CREATE_PAGE = gql`
       url
       parentId
       isRoot
+      is404
       seotag
       html
       blockContent
@@ -37,6 +38,7 @@ const UPDATE_PAGE = gql`
       url
       parentId
       isRoot
+      is404
       seotag
       html
       blockContent
@@ -63,6 +65,7 @@ export const GET_SITE_PAGES = gql`
         url
         parentId
         isRoot
+        is404
         seotag
         html
         blockContent
@@ -121,6 +124,7 @@ export default function PageForm({
     url: '',
     parentId: undefined,
     isRoot: false,
+    is404: false,
     seotag: '',
     html: '',
     roleIds: [],
@@ -136,6 +140,7 @@ export default function PageForm({
         url
         parentId
         isRoot
+        is404
         seotag
         html
         blockContent
@@ -158,6 +163,7 @@ export default function PageForm({
         url: data.getSiteItem.url,
         parentId: data.getSiteItem.parentId,
         isRoot: data.getSiteItem.isRoot,
+        is404: data.getSiteItem.is404,
         seotag: data.getSiteItem.seotag,
         html: data.getSiteItem.html,
         roleIds: data.getSiteItem.roles.map((role: IRole) => role.id),
@@ -213,12 +219,18 @@ export default function PageForm({
               title: e.target.value,
             })}
             required
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
           />
           <TextField
             label="SEO Тег"
             fullWidth
             value={formData.seotag}
             onChange={(e) => setFormData({ ...formData, seotag: e.target.value })}
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
           />
         </div>
 
@@ -267,6 +279,18 @@ export default function PageForm({
               </MenuItem>
             ))}
           </TextField>
+          <FormControlLabel
+            control={(<Checkbox
+              checked={formData.is404}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  is404: e.target.checked,
+                });
+              }}
+            />)}
+            label="Страница 404"
+          />
         </div>
       </div>
       <hr style={{

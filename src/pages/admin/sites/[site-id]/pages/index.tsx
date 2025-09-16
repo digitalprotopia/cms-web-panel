@@ -5,6 +5,7 @@ import {
   IconButton,
   CircularProgress,
   List,
+  Checkbox,
 } from '@mui/material';
 import {
   Edit, Delete, Visibility,
@@ -54,12 +55,10 @@ function PagesPage() {
       {
         accessorKey: 'title',
         header: 'Название',
-        size: 200,
       },
       {
         accessorKey: 'url',
         header: 'URL',
-        size: 400,
         Cell: ({ row }: { row: any }) => (
           row.original.url + (row.original.type === SiteItemType.DYNAMIC ? ' (динамическая)' : '')
         ),
@@ -70,6 +69,14 @@ function PagesPage() {
         size: 150,
         Cell: ({ row }: { row: any }) => (
           dayjs(row.original.createdAt).format('DD.MM.YYYY HH:mm')
+        ),
+      },
+      {
+        accessorKey: 'is404',
+        header: '404',
+        size: 150,
+        Cell: ({ row }: { row: any }) => (
+          row.original.is404 ? <Checkbox disabled checked /> : null
         ),
       },
       {

@@ -30,6 +30,8 @@ import { ISiteItem } from '@/components/entities/ISiteItem';
 import { YMaps } from '@pbe/react-yandex-maps';
 import { PageProvider } from '@/components/PageContext';
 
+import '../i18n/i18n';
+
 declare global {
   interface Window {
     config: Config;
@@ -68,6 +70,8 @@ const GET_ME = gql`
     me {
       id
       name
+      phone
+      avatar { id extension }
       role {
         id
         name
@@ -112,6 +116,8 @@ function CMSLayout({
             title
             url
             parentId
+            isRoot
+            is404
             type
             createdAt
           }
@@ -138,13 +144,13 @@ function CMSLayout({
     localStorage.removeItem('token');
   }
 
-  let result = <Component />;
+  let pageLayouts = <Component />;
   if (router.pathname.startsWith('/admin')) {
-    result = <AdminLayout>{result}</AdminLayout>;
+    pageLayouts = <AdminLayout>{pageLayouts}</AdminLayout>;
   } else if (router.pathname.startsWith('/auth')) {
     //
   } else {
-    result = <IndexLayout>{result}</IndexLayout>;
+    pageLayouts = <IndexLayout>{pageLayouts}</IndexLayout>;
   }
 
   return (
@@ -187,7 +193,7 @@ function CMSLayout({
                 }}
                 >
                   <PageProvider>
-                    {result}
+                    {pageLayouts}
                   </PageProvider>
                 </UserContext.Provider>
               </div>

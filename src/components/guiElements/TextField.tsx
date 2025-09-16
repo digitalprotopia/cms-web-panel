@@ -14,6 +14,9 @@ export default function textField(
       value={value}
       onChange={setValueFuction}
       required
+      slotProps={{
+        htmlInput: { maxLength: 255 },
+      }}
     />
   );
 }

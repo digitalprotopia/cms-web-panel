@@ -32,3 +32,16 @@ body {
     text-wrap: balance;
   }
 }
+
+.scrollable-title {
+  display: inline-block;
+  white-space: nowrap; 
+  overflow-x: auto;
+  max-width: 100%; 
+  -ms-overflow-style: auto; 
+  scrollbar-width: thin;
+}
+
+.scrollable-title::-webkit-scrollbar {
+  height: 4px;
+}

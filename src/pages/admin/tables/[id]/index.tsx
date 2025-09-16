@@ -17,7 +17,11 @@ import {
   Popover,
   MenuItem,
   Select,
-  InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
+  InputLabel,
+  DialogTitle,
+  DialogContent,
+  Dialog,
+  DialogActions,
 } from '@mui/material';
 import {
   Add,
@@ -40,10 +44,14 @@ import utc from 'dayjs/plugin/utc';
 import {
   FieldType, IField, IFieldManyToManyOptions, IFieldOneToManyOptions,
   IFieldOptions,
+  IFieldSlugOptions,
 } from '@/components/entities/IField';
 import { useRouter } from 'next/router';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
+import { useSnackbar } from 'notistack';
+import FieldPrivilegesDialog from '@/components/dialogs/FieldPrivilegeDialog';
+import { useTranslation } from 'react-i18next'; // add by Roman 05.07.25 for i18mext translations
 import useTable, {
   TableField,
   TableMeta,
@@ -182,6 +190,7 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
         {meta.fields.map((field) => renderField(field))}
       </div> */}
 
+      {(!meta.isSystem) && (
       <Button
         variant="contained"
         onClick={handleSubmit}
@@ -189,7 +198,7 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
         className="mt-4 normal-case"
       >
         Добавить строку
-      </Button>
+      </Button>)}
     </div>
   );
 }
@@ -334,6 +343,7 @@ interface AddFieldProps {
 }
 
 function AddField({ onClose, refetch, meta }: AddFieldProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<Partial<IField>>({
     name: '',
     dbName: '',
@@ -347,6 +357,10 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
     secondFieldTitle: '',
     secondTableId: '',
   });
+
+  const [slugFieldOptions, setSlugFieldOptions] = useState<IFieldSlugOptions>({
+    sourceFieldId: '',
+  });
   let options:(IFieldOptions | undefined);
   if (form.type === FieldType.ONE_TO_MANY_ONE) {
     options = oneToManyOptions!;
@@ -354,7 +368,11 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
   if (form.type === FieldType.MANY_TO_MANY_FIRST) {
     options = manyToManyOptions!;
   }
+  if (form.type === FieldType.SLUG) {
+    options = slugFieldOptions!;
+  }
   const addField = useAddField(meta.id, form.type!);
+  const { enqueueSnackbar } = useSnackbar();
   const tables = useQuery(gql`
     query {
       getTables {
@@ -391,8 +409,72 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
         size="small"
         label="Имя в базе данных"
         value={form.dbName}
-        onChange={(e) => setForm((prev) => ({ ...prev, dbName: e.target.value }))}
+        onChange={(e) => {
+          e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
+          setForm((prev) => ({ ...prev, dbName: e.target.value }));
+        }}
       />
+
+      {form.type === FieldType.MANY_TO_MANY_FIRST
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Таблица"
+        select
+        value={manyToManyOptions.secondTableId}
+        onChange={(e) => setManyToManyOptions(
+          (prev) => ({ ...prev, secondTableId: e.target.value }),
+        )}
+      >
+        {tables.data.getTables.map((table: any) => (
+          <MenuItem key={table.id} value={table.id}>
+            {table.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
+
+      <FormControl fullWidth size="small">
+        <InputLabel>Тип поля</InputLabel>
+        <Select
+          value={form.type}
+          label="Тип поля"
+          onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value } as any))}
+        >
+          <MenuItem value="" disabled>
+            <em>Выберите тип поля</em>
+          </MenuItem>
+          {Object.values(FieldType)
+            .filter((key) => ![FieldType.ONE_TO_MANY_MANY,
+              FieldType.MANY_TO_MANY_SECOND].includes(key))
+            .map((key) => (
+              <MenuItem key={key} value={key}>
+                {t(key)}
+              </MenuItem>
+            ))}
+        </Select>
+      </FormControl>
+
+      {form.type === FieldType.SLUG
+      && (
+      <TextField
+        fullWidth
+        size="small"
+        label="Строковое поле"
+        select
+        value={slugFieldOptions.sourceFieldId}
+        onChange={(e) => setSlugFieldOptions(
+          (prev) => ({ ...prev, sourceFieldId: e.target.value }),
+        )}
+      >
+        {meta.fields.filter((field) => field.type === FieldType.STRING).map((field) => (
+          <MenuItem key={field.id} value={field.id}>
+            {field.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      )}
 
       {form.type === FieldType.ONE_TO_MANY_ONE
       && (
@@ -432,27 +514,6 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
       </TextField>
       )}
 
-      <FormControl fullWidth size="small">
-        <InputLabel>Тип поля</InputLabel>
-        <Select
-          value={form.type}
-          label="Тип поля"
-          onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value } as any))}
-        >
-          <MenuItem value="" disabled>
-            <em>Выберите тип поля</em>
-          </MenuItem>
-          {Object.values(FieldType)
-            .filter((key) => ![FieldType.ONE_TO_MANY_MANY,
-              FieldType.MANY_TO_MANY_SECOND].includes(key))
-            .map((key) => (
-              <MenuItem key={key} value={key}>
-                {key}
-              </MenuItem>
-            ))}
-        </Select>
-      </FormControl>
-
       <Button
         fullWidth
         variant="contained"
@@ -467,6 +528,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
           );
           onClose();
           setTimeout(() => refetch(), 2000);
+          enqueueSnackbar(`Поле ${form.name} добавлено`, { variant: 'success', autoHideDuration: 3000 });
         }}
         disabled={!form.name || !form.dbName || !form.type}
         className="mt-2"
@@ -511,6 +573,8 @@ function TablePage() {
 
   const fields = meta?.fields ? [...meta.fields] : [];
   fields.sort((a, b) => a.position - b.position);
+  const [isFieldPrivilegesDialogOpen, setIsFieldPrivilegesDialogOpen] = useState(false);
+  const [selectedField, setSelectedField] = useState<IField | null>(null);
 
   const columns = useMemo(() => {
     // if (!meta?.fields) return [];
@@ -567,6 +631,7 @@ function TablePage() {
             name: field.name,
             dbName: field.dbName,
           });
+          const { t } = useTranslation();
           return (
             <div
               onClick={(e) => {
@@ -598,14 +663,14 @@ function TablePage() {
               >
                 <div className="p-4">
                   <div className="text-sm">
-                    Службеное название:
+                    Служебное название:
                     {' '}
                     {field.dbName}
                   </div>
                   <div className="text-sm">
                     Тип:
                     {' '}
-                    {field.type}
+                    {t(field.type)}
                   </div>
                   <h4>Редактировать поле</h4>
                   <TextField
@@ -616,7 +681,10 @@ function TablePage() {
                   <TextField
                     label="Техническое название"
                     value={editForm.dbName}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, dbName: e.target.value }))}
+                    onChange={(e) => {
+                      e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]|^[A-Z0-9_]?/g, '');
+                      setEditForm((prev) => ({ ...prev, dbName: e.target.value }));
+                    }}
                   />
                   <Button
                     variant="contained"
@@ -631,6 +699,19 @@ function TablePage() {
                   >
                     Редактировать
                   </Button>
+                  <div>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setSelectedField(field);
+                        setDropDownOpen(false);
+                        setIsFieldPrivilegesDialogOpen(true);
+                      }}
+                      style={{ marginTop: '8px', display: 'none' }}
+                    >
+                      Редактировать права поля
+                    </Button>
+                  </div>
                   <h4>Удалить поле</h4>
                   <Button
                     variant="contained"
@@ -734,7 +815,7 @@ function TablePage() {
                     e.stopPropagation();
                   }}
                 >
-                  {['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(cellValue?.extension) ? (
+                  {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(cellValue?.extension) ? (
                     <img
                       src={`${window.config.server}/download/?id=${cellValue?.id}`}
                       alt={cellValue?.name}
@@ -779,6 +860,7 @@ function TablePage() {
             >
               <Add />
             </IconButton>
+
             <Popover
               anchorEl={dropDownRef.current}
               open={dropDownOpen}
@@ -890,8 +972,19 @@ function TablePage() {
   return (
     <div className="rounded-lg p-4 shadow-lg bg-white">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">{meta?.name}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-semibold">{meta?.name}</h2>
+          {meta.isSystem && <div className="text-red-600">Системная таблица</div>}
+        </div>
         <div className="flex gap-4">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => router.push(`/admin/tables/${id}/privileges`)}
+            className="normal-case"
+          >
+            Настроить права
+          </Button>
           <Button
             variant="contained"
             onClick={handleExportCSV}
@@ -901,9 +994,9 @@ function TablePage() {
             Экспорт CSV
           </Button>
           {/* <Button
-            variant="contained"
-            onClick={() => setIsEditModalOpen(true)}
-            className="normal-case"
+          variant="contained"
+          onClick={() => setIsEditModalOpen(true)}
+          className="normal-case"
           >
             Редактировать таблицу
           </Button> */}
@@ -919,7 +1012,6 @@ function TablePage() {
           {/* </Link> */}
         </div>
       </div>
-
       <TableEditor
         open={isEditModalOpen}
         onClose={handleModalClose}
@@ -949,14 +1041,14 @@ function TablePage() {
           handleRefetch();
         }}
         renderRowActions={({ row }) => (
+          !meta.isSystem && (
           <IconButton
             color="error"
             onClick={() => handleDeleteRow(row)}
             className="hover:bg-red-50"
           >
             <Delete />
-          </IconButton>
-        )}
+          </IconButton>))}
         state={{
           isLoading: loading,
           columnOrder: ['mrt-row-actions',
@@ -982,6 +1074,11 @@ function TablePage() {
       />
 
       <AddRowForm meta={meta} refetch={handleRefetch} />
+      <FieldPrivilegesDialog
+        open={isFieldPrivilegesDialogOpen}
+        onClose={() => setIsFieldPrivilegesDialogOpen(false)}
+        field={selectedField}
+      />
     </div>
   );
 }

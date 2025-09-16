@@ -3,7 +3,9 @@ import { BlockNoteEditor, defaultProps, insertOrUpdateBlock } from '@blocknote/c
 import { createReactBlockSpec } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import { WidgetsOutlined } from '@mui/icons-material';
-import { IWidget } from '../../entities/IWidget';
+import Link from 'next/link';
+
+import { IWidgetGraphQL as IWidget } from '../../entities/IWidget';
 // eslint-disable-next-line import/no-cycle
 import { PageWidget } from '../../ParseWidgets';
 import { BlockSettings } from '../../BlockEditor';
@@ -40,6 +42,10 @@ export const BlockEditorWidget = createReactBlockSpec(
         type: 'string',
         default: '',
       },
+      height: {
+        type: 'string',
+        default: '',
+      },
     },
     content: 'inline',
   },
@@ -59,6 +65,10 @@ export const BlockEditorWidget = createReactBlockSpec(
         { skip: !props.editor.isEditable },
       );
 
+      const current_widget = snippets.data?.getAllWidgets?.find(
+        (w: IWidget) => w.name === props.block.props.type,
+      );
+
       return (
         <div className={props.editor.isEditable ? 'widget' : 'widget-view'} data-widget-type={props.block.props.type}>
           {/* Icon which opens a menu to choose the Widget type */}
@@ -69,13 +79,26 @@ export const BlockEditorWidget = createReactBlockSpec(
                   <Menu.Target>
                     <div contentEditable={false}>
                       <Menu.Item>
-                        {snippets.data?.getAllWidgets?.find((w: IWidget) => w.name === props.block.props.type)?.title || 'Выберете виджет'}
+                        {current_widget?.title || 'Выберите виджет'}
                       </Menu.Item>
                     </div>
                   </Menu.Target>
                   {/* Dropdown to change the Widget type */}
                   <Menu.Dropdown>
                     <Menu.Label>Виджет</Menu.Label>
+                    {current_widget
+                      ? <Menu.Divider />
+                      : null}
+                    {current_widget
+                      ? (
+                        <Menu.Item
+                          component={Link}
+                          href={`/admin/widgets/${current_widget.id}`}
+                        >
+                          Редактировать
+                        </Menu.Item>
+                      )
+                      : null}
                     <Menu.Divider />
                     {(snippets.data?.getAllWidgets || []).map((widget: IWidget) => (
                       <Menu.Item
@@ -101,7 +124,16 @@ export const BlockEditorWidget = createReactBlockSpec(
             }}
             className={props.block.props.cssClass || undefined}
           >
-            {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
+            {props.block.props.type ? (
+              <PageWidget
+                widgetName={props.block.props.type}
+                blockProps={{
+                  type: props.block.props.type,
+                  cssClass: props.block.props.cssClass,
+                  height: props.block.props.height,
+                }}
+              />
+            ) : null}
           </div>
         </div>
       );

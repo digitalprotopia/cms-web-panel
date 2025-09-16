@@ -1,24 +1,20 @@
-import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import Link from 'next/link';
+import React from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
+import {
+  Edit, AccessTime, Delete,
+} from '@mui/icons-material';
 import {
   Card,
   CardContent,
-  CardHeader,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   IconButton,
   Typography,
   CircularProgress,
 } from '@mui/material';
-import {
-  Edit, AccessTime, Delete,
-} from '@mui/icons-material';
-import dayjs from 'dayjs';
-import { IWidget } from '@/components/entities/IWidget';
-import WidgetEdit from '@/components/WidgetEdit';
-import Link from 'next/link';
+
+import { IWidgetGraphQL as IWidget } from '@/components/entities/IWidget';
 
 const GET_WIDGETS = gql`
   query GetAllWidgets {
@@ -46,53 +42,11 @@ function WidgetCard({
   onDelete,
 }: {
   widget: IWidget;
-  onDelete: (id: string) => void;
+  onDelete: () => void;
 }) {
-  return (
-    <Card>
-      <CardHeader
-        title={widget.title}
-        action={(
-          <div>
-            <Link href={`/admin/widgets/${widget.id}`}>
-              <IconButton size="small">
-                <Edit />
-              </IconButton>
-            </Link>
-            <IconButton
-              onClick={() => onDelete(widget.id)}
-              size="small"
-              color="error"
-            >
-              <Delete />
-            </IconButton>
-          </div>
-        )}
-      />
-      <CardContent>
-        <Typography variant="body2" color="text.secondary">
-          {widget.name}
-        </Typography>
-        <div className="flex items-center mt-2">
-          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
-          <Typography variant="caption" color="text.secondary">
-            {dayjs(widget.createdAt).toString()}
-          </Typography>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function WidgetsPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
-
-  const { data, loading, refetch } = useQuery(GET_WIDGETS);
-
   const [deleteWidget] = useMutation(DELETE_WIDGET, {
     onCompleted: () => {
-      refetch();
+      onDelete();
     },
     onError: (error) => {
       console.error('Ошибка при удалении виджета:', error);
@@ -105,10 +59,48 @@ function WidgetsPage() {
     }
   };
 
-  const handleCloseModal = () => {
-    setSelectedWidgetId(null);
-    setIsModalOpen(false);
-  };
+  return (
+    <Card>
+      <div className="flex items-start justify-between p-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-medium scrollable-title">{widget.title}</h2>
+        </div>
+        <div className="flex-shrink-0 flex gap-2 ml-4">
+          <Link href={`/admin/widgets/${widget.id}`}>
+            <IconButton size="small">
+              <Edit />
+            </IconButton>
+          </Link>
+          <IconButton
+            onClick={() => handleDelete(widget.id)}
+            size="small"
+            color="error"
+          >
+            <Delete />
+          </IconButton>
+        </div>
+      </div>
+      <CardContent>
+        <Typography variant="body2" color="text.secondary" className="scrollable-title">
+          Код:
+          {' '}
+          {widget.name}
+        </Typography>
+        <div className="flex items-center mt-2">
+          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
+          <Typography variant="caption" color="text.secondary">
+            Создано:
+            {' '}
+            {dayjs(widget.createdAt).format('DD.MM.YYYY')}
+          </Typography>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function WidgetsPage() {
+  const { data, loading, refetch } = useQuery(GET_WIDGETS);
 
   if (loading) {
     return (
@@ -120,27 +112,10 @@ function WidgetsPage() {
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <Dialog
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        maxWidth="md"
-        fullScreen
-      >
-        <DialogTitle>
-          {selectedWidgetId ? 'Редактировать виджет' : 'Создать новый виджет'}
-        </DialogTitle>
-        <DialogContent>
-          <WidgetEdit id={selectedWidgetId as string} onClose={handleCloseModal} />
-        </DialogContent>
-      </Dialog>
       <div className="flex items-center justify-between gap-4">
         <Typography variant="h4">Виджеты</Typography>
         <Link href="/admin/widgets/add">
-          <Button
-            variant="contained"
-          >
-            Добавить виджет
-          </Button>
+          <Button variant="contained">Добавить виджет</Button>
         </Link>
       </div>
 
@@ -149,7 +124,7 @@ function WidgetsPage() {
           <WidgetCard
             key={widget.id}
             widget={widget}
-            onDelete={handleDelete}
+            onDelete={refetch}
           />
         ))}
       </div>

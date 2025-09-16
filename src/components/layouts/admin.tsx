@@ -55,6 +55,11 @@ const menuItems: ISidebarItem[] = [
     href: '/admin/accounts',
   },
   {
+    icon: PeopleAltOutlined,
+    label: 'Роли',
+    href: '/admin/roles',
+  },
+  {
     icon: ArticleOutlined,
     label: 'Записи',
     href: '/admin/posts',
@@ -98,7 +103,7 @@ const menuItems: ISidebarItem[] = [
 
       return sites.data?.getAllSites.map((site: Partial<ISite>) => (
         <div key={site.id}>
-          <div>
+          <div className="scrollable-title">
             {site.title}
           </div>
           <div className="pl-4 underline">
@@ -221,7 +226,9 @@ export default function AdminLayout({
                       flexItem
                     />
                     <div className="flex items-center gap-2">
-                      <Avatar className="size-8 text-sm">{getInitials(user.user.name)}</Avatar>
+                      <Avatar className="size-8 text-sm" src={user.user?.avatar?.id ? `${window.config.server}/download/?id=${user.user.avatar.id}&mode=view` : undefined}>
+                        {(!user.user?.avatar?.id) ? getInitials(user.user.name) : null}
+                      </Avatar>
                       <Button
                         variant="text"
                         className="normal-case text-cms-gray-dark !text-base"
