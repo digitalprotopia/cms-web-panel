@@ -26,7 +26,7 @@ function FeedTargetsPage() {
         size: 400,
       },
       {
-        accessorKey: 'name',
+        accessorKey: 'title',
         header: 'Имя',
         size: 150,
       },
