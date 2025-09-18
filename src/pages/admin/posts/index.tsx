@@ -1,21 +1,19 @@
-import dayjs from 'dayjs';
-import React from 'react';
-import Link from 'next/link';
+import React, { useMemo, useState } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
-  AccessTime, Delete, Edit,
-} from '@mui/icons-material';
-import {
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
   IconButton,
   Typography,
+  CircularProgress,
+  Menu,
+  MenuItem,
 } from '@mui/material';
-
-import { IPost } from '@/components/entities/IPost';
+import { Edit, AccessTime, Delete, Repeat } from '@mui/icons-material';
+import dayjs from 'dayjs';
+import Link from 'next/link';
+import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
+import { IFeedTarget } from '@/components/entities/IFeedTarget';
+import { useSnackbar } from 'notistack';
 
 const GET_POSTS = gql`
   query GetPosts {
@@ -27,6 +25,7 @@ const GET_POSTS = gql`
       blockContent
       preview
       createdAt
+      externalPostCount
       categories {
         id
         title
@@ -44,84 +43,163 @@ const GET_POSTS = gql`
       id
       title
     }
+    getFeedTargets {
+      id
+      title
+      url
+    }
   }
 `;
 
-const DELETE_POST = gql`
-  mutation DeletePost($id: ID!) {
-    deletePost(id: $id)
-  }
-`;
+function PostsPost() {
+  const { enqueueSnackbar } = useSnackbar();
+  const { data, loading, refetch, error: loadingError } = useQuery(GET_POSTS);
 
-function PostCard({
-  post,
-  onDelete,
-}: {
-  post: IPost;
-  onDelete: (id: string) => void;
-}) {
-  // const formatDate = (dateString: string) => new Date(dateString).toLocaleString('ru-RU', {
-  //   day: 'numeric',
-  //   month: 'long',
-  //   year: 'numeric',
-  //   hour: '2-digit',
-  //   minute: '2-digit',
-  // });
+  const [deletePost] = useMutation(
+    gql`
+      mutation DeletePost($id: ID!) {
+        deletePost(id: $id)
+      }
+    `,
+    {
+      onCompleted: () => {
+        refetch();
+      },
+      onError: (error) => {
+        console.error('Ошибка при удалении поста:', error);
+      },
+    },
+  );
 
-  return (
-    <Card>
-      <CardHeader
-        title={post.title}
-        subheader={post.slug}
-        action={(
-          <div>
-            <Link href={`/admin/posts/${post.id}`}>
+  const handleDelete = (id: string) => {
+    if (window.confirm('Вы уверены, что хотите удалить эту запись?')) {
+      deletePost({ variables: { id } });
+    }
+  };
+
+  const [repostPost] = useMutation(
+    gql`
+      mutation RepostPost($id: ID!, $feedId: ID!) {
+        repostPost(id: $id, feedId: $feedId)
+      }
+    `,
+    {
+      onCompleted: () => {
+        refetch();
+      },
+      onError: (error) => {
+        console.error('Ошибка при переслании поста:', error);
+      },
+    },
+  );
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    postId: string,
+  ) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedPostId(postId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedPostId(null);
+  };
+
+  const handleRepost = async (feedId: string) => {
+    if (!selectedPostId) return;
+    try {
+      const result = await repostPost({
+        variables: {
+          id: selectedPostId,
+          feedId,
+        },
+      });
+      if (result.data?.repostPost) {
+        enqueueSnackbar('Запись успешно переслана', { variant: 'success' });
+      } else {
+        enqueueSnackbar('Ошибка при пересылке', { variant: 'error' });
+      }
+      handleMenuClose();
+    } catch (error) {
+      console.error('Repost failed:', error);
+      enqueueSnackbar('Ошибка при попытке переслать запись', {
+        variant: 'error',
+      });
+    }
+  };
+
+  const columns: MRT_ColumnDef<any, any>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+        size: 400,
+      },
+      {
+        accessorKey: 'title',
+        header: 'Заголовок',
+        size: 150,
+        Cell: ({ row }) => <div>{row.original.title}</div>,
+      },
+      {
+        accessorKey: 'slug',
+        header: 'Слаг',
+        size: 150,
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Дата создания',
+        size: 150,
+        Cell: ({ row }) => (
+          <div className="flex items-center">
+            <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
+            <Typography variant="caption" color="text.secondary">
+              {dayjs(row.original.createdAt).toString()}
+            </Typography>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'externalPostCount',
+        header: 'Количество пересылок',
+        size: 150,
+        Cell: ({ row }) => <div>{row.original.externalPostCount}</div>,
+      },
+      {
+        accessorKey: 'actions',
+        header: 'Действия',
+        size: 150,
+        Cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Link href={`/admin/posts/${row.original.id}`}>
               <IconButton size="small">
                 <Edit />
               </IconButton>
             </Link>
             <IconButton
-              onClick={() => onDelete(post.id)}
+              onClick={(e) => handleMenuOpen(e, row.original.id)}
+              size="small"
+              color="primary"
+            >
+              <Repeat />
+            </IconButton>
+            <IconButton
+              onClick={() => handleDelete(row.original.id)}
               size="small"
               color="error"
             >
               <Delete />
             </IconButton>
           </div>
-          )}
-      />
-      <CardContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {/* {post.url} */}
-        </Typography>
-        <div className="flex items-center">
-          <AccessTime sx={{ fontSize: 16, marginRight: '4px' }} />
-          <Typography variant="caption" color="text.secondary">
-            {dayjs(post.createdAt).toString()}
-          </Typography>
-        </div>
-      </CardContent>
-    </Card>
+        ),
+      },
+    ],
+    [refetch],
   );
-}
-
-function PostsPost() {
-  const { data, loading, refetch } = useQuery(GET_POSTS);
-
-  const [deletePost] = useMutation(DELETE_POST, {
-    onCompleted: () => {
-      refetch();
-    },
-    onError: (error) => {
-      console.error('Ошибка при удалении поста:', error);
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить этот пост?')) {
-      deletePost({ variables: { id } });
-    }
-  };
 
   if (loading) {
     return (
@@ -131,28 +209,65 @@ function PostsPost() {
     );
   }
 
+  if (loadingError) {
+    return (
+      <div className="flex items-center justify-center">
+        <Typography variant="h4">Ошибка</Typography>
+      </div>
+    );
+  }
+
+  const feedOptions = data.getFeedTargets;
+
+  const RepostMenu = (
+    <Menu
+      anchorEl={anchorEl}
+      open={Boolean(anchorEl)}
+      onClose={handleMenuClose}
+      MenuListProps={{
+        'aria-labelledby': 'repost-menu',
+      }}
+    >
+      {feedOptions.map((feed: IFeedTarget) => (
+        <MenuItem key={feed.id} onClick={() => handleRepost(feed.id)}>
+          {feed.title}
+          {' '}
+          {feed.url}
+        </MenuItem>
+      ))}
+    </Menu>
+  );
+
   return (
     <div className="rounded p-4 shadow-lg bg-white">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mb-4">
         <Typography variant="h4">Посты</Typography>
         <Link href="/admin/posts/add">
-          <Button
-            variant="contained"
-          >
-            Добавить пост
-          </Button>
+          <Button variant="contained">Добавить пост</Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4 p-4">
-        {data?.getPosts?.map((post: IPost) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
+      <MaterialReactTable
+        columns={columns}
+        data={data.getPosts}
+        enableColumnResizing
+        enableFullScreenToggle={false}
+        enableDensityToggle
+        enableColumnFilters
+        enablePagination
+        enableSorting
+        initialState={{
+          columnVisibility: {
+            id: false,
+          },
+        }}
+        muiTableProps={{
+          sx: {
+            tableLayout: 'fixed',
+          },
+        }}
+      />
+      {RepostMenu}
     </div>
   );
 }

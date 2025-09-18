@@ -4,6 +4,7 @@ import { gql, useQuery, useMutation } from '@apollo/client';
 import { MaterialReactTable } from 'material-react-table';
 import toBase64 from '@/components/utils/toBase64';
 import Image from 'next/image';
+import { IFile } from './entities/IFile';
 
 const GET_FILES = gql`
     query GetFiles {
@@ -42,13 +43,18 @@ const CREATE_FILE = gql`
 interface FileDialogProps {
   fileId?: string | null;
   onChange: (fileId: string | null) => void;
+  filterExtensions?: string[];
 }
 
-function FileDialog({ fileId, onChange }: FileDialogProps) {
+function FileDialog({ fileId, onChange, filterExtensions }: FileDialogProps) {
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const { data: filesData, refetch } = useQuery(GET_FILES, { skip: !open });
+
+  const filteredData = filterExtensions
+    ? filesData?.getFiles.filter((file: IFile) => filterExtensions.includes(file.extension))
+    : filesData?.getFiles;
 
   const { data: fileData } = useQuery(GET_FILE, {
     variables: { id: fileId },
@@ -157,7 +163,7 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
           </div>
           <MaterialReactTable
             columns={columns}
-            data={filesData?.getFiles || []}
+            data={filteredData || []}
             enableColumnResizing
             enableFullScreenToggle={false}
             enableDensityToggle
