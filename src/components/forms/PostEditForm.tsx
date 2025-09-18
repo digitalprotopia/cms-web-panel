@@ -325,6 +325,7 @@ export default function PostForm({ id, onClose }: PostFormProps) {
               onChange={(pictureFileId) => {
                 setFormData({ ...formData, pictureFileId });
               }}
+              filterExtensions={['jpg', 'webp', 'png', 'gif']}
             />
           )}
         </Stack>
