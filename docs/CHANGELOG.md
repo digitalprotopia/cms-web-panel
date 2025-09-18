@@ -1,3 +1,13 @@
+# [0.21.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.20.0...v0.21.0) (2025-09-18)
+
+
+### Features
+
+* Article illustrations ([d3e914b](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/d3e914bf1f30e90e4b79c9574633901edebbec87))
+* Отображение сессий пользователей и управление ими ([102fed3](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/102fed34f93b0c87ea46db7a0df8bbbaa1455c48))
+* Релиз 0.21.0 - иллюстрации в постах, сессии пользователей, репосты постов в телеграм ([105fa11](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/105fa111aec71974010722fe7014a96d7f429141))
+* Репосты постов в Телеграм ([1589449](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/1589449952dee11804fcbbafc37883ee210d8852))
+
 # [0.20.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.19.0...v0.20.0) (2025-08-25)
 
 
