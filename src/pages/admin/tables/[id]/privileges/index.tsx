@@ -37,9 +37,9 @@ query GetTable($id: ID!) {
 }
 `;
 
-const UPDATE_PRIVILEGES = gql`
-mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [TablePrivilegeInput!]!) {
-    updatePrivileges(tableId: $tableId, roleId: $roleId, privileges: $privileges)
+const UPDATE_TABLE_PRIVILEGES = gql`
+mutation UpdateTablePrivileges($tableId: String!, $roleId: String!, $privileges: [TablePrivilegeInput!]!) {
+    updateTablePrivileges(tableId: $tableId, roleId: $roleId, privileges: $privileges)
 }
 `;
 
@@ -55,7 +55,7 @@ function PrivilegesPage() {
   const { data: tableData,
     loading: tableLoading,
     error: tableError } = useQuery(GET_TABLE, { variables: { id: tableId } });
-  const [updatePrivileges] = useMutation(UPDATE_PRIVILEGES);
+  const [updateTablePrivileges] = useMutation(UPDATE_TABLE_PRIVILEGES);
   const { enqueueSnackbar } = useSnackbar();
 
   const [privilegesState, setPrivilegesState] = useState<
@@ -107,7 +107,7 @@ function PrivilegesPage() {
       await Promise.all(Object.entries(privilegesState).map(([roleId, privileges]) => {
         const role = rolesData.getRoles.find((_role: IRole) => _role.id === roleId);
         if (role) {
-          return updatePrivileges({ variables: { tableId, roleId, privileges } });
+          return updateTablePrivileges({ variables: { tableId, roleId, privileges } });
         }
         return Promise.resolve();
       }));
