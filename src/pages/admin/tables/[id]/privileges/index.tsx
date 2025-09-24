@@ -38,7 +38,7 @@ query GetTable($id: ID!) {
 `;
 
 const UPDATE_PRIVILEGES = gql`
-mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [PrivilegeInput!]!) {
+mutation UpdatePrivileges($tableId: String!, $roleId: String!, $privileges: [TablePrivilegeInput!]!) {
     updatePrivileges(tableId: $tableId, roleId: $roleId, privileges: $privileges)
 }
 `;
