@@ -6,10 +6,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table';
 import {
   Button,
-  Dialog, DialogActions, DialogContent, IconButton, TextField,
+  Checkbox,
+  Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, TextField,
+  Tooltip,
 } from '@mui/material';
 import { IRole } from '@/components/entities/IRole';
-import { Delete, Edit } from '@mui/icons-material';
+import { Delete, Edit, VpnKey } from '@mui/icons-material';
+import { PrivilegeType } from '@/components/entities/IPrivilege';
+import { useTranslation } from 'react-i18next';
 
 function EditRole(props: {
   role?: IRole;
@@ -95,6 +99,75 @@ function EditRole(props: {
   );
 }
 
+function EditRolePrivileges(props: {
+  role: IRole;
+  privileges: PrivilegeType[];
+  open: boolean;
+  onClose: () => void;
+  refetch: () => void;
+}) {
+  const [updatePrivileges] = useMutation(gql`
+    mutation ($roleId: String!, $privileges: [PrivilegeInput!]!) {
+      updatePrivileges(roleId: $roleId, privileges: $privileges)
+    }
+  `);
+
+  const [selectedPrivileges, setSelectedPrivileges] = useState<PrivilegeType[]>(props.privileges);
+
+  const { t } = useTranslation();
+
+  if (!props.role) {
+    return null;
+  }
+
+  return (
+    <Dialog open={props.open} onClose={props.onClose}>
+      <DialogTitle>
+        {'Привилегии роли '}
+        {props.role.title}
+      </DialogTitle>
+      <DialogContent>
+        {Object.values(PrivilegeType).map((privilege) => (
+          <div key={privilege}>
+            <FormControlLabel
+              control={
+                (<Checkbox
+                  checked={selectedPrivileges.includes(privilege)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedPrivileges([...selectedPrivileges, privilege]);
+                    } else {
+                      setSelectedPrivileges(selectedPrivileges.filter((p) => p !== privilege));
+                    }
+                  }}
+                />)
+}
+              label={t(`privilege_${privilege}`)}
+            />
+          </div>
+        ))}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose}>Отмена</Button>
+        <Button
+          onClick={async () => {
+            await updatePrivileges({
+              variables: {
+                roleId: props.role.id,
+                privileges: selectedPrivileges.map((privilege) => ({ privilege })),
+              },
+            });
+            props.onClose();
+            await props.refetch();
+          }}
+        >
+          Сохранить
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function RolesPage() {
   const router = useRouter();
   const { loading, data, refetch } = useQuery(gql`
@@ -104,12 +177,19 @@ function RolesPage() {
         name
         title
         isSystem
+        privileges {
+          privilege
+        }
       }
     }
   `);
 
   const [editDialogId, setEditDialogId] = useState<number | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const [editPrivilegesDialogId, setEditPrivilegesDialogId] = useState<number | null>(null);
+  const [editPrivilegesDialogOpen, setEditPrivilegesDialogOpen] = useState(false);
+
   const [deleteRole] = useMutation(gql`
     mutation($id: ID!) {
       deleteRole(id: $id)
@@ -161,18 +241,30 @@ function RolesPage() {
         size: 120,
         Cell: ({ row }) => (
           <div style={{ display: 'flex', gap: '8px' }}>
-            <IconButton
-              onClick={() => {
-                if (!row.original.isSystem) {
-                  setEditDialogId(row.index);
-                  setEditDialogOpen(true);
-                }
-              }}
-              disabled={row.original.isSystem}
-              title={row.original.isSystem ? 'Системную роль нельзя изменить' : 'Редактировать'}
-            >
-              <Edit />
-            </IconButton>
+            <Tooltip title={row.original.isSystem ? 'Системную роль нельзя изменить' : 'Редактировать'}>
+              <IconButton
+                onClick={() => {
+                  if (!row.original.isSystem) {
+                    setEditDialogId(row.index);
+                    setEditDialogOpen(true);
+                  }
+                }}
+                disabled={row.original.isSystem}
+              >
+                <Edit />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Привилегии">
+              <IconButton
+                onClick={() => {
+                  setEditPrivilegesDialogId(row.index);
+                  setEditPrivilegesDialogOpen(true);
+                }}
+                disabled={row.original.name === 'guest' || row.original.name === 'admin'}
+              >
+                <VpnKey />
+              </IconButton>
+            </Tooltip>
             <IconButton
               onClick={() => {
                 if (!row.original.isSystem) {
@@ -233,6 +325,16 @@ function RolesPage() {
         open={editDialogOpen}
         onClose={() => {
           setEditDialogOpen(false);
+        }}
+        refetch={refetch}
+      />
+      <EditRolePrivileges
+        role={data.getRoles[editPrivilegesDialogId!]}
+        privileges={data.getRoles[editPrivilegesDialogId!]
+          ?.privileges.map((p: any) => p.privilege) || []}
+        open={editPrivilegesDialogOpen}
+        onClose={() => {
+          setEditPrivilegesDialogOpen(false);
         }}
         refetch={refetch}
       />

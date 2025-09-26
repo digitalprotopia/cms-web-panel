@@ -24,6 +24,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import UserContext from '@/components/UserContext';
 import { gql, useQuery } from '@apollo/client';
 import { ISite } from '../entities/ISite';
+import { PrivilegeType } from '../entities/IPrivilege';
+import { UserRole } from '../entities/IUser';
 
 const getInitials = (name: string) => name
   .split(' ')
@@ -37,6 +39,8 @@ interface ISidebarItem {
   label: string;
   href: string;
   BelowPages?: () => React.JSX.Element;
+  privileges?: PrivilegeType[];
+  urls?: string[];
 }
 
 interface MenuItemProps extends ISidebarItem {
@@ -70,6 +74,8 @@ const menuItems: ISidebarItem[] = [
         <div><Link href="/admin/feed-targets">Ленты публикаций</Link></div>
       </div>
     ),
+    privileges: [PrivilegeType.POSTS],
+    urls: ['/admin/posts', '/admin/categories', '/admin/tags', '/admin/feed-targets'],
   },
   {
     icon: TableChartOutlined,
@@ -165,14 +171,30 @@ interface MenuNavigationProps {
 
 function MenuNavigation({ items }: MenuNavigationProps) {
   const router = useRouter();
+  const user = useContext(UserContext);
+
   const { pathname } = router;
   const currentPath = `/${pathname.split('/').slice(1, 3).join('/')}`;
 
   return (
     <ul className="flex flex-col gap-2">
-      {items.map((item) => (
-        <SidebarItem key={item.href} {...item} isActive={currentPath === item.href} />
-      ))}
+      {items.filter((item) => {
+        if (user?.user?.role.name === UserRole.ADMIN) {
+          return true;
+        }
+        if (user?.user?.role.privileges && item.href === '/admin') {
+          return true;
+        }
+        if (item.privileges && item.privileges.length > 0) {
+          return item.privileges.some((priv) => user?.user?.role.privileges?.map(
+            (p) => p.privilege,
+          ).includes(priv));
+        }
+        return false;
+      })
+        .map((item) => (
+          <SidebarItem key={item.href} {...item} isActive={currentPath === item.href} />
+        ))}
     </ul>
   );
 }
@@ -199,6 +221,28 @@ export default function AdminLayout({
     handleUserPopoverClose();
     user.logout();
   };
+
+  let urlAccess = false;
+  if (user.user?.role.name === UserRole.ADMIN) {
+    urlAccess = true;
+  } else if (user.user?.role.privileges?.length) {
+    if (router.pathname === '/admin') {
+      urlAccess = true;
+    } else {
+      const menuItem = menuItems.find((item) => (
+        item.href !== '/admin' && (
+          item.urls?.some((url) => router.pathname.startsWith(url))
+      || router.pathname.startsWith(item.href))
+      ));
+      if (menuItem?.privileges?.length) {
+        if (menuItem.privileges.some(
+          (priv) => user.user?.role.privileges?.map((p) => p.privilege).includes(priv),
+        )) {
+          urlAccess = true;
+        }
+      }
+    }
+  }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -270,16 +314,17 @@ export default function AdminLayout({
             </div>
           </div>
           <div className="bg-cms-gray-light flex-1 flex gap-4 p-4">
-            {user.user?.role.name === 'admin' ? (
+            {(urlAccess
+            && (user.user?.role.name === UserRole.ADMIN || user.user?.role.privileges?.length)) ? (
               <>
                 <nav className="max-w-72 h-fit mx-auto flex-1 bg-white rounded p-4 shadow-lg">
                   <MenuNavigation items={menuItems} />
                 </nav>
                 <main className="flex-1 overflow-hidden">{children}</main>
               </>
-            ) : (
-              'Доступ запрещен'
-            )}
+              ) : (
+                'Доступ запрещен'
+              )}
           </div>
         </div>
       </main>

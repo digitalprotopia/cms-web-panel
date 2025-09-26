@@ -75,6 +75,9 @@ const GET_ME = gql`
       role {
         id
         name
+        privileges {
+          privilege
+        }
       }
     }
   }

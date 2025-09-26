@@ -21,5 +21,6 @@
   "manyToManyFirst": "Многие ко многим (первый)",
   "manyToManySecond": "Многие ко многим (второй)",
   "userCreator": "Создатель",
-  "dateTime": "Дата и время"
+  "dateTime": "Дата и время",
+  "privilege_posts": "Управление постами"
 }
