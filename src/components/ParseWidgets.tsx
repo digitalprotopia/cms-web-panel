@@ -10,6 +10,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import {
   Map, useYMaps,
 } from '@pbe/react-yandex-maps';
+import * as YandexMaps from '@pbe/react-yandex-maps';
 import dayjs from 'dayjs';
 import { compileString } from 'sass';
 
@@ -101,6 +102,7 @@ export function parseReact(
       useApolloClient,
       useSiteMenu,
       usePageContext,
+      YandexMaps,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
