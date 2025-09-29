@@ -188,7 +188,7 @@ export default function WidgetSettings({
   const onWidgetViewTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWidgetData({
       ...widgetData,
-      widgetViewType: WidgetViewType[e.target.value as keyof typeof WidgetViewType],
+      widgetViewType: e.target.value as WidgetViewType,
       tableId: e.target.value === WidgetViewType.STATIC ? null as any : widgetData.tableId,
     });
     onChangeSettings();
