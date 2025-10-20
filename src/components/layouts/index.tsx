@@ -125,6 +125,14 @@ export default function IndexLayout(props: {
   return (
     <main className="flex-1 ">
       <Header />
+      <style>
+        {`
+        .bn-block-content.ProseMirror-selectednode>*, .ProseMirror-selectednode>.bn-block-content>* {
+            border-radius: 4px;
+            outline: none;
+        }
+        `}
+      </style>
       {props.children}
       <Dialog
         fullScreen
