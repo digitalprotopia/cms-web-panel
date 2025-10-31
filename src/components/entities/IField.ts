@@ -24,6 +24,7 @@ export enum FieldType {
   USER = 'user',
   HTML = 'html',
   BLOCK = 'block',
+  SLUG = 'slug',
 }
 
 export type IFieldOneToManyOptions = {
@@ -36,7 +37,11 @@ export type IFieldManyToManyOptions = {
   secondFieldTitle: string;
 };
 
-export type IFieldOptions = IFieldOneToManyOptions | IFieldManyToManyOptions;
+export type IFieldSlugOptions = {
+  sourceFieldId: string;
+};
+
+export type IFieldOptions = IFieldOneToManyOptions | IFieldManyToManyOptions | IFieldSlugOptions;
 
 export interface IField extends IEntity {
   dbName: string;

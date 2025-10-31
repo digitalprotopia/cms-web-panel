@@ -5,7 +5,7 @@ import { Menu } from '@mantine/core';
 import { WidgetsOutlined } from '@mui/icons-material';
 import Link from 'next/link';
 
-import { IWidget } from '../../entities/IWidget';
+import { IWidgetGraphQL as IWidget } from '../../entities/IWidget';
 // eslint-disable-next-line import/no-cycle
 import { PageWidget } from '../../ParseWidgets';
 import { BlockSettings } from '../../BlockEditor';
@@ -39,6 +39,10 @@ export const BlockEditorWidget = createReactBlockSpec(
         default: '',
       },
       cssClass: {
+        type: 'string',
+        default: '',
+      },
+      height: {
         type: 'string',
         default: '',
       },
@@ -120,7 +124,16 @@ export const BlockEditorWidget = createReactBlockSpec(
             }}
             className={props.block.props.cssClass || undefined}
           >
-            {props.block.props.type ? <PageWidget widgetName={props.block.props.type} /> : null}
+            {props.block.props.type ? (
+              <PageWidget
+                widgetName={props.block.props.type}
+                blockProps={{
+                  type: props.block.props.type,
+                  cssClass: props.block.props.cssClass,
+                  height: props.block.props.height,
+                }}
+              />
+            ) : null}
           </div>
         </div>
       );

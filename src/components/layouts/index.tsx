@@ -63,8 +63,8 @@ function Header() {
                   flexItem
                 />
                 <div className="flex items-center gap-2">
-                  <Avatar className="size-8 text-sm">
-                    {getInitials(user.user.name)}
+                  <Avatar className="size-8 text-sm" src={user.user?.avatar?.id ? `${window.config.server}/download/?id=${user.user.avatar.id}&mode=view` : undefined}>
+                    {(!user.user?.avatar?.id) ? getInitials(user.user.name) : null}
                   </Avatar>
                   <Button
                     variant="text"
@@ -125,6 +125,14 @@ export default function IndexLayout(props: {
   return (
     <main className="flex-1 ">
       <Header />
+      <style>
+        {`
+        .bn-block-content.ProseMirror-selectednode>*, .ProseMirror-selectednode>.bn-block-content>* {
+            border-radius: 4px;
+            outline: none;
+        }
+        `}
+      </style>
       {props.children}
       <Dialog
         fullScreen

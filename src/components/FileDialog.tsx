@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Button, Dialog, DialogContent, Snackbar } from '@mui/material';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import { MaterialReactTable } from 'material-react-table';
-import { toBase64 } from './form';
+import toBase64 from '@/components/utils/toBase64';
+import Image from 'next/image';
+import { IFile } from './entities/IFile';
 
 const GET_FILES = gql`
     query GetFiles {
@@ -41,13 +43,18 @@ const CREATE_FILE = gql`
 interface FileDialogProps {
   fileId?: string | null;
   onChange: (fileId: string | null) => void;
+  filterExtensions?: string[];
 }
 
-function FileDialog({ fileId, onChange }: FileDialogProps) {
+function FileDialog({ fileId, onChange, filterExtensions }: FileDialogProps) {
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const { data: filesData, refetch } = useQuery(GET_FILES, { skip: !open });
+
+  const filteredData = filterExtensions
+    ? filesData?.getFiles.filter((file: IFile) => filterExtensions.includes(file.extension))
+    : filesData?.getFiles;
 
   const { data: fileData } = useQuery(GET_FILE, {
     variables: { id: fileId },
@@ -72,11 +79,14 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
       Cell: ({ row }: { row: any }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp'].includes(row.original.extension) && (
-          <img
-            src={`${window.config.server}/download/?id=${row.original.id}`}
-            alt={row.original.name}
-            style={{ width: 50, height: 50, marginRight: 10 }}
-          />
+            <Image
+              src={`${window.config.server}/download/?id=${row.original.id}`}
+              alt={row.original.name}
+              width={50}
+              height={50}
+              className="mr-2.5"
+              unoptimized
+            />
           )}
           <Button onClick={() => handleSelectFile(row.original.id)}>
             Выбрать
@@ -109,10 +119,13 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
             Выбранный файл:
             {' '}
             <div>
-              <img
+              <Image
                 src={`${window.config.server}/download/?id=${fileData.getFile.id}`}
                 alt={fileData.getFile.name}
-                style={{ width: 50, height: 50, marginRight: 10 }}
+                width={50}
+                height={50}
+                className="mr-2.5"
+                unoptimized
               />
             </div>
             <div>
@@ -150,7 +163,7 @@ function FileDialog({ fileId, onChange }: FileDialogProps) {
           </div>
           <MaterialReactTable
             columns={columns}
-            data={filesData?.getFiles || []}
+            data={filteredData || []}
             enableColumnResizing
             enableFullScreenToggle={false}
             enableDensityToggle

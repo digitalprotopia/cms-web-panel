@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import {
@@ -9,9 +9,13 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  InputAdornment,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
+import AddButtonComponent from './AddButtonComponent';
 
 const GET_BOT = gql`
   query GetBot($id: ID!) {
@@ -24,6 +28,7 @@ const GET_BOT = gql`
       apiKey
       platformID
       idInPlatform
+      isAutoRegister
       client {
         id
         secret
@@ -53,6 +58,7 @@ const EDIT_BOT = gql`
       apiKey
       platformID
       idInPlatform
+      isAutoRegister
     }
   }
 `;
@@ -88,10 +94,17 @@ function EditBotPage() {
     favicon: null,
     url: null,
     apiKey: null,
+    isAutoRegister: false,
     // platformID: null,
     // idInPlatform: null,
     // clientId: null,
   });
+
+  const [showSecret, setShowSecret] = useState(false);
+
+  const handleToggleShowSecret = useCallback(() => {
+    setShowSecret((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     if (data && data.getBot) {
@@ -101,6 +114,7 @@ function EditBotPage() {
         favicon: data.getBot.favicon || null,
         url: data.getBot.url || null,
         apiKey: data.getBot.apiKey || null,
+        isAutoRegister: data.getBot.isAutoRegister || false,
         // platformID: data.getBot.platformID || null,
         // idInPlatform: data.getBot.idInPlatform || null,
         // clientId: data.getBot.clientId || null,
@@ -132,7 +146,7 @@ function EditBotPage() {
       enqueueSnackbar('Данные успешно изменены', { variant: 'success' });
     } catch (err) {
       console.error(err);
-      enqueueSnackbar('При редактировании возникла непредвиденная ошибка', { variant: 'success' });
+      enqueueSnackbar('При редактировании возникла непредвиденная ошибка', { variant: 'error' });
     }
   };
 
@@ -146,6 +160,9 @@ function EditBotPage() {
       enqueueSnackbar('Ошибка при удалении страницы бота', { variant: 'error' });
     }
   };
+
+  // Проверка, что id является строкой
+  const botId = typeof id === 'string' ? id : '';
 
   return (
     <div className="rounded p-4 shadow-lg bg-white">
@@ -188,6 +205,13 @@ function EditBotPage() {
           onChange={handleInputChange}
           fullWidth
         />
+        <FormControlLabel
+          control={(<Checkbox
+            checked={bot.isAutoRegister}
+            onChange={(e) => setBot({ ...bot, isAutoRegister: e.target.checked })}
+          />)}
+          label="Автоматическая регистрация"
+        />
         {/* <TextField
           label="Platform ID"
           name="platformID"
@@ -220,8 +244,20 @@ function EditBotPage() {
           label="Client Secret"
           name="clientSecret"
           value={data.getBot.client.secret}
+          type={showSecret ? 'text' : 'password'}
           fullWidth
           disabled
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleToggleShowSecret} edge="end">
+                    {showSecret ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
         />
         <Button variant="contained" color="primary" type="submit">
           Сохранить
@@ -262,6 +298,9 @@ function EditBotPage() {
           Добавить страницу
         </Button>
       </div>
+
+      {/* Встраивание компонента AddButtonComponent в самый низ страницы */}
+      <AddButtonComponent botId={botId} botItems={itemsData?.getBotItems || []} />
     </div>
   );
 }

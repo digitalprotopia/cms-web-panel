@@ -4,12 +4,13 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar, enqueueSnackbar } from 'notistack';
-import { Button, Typography } from '@mui/material';
+import { Button, Typography, Skeleton } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
   Map, useYMaps,
 } from '@pbe/react-yandex-maps';
+import * as YandexMaps from '@pbe/react-yandex-maps';
 import dayjs from 'dayjs';
 import { compileString } from 'sass';
 
@@ -101,6 +102,7 @@ export function parseReact(
       useApolloClient,
       useSiteMenu,
       usePageContext,
+      YandexMaps,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
@@ -447,10 +449,17 @@ function WidgetStyle(
     children: React.JSX.Element,
     cssClass?: string,
     style?: string,
-    widgetId: string,
+    widgetId?: string,
   },
 ) {
   let style;
+  /*
+  todo: Пофиксить возможный баг при undefined widgetId (class: widget-undefined).
+    Варианты проявления бага:
+    * стиль применяется ко множеству виджетов.
+    Вариант решения:
+    * если виджет новый и id undefined, то сперва сохранить виджет, чтобы получить id
+    * потом обновить стиль и разметку использовав id. */
   const className = `widget-${props.widgetId}`;
   // Если нужно применять стиль, применить класс с id виджета к стилю виджета и элементу потомку.
   if (props.style) {
@@ -481,7 +490,7 @@ function WidgetStyle(
 
 export function RenderWidget(
   props: {
-    widgetId: string,
+    widgetId?: string,
     widgetViewType: string,
     html: string,
     fields: TableField[],
@@ -551,25 +560,26 @@ export function RenderWidget(
 
 export function PageWidget(props: {
   widgetName: string;
+  blockProps?: { type: string; cssClass?: string; height?: string };
 }) {
   const { data } = useQuery(gql`
-          query($name: String!) {
-              getWidgetByName(name: $name) {
-                  id
-                  name
-                  widgetViewType
-                  cssClass
-                  template {
-                      html
-                      language
-                      css
-                  }
-                  tableView {
-                      tableId
-                  }
-              }
-          }
-      `, {
+    query($name: String!) {
+      getWidgetByName(name: $name) {
+        id
+        name
+        widgetViewType
+        cssClass
+        template {
+          html
+          language
+          css
+        }
+        tableView {
+          tableId
+        }
+      }
+    }
+  `, {
     variables: { name: props.widgetName },
   });
 
@@ -597,16 +607,15 @@ export function PageWidget(props: {
   const table = useTable(data?.getWidgetByName?.tableView.tableId, params);
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
-    return null;
     return (
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'center',
-        }}
-      >
-        <Mui.CircularProgress />
+      <div>
+        <Skeleton
+          variant="rounded"
+          style={{
+            width: '100%',
+            height: props.blockProps?.height || 200,
+          }}
+        />
       </div>
     );
   }
@@ -618,7 +627,7 @@ export function PageWidget(props: {
       resultData = table.data.filter(filter);
     }
   } catch {
-    //
+    // Handle filter errors silently
   }
 
   return (
@@ -629,7 +638,7 @@ export function PageWidget(props: {
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
-      cssClass={data.getWidgetByName.cssClass || ''}
+      cssClass={props.blockProps?.cssClass || data.getWidgetByName.cssClass || ''}
       style={data.getWidgetByName.template.css}
     />
   );
