@@ -42,7 +42,7 @@ interface FormFieldProps {
   onChange: (value: any) => void;
 }
 
-function FormFieldFile(props: FormFieldProps) {
+function FormFieldFile(props: FormFieldProps & { isMulti?: boolean }) {
   const router = useRouter();
   const { loading, data } = useQuery(gql`
     query {
@@ -641,6 +641,17 @@ export default function FormField(props: FormFieldProps) {
         field={props.field}
         value={props.value}
         onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.FILE_GALLERY) {
+    return (
+      <FormFieldFile
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={(value) => props.onChange([value, value])}
+        isMulti
       />
     );
   }

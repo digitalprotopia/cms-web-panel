@@ -57,6 +57,7 @@ import useTable, {
   useEditField,
   useEditRow,
 } from '@/components/use-table';
+import { IFile } from '@/components/entities/IFile';
 
 interface AddRowFormProps {
   meta: TableMeta;
@@ -823,6 +824,33 @@ function TablePage() {
                   </IconButton>
                 </a>
               </div>
+            ) : null;
+          }
+
+          if (field.type === FieldType.FILE_GALLERY) {
+            cellValue = cellValue.length ? (
+              cellValue.map((file: IFile) => (
+                <div key={file.id}>
+                  {file?.name}
+                  <a
+                    href={`${window.config.server}/download/?id=${file?.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(file?.extension) ? (
+                      <img
+                        src={`${window.config.server}/download/?id=${file?.id}`}
+                        alt={file?.name}
+                        className="w-20 h-20"
+                      />
+                    ) : null}
+                    <IconButton>
+                      <Download />
+                    </IconButton>
+                  </a>
+                </div>
+              ))
             ) : null;
           }
 

@@ -25,6 +25,7 @@ export enum FieldType {
   HTML = 'html',
   BLOCK = 'block',
   SLUG = 'slug',
+  FILE_GALLERY = 'fileGallery',
 }
 
 export type IFieldOneToManyOptions = {

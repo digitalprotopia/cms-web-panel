@@ -22,5 +22,6 @@
   "manyToManySecond": "Многие ко многим (второй)",
   "userCreator": "Создатель",
   "dateTime": "Дата и время",
-  "privilege_posts": "Управление постами"
+  "privilege_posts": "Управление постами",
+  "fileGallery": "Галерея файлов"
 }

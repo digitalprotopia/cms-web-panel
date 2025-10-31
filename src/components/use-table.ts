@@ -199,6 +199,9 @@ export const generateGetTableDataQuery = (
     if (field.type === FieldType.FILE) {
       return `${field.dbName} { id name extension }`;
     }
+    if (field.type === FieldType.FILE_GALLERY) {
+      return `${field.dbName} { id name extension }`;
+    }
     return field.dbName;
   }).join('\n        ')}
       }
