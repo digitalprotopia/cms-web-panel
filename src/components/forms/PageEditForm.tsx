@@ -1,5 +1,5 @@
 import S3Autocomplete from '@/components/guiElements/S3Autocomplete';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Button, Checkbox, CircularProgress, FormControlLabel, MenuItem, TextField,
 } from '@mui/material';
@@ -100,16 +100,20 @@ export default function PageForm({
     },
   });
 
+  const renderHtml = useRef<() => Promise<string>>();
+
   const handleCreate = async (formData: Partial<ISiteItem>) => {
-    await createPage({ variables: { input: formData } });
+    const preview = await renderHtml.current!();
+    await createPage({ variables: { input: { ...formData, preview } } });
     onClose();
   };
 
   const handleUpdate = async (formData: Partial<ISiteItem>) => {
+    const preview = await renderHtml.current!();
     await updatePage({
       variables: {
         id,
-        input: formData,
+        input: { ...formData, preview },
       },
     });
     onClose();
@@ -302,6 +306,7 @@ export default function PageForm({
       <BlockEditor
         initialData={initialData.data?.getSiteItem?.blockContent}
         onChange={(blockContent) => setFormData({ ...formData, blockContent })}
+        renderHtml={renderHtml}
       />
       {/* <h4>Контент</h4>
       <DefaultEditor
