@@ -1,6 +1,6 @@
-import {
-  useMemo, useState, useCallback, useRef,
-} from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { mkConfig, generateCsv, download } from 'export-to-csv';
 import {
   MaterialReactTable,
   MRT_Cell,
@@ -8,21 +8,14 @@ import {
   MRT_RowData,
   type MRT_ColumnDef,
 } from 'material-react-table';
+import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import {
-  Button,
-  IconButton,
-  TextField,
-  FormControl,
-  Checkbox,
-  Popover,
-  MenuItem,
-  Select,
-  InputLabel,
-  DialogTitle,
-  DialogContent,
-  Dialog,
-  DialogActions,
-} from '@mui/material';
+  useMemo, useState, useCallback, useRef,
+} from 'react';
+import {
+  gql, useApolloClient, useMutation, useQuery,
+} from '@apollo/client';
 import {
   Add,
   ArrowDropDown,
@@ -34,22 +27,25 @@ import {
   Save,
 } from '@mui/icons-material';
 import {
-  gql, useApolloClient, useMutation, useQuery,
-} from '@apollo/client';
+  Button,
+  IconButton,
+  TextField,
+  FormControl,
+  Checkbox,
+  Popover,
+  MenuItem,
+  Select,
+  InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
+} from '@mui/material';
 
-import TableEditor from '@/components/table-editor';
-
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import {
   FieldType, IField, IFieldManyToManyOptions, IFieldOneToManyOptions,
   IFieldOptions,
   IFieldSlugOptions,
 } from '@/components/entities/IField';
-import { useRouter } from 'next/router';
-import { mkConfig, generateCsv, download } from 'export-to-csv';
 import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
-import { useSnackbar } from 'notistack';
+import TableEditor from '@/components/table-editor';
+
 import FieldPrivilegesDialog from '@/components/dialogs/FieldPrivilegeDialog';
 import { useTranslation } from 'react-i18next'; // add by Roman 05.07.25 for i18mext translations
 import useTable, {
@@ -60,7 +56,8 @@ import useTable, {
   useDeleteField,
   useEditField,
   useEditRow,
-} from '../../../../components/use-table';
+} from '@/components/use-table';
+import { IFile } from '@/components/entities/IFile';
 
 interface AddRowFormProps {
   meta: TableMeta;
@@ -827,6 +824,33 @@ function TablePage() {
                   </IconButton>
                 </a>
               </div>
+            ) : null;
+          }
+
+          if (field.type === FieldType.FILE_GALLERY) {
+            cellValue = cellValue.length ? (
+              cellValue.map((file: IFile) => (
+                <div key={file.id}>
+                  {file?.name}
+                  <a
+                    href={`${window.config.server}/download/?id=${file?.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    {['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(file?.extension) ? (
+                      <img
+                        src={`${window.config.server}/download/?id=${file?.id}`}
+                        alt={file?.name}
+                        className="w-20 h-20"
+                      />
+                    ) : null}
+                    <IconButton>
+                      <Download />
+                    </IconButton>
+                  </a>
+                </div>
+              ))
             ) : null;
           }
 

@@ -42,7 +42,7 @@ interface FormFieldProps {
   onChange: (value: any) => void;
 }
 
-function FormFieldFile(props: FormFieldProps) {
+function FormFieldFile(props: FormFieldProps & { isMulti?: boolean }) {
   const router = useRouter();
   const { loading, data } = useQuery(gql`
     query {
@@ -95,21 +95,34 @@ function FormFieldFile(props: FormFieldProps) {
             ) : null}
             <Button
               onClick={() => {
-                setSelectedFile(row.original);
-                props.onChange({
-                  id: row.original.id,
-                });
-                setOpenFileDialog(false);
+                if (props.isMulti) {
+                  const newValues = props.value.map((file: IFile) => file.id);
+                  if (!newValues.includes(row.original.id)) {
+                    newValues.push(row.original.id);
+                  } else {
+                    const index = newValues.indexOf(row.original.id);
+                    newValues.splice(index, 1);
+                  }
+                  props.onChange(newValues.map((id: string) => ({ id })));
+                } else {
+                  setSelectedFile(row.original);
+                  props.onChange({
+                    id: row.original.id,
+                  });
+                  setOpenFileDialog(false);
+                }
               }}
             >
-              Выбрать
+              {(props.isMulti && props.value?.map((file: IFile) => file.id).includes(row.original.id)) ? 'Выбрано' : 'Выбрать'}
             </Button>
           </div>
         ),
       },
     ],
-    [router],
+    [router, props.value],
   );
+
+  console.log(props.value);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -134,6 +147,7 @@ function FormFieldFile(props: FormFieldProps) {
                 >
                   Выбрать из галереи
                 </Button>
+                {props.isMulti && props.value.length ? `(${props.value.length} выбрано)` : null}
               </>
 )}
           />
@@ -143,12 +157,22 @@ function FormFieldFile(props: FormFieldProps) {
             label={(
               <input
                 type="file"
+                multiple={props.isMulti}
                 onChange={async (e) => {
                   if (e.target.files?.[0]) {
-                    props.onChange({
-                      file: await toBase64(e.target.files[0]),
-                      name: e.target.files[0].name,
-                    });
+                    if (props.isMulti) {
+                      props.onChange(await Promise.all([...e.target.files].map(async (file) => (
+                        {
+                          file: await toBase64(file),
+                          name: file.name,
+                        }
+                      ))));
+                    } else {
+                      props.onChange({
+                        file: await toBase64(e.target.files[0]),
+                        name: e.target.files[0].name,
+                      });
+                    }
                   }
                 }}
                 disabled={formType === 'id'}
@@ -157,7 +181,7 @@ function FormFieldFile(props: FormFieldProps) {
           />
         </RadioGroup>
       </FormControl>
-      <Dialog open={openFileDialog} onClose={() => setOpenFileDialog(false)}>
+      <Dialog open={openFileDialog} onClose={() => setOpenFileDialog(false)} fullScreen>
         <DialogContent>
           <MaterialReactTable
             columns={columns}
@@ -180,6 +204,9 @@ function FormFieldFile(props: FormFieldProps) {
             )}
           />
         </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenFileDialog(false)}>Закрыть</Button>
+        </DialogActions>
       </Dialog>
     </>
   );
@@ -641,6 +668,17 @@ export default function FormField(props: FormFieldProps) {
         field={props.field}
         value={props.value}
         onChange={props.onChange}
+      />
+    );
+  }
+  if (props.field.type === FieldType.FILE_GALLERY) {
+    return (
+      <FormFieldFile
+        title={props.title}
+        field={props.field}
+        value={props.value}
+        onChange={props.onChange}
+        isMulti
       />
     );
   }

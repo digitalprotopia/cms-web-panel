@@ -199,6 +199,9 @@ export const generateGetTableDataQuery = (
     if (field.type === FieldType.FILE) {
       return `${field.dbName} { id name extension }`;
     }
+    if (field.type === FieldType.FILE_GALLERY) {
+      return `${field.dbName} { id name extension }`;
+    }
     return field.dbName;
   }).join('\n        ')}
       }
@@ -381,39 +384,39 @@ export const useAddField = (
   fieldType: FieldType,
 ) => {
   let query = gql`
-  mutation($tableId: ID! $input: FieldInput!) {
-    addField(tableId: $tableId input: $input) {
-      id
-      name
-      type
-      tableId
-  }
-}
-`;
+    mutation($tableId: ID! $input: FieldInput!) {
+      addField(tableId: $tableId input: $input) {
+        id
+        name
+        type
+        tableId
+      }
+    }
+  `;
   if (fieldType === FieldType.ONE_TO_MANY_ONE) {
     query = gql`
-  mutation($tableId: ID! $input: FieldInput! $options: FieldOneToManyOptions!) {
-    addOneToManyField(tableId: $tableId input: $input options: $options) {
-      id
-      name
-      type
-      tableId
-  }
-}
-`;
+      mutation($tableId: ID! $input: FieldInput! $options: FieldOneToManyOptions!) {
+        addOneToManyField(tableId: $tableId input: $input options: $options) {
+          id
+          name
+          type
+          tableId
+        }
+      }
+    `;
   }
 
   if (fieldType === FieldType.MANY_TO_MANY_FIRST) {
     query = gql`
-  mutation($tableId: ID! $input: FieldInput! $options: FieldManyToManyOptions!) {
-    addManyToManyField(tableId: $tableId input: $input options: $options) {
-      id
-      name
-      type
-      tableId
-    }
-  }
-  `;
+      mutation($tableId: ID! $input: FieldInput! $options: FieldManyToManyOptions!) {
+        addManyToManyField(tableId: $tableId input: $input options: $options) {
+          id
+          name
+          type
+          tableId
+        }
+      }
+    `;
   }
   if (fieldType === FieldType.SLUG) {
     query = gql`
