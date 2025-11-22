@@ -4,15 +4,19 @@ import { Editor, useMonaco } from '@monaco-editor/react';
 import {
   Button,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   SelectChangeEvent,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
 } from '@mui/material';
+import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 
+import { FullscreenExit, Fullscreen as FullscreenEnter } from '@mui/icons-material';
 import { RenderWidget } from './ParseWidgets';
 import { getReactTemplateType } from './reactTemplates';
 import useTable, { TableField } from './use-table';
@@ -53,6 +57,8 @@ function WidgetMarkupEditor({
 }) {
   const [selectedTab, setSelectedTab] = useState<EditionTab>(EditionTab.MARKUP);
 
+  const handle = useFullScreenHandle();
+
   const EDITOR_HEIGHT = 200;
 
   const monaco = useMonaco();
@@ -74,22 +80,35 @@ function WidgetMarkupEditor({
   }, [monaco]);
 
   return (
-    <div>
-      <ToggleButtonGroup
-        value={selectedTab}
-        onChange={(_, value) => { setSelectedTab(value); }}
-        exclusive
-      >
-        <ToggleButton value={EditionTab.MARKUP}>Разметка</ToggleButton>
-        <ToggleButton value={EditionTab.STYLE}>Стиль</ToggleButton>
-      </ToggleButtonGroup>
-      {
+    <FullScreen handle={handle}>
+      <Paper variant="outlined" style={{ borderWidth: 0, height: handle.active ? '100%' : undefined }}>
+        <div>
+          <ToggleButtonGroup
+            value={selectedTab}
+            onChange={(_, value) => { setSelectedTab(value); }}
+            exclusive
+          >
+            <ToggleButton value={EditionTab.MARKUP}>Разметка</ToggleButton>
+            <ToggleButton value={EditionTab.STYLE}>Стиль</ToggleButton>
+          </ToggleButtonGroup>
+          <IconButton onClick={() => {
+            if (handle.active) {
+              handle.exit();
+            } else {
+              handle.enter();
+            }
+          }}
+          >
+            {handle.active ? <FullscreenExit /> : <FullscreenEnter />}
+          </IconButton>
+        </div>
+        {
         selectedTab === EditionTab.MARKUP
           ? (
             <Editor
               key="markup"
               value={markup}
-              height={EDITOR_HEIGHT}
+              height={handle.active ? 'calc(100% - 40px)' : EDITOR_HEIGHT}
               /*
               fixme: Удалить надпись "Cannot edit in read-only editor" при
                 попытке редактирования. */
@@ -105,13 +124,14 @@ function WidgetMarkupEditor({
             <Editor
               key="style"
               value={style}
-              height={EDITOR_HEIGHT}
+              height={handle.active ? 'calc(100% - 40px)' : EDITOR_HEIGHT}
               options={{ readOnly }}
               onChange={(value) => setStyle(value!)}
               language={EditorLanguage.CSS}
             />)
       }
-    </div>
+      </Paper>
+    </FullScreen>
   );
 }
 
