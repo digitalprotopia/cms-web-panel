@@ -168,13 +168,19 @@ export const generateGetTableDataQuery = (
     }
   });
   return gql`
-      query GetTableData($search: ${tableName}Search $offset: Int $count: Int $orderBy: String $orderDirection: OrderDirectionInput) {
+      query GetTableData($search: ${tableName}Search $offset: Int $count: Int 
+        $orderBy: String $orderDirection: OrderDirectionInput
+        $orderMany: [OrderClause]
+      ) {
         getUsers {
           id
           name
         }
         ${tables.map((table) => `getAll${table} { id _cms_title }`).join('\n')}
-          getAll${tableName} (search: $search offset: $offset count: $count orderBy: $orderBy orderDirection: $orderDirection) {
+          getAll${tableName} (search: $search offset: $offset count: $count 
+            orderBy: $orderBy orderDirection: $orderDirection
+            orderMany: $orderMany
+          ) {
           id
           createdAt
           updatedAt
@@ -218,6 +224,10 @@ interface UseTableOptions {
   search?: any;
   offset?: number;
   count?: number;
+  orderMany?: {
+    field: string;
+    direction: 'asc' | 'desc';
+  }[];
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
 }
@@ -303,6 +313,7 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
         search: options?.search,
         offset: options?.offset,
         count: options?.count,
+        orderMany: options?.orderMany,
         orderBy: options?.orderBy,
         orderDirection: options?.orderDirection,
       },
