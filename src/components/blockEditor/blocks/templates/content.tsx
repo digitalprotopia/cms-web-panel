@@ -7,6 +7,7 @@ import { BlockNoteEditor, insertOrUpdateBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
 import { Editor } from '@monaco-editor/react';
 import { Article } from '@mui/icons-material';
+import { Skeleton } from '@mui/material';
 import Head from 'next/head';
 import { useContext } from 'react';
 
@@ -40,7 +41,7 @@ export const BlockEditorContentView = createReactBlockSpec(
       const user = useContext(UserContext);
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const { data: siteItem } = useQuery(
+      const { data: siteItem, loading } = useQuery(
         GET_SITEITEM,
         {
           variables: { id: user.currentPage?.id },
@@ -72,8 +73,8 @@ export const BlockEditorContentView = createReactBlockSpec(
           </div>
         );
       }
-      if (!siteItem) {
-        return null;
+      if (!siteItem || loading) {
+        return <Skeleton variant="rectangular" style={{ height: 800 }} />;
       }
       return (
         <div>
