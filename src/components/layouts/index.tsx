@@ -1,4 +1,5 @@
 import UserContext from '@/components/UserContext';
+import { gql, useMutation } from '@apollo/client';
 import { KeyboardArrowDownRounded, NotificationsNoneOutlined } from '@mui/icons-material';
 import {
   Avatar, Badge, Button, CircularProgress, Dialog, Divider, IconButton, Menu, MenuItem,
@@ -16,6 +17,26 @@ const getInitials = (name: string) => name
   .join('')
   .toUpperCase();
 
+const UPDATE_PAGE = gql`
+  mutation UpdateSiteItem($id: ID!, $input: SiteItemInput!) {
+    editSiteItem(id: $id, input: $input) {
+      id
+      name
+      title
+      url
+      parentId
+      isRoot
+      is404
+      seotag
+      html
+      blockContent
+      type
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 function Header() {
   const router = useRouter();
 
@@ -30,6 +51,12 @@ function Header() {
   };
 
   const user = useContext(UserContext);
+
+  const [updatePage] = useMutation(UPDATE_PAGE, {
+    onError: (error) => {
+      console.error('Ошибка при обновлении страницы:', error);
+    },
+  });
 
   const handleLogout = async () => {
     handleUserPopoverClose();
@@ -63,6 +90,21 @@ function Header() {
                   flexItem
                 />
                 <div className="flex items-center gap-2">
+                  {user.user.role.name === 'admin'
+                && (
+                <Button onClick={async () => {
+                  const preview = window.document.getElementById('mmcms-page-content')?.innerHTML || '';
+                  await updatePage({
+                    variables: {
+                      id: user.currentPage?.id,
+                      input: { preview },
+                    },
+                  });
+                }}
+                >
+                  Сохранить кэш страницы
+                </Button>
+                )}
                   <Avatar className="size-8 text-sm" src={user.user?.avatar?.id ? `${window.config.server}/download/?id=${user.user.avatar.id}&mode=view` : undefined}>
                     {(!user.user?.avatar?.id) ? getInitials(user.user.name) : null}
                   </Avatar>

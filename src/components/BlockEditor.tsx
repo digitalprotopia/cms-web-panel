@@ -170,7 +170,6 @@ interface BlockEditorProps {
   isWidget?: boolean;
   type?: 'page' | 'template';
   setEditor?: (editor: BlockNoteEditor<any>) => void;
-  renderHtml?: React.MutableRefObject<(() => Promise<string>) | undefined>
 }
 
 export function AddBlocksItem(props: DragHandleMenuProps) {
@@ -281,12 +280,8 @@ function BlockEditor({
   isEditable = true,
   type = 'page',
   setEditor = () => {},
-  renderHtml,
   isWidget,
 }: BlockEditorProps) {
-  const [isPreview, setIsPreview] = useState(false);
-  const isRealEditable = isEditable && !isPreview;
-
   const snippets = useQuery(gql`
     query {
     getAllWidgets {
@@ -302,7 +297,7 @@ function BlockEditor({
     createdAt
     }
     }`, {
-    skip: !isRealEditable,
+    skip: !isEditable,
   });
 
   const editor = useCreateBlockNote({
@@ -318,14 +313,14 @@ function BlockEditor({
     },
     domAttributes: {
       editor: {
-        'data-editable': isRealEditable ? '1' : '0',
+        'data-editable': isEditable ? '1' : '0',
       },
     },
   });
 
   useEffect(() => {
     setEditor(editor);
-  }, [editor, setEditor, isRealEditable]);
+  }, [editor, setEditor]);
 
   const ref = useRef<HTMLDivElement>();
 
@@ -339,7 +334,7 @@ function BlockEditor({
   // ), [editor]);
 
   useEffect(() => {
-    if (!isRealEditable && ref.current) {
+    if (!isEditable && ref.current) {
       [...(ref.current?.getElementsByClassName('bn-editor') || [])].forEach((el) => {
         if (el.getAttribute('data-editable') === '0') {
           el.removeAttribute('class');
@@ -360,26 +355,13 @@ function BlockEditor({
         });
       }, 200);
     }
-  }, [ref.current, initialData, isRealEditable]);
+  }, [ref.current, initialData, isEditable]);
 
   const templateInserts = [
     insertBlockEditorCssView(editor as any),
     insertBlockEditorHeadView(editor as any),
     insertBlockEditorContentView(editor as any),
   ];
-
-  if (renderHtml) {
-    renderHtml.current = async () => {
-      setIsPreview(true);
-      editor.mount(ref.current);
-      await new Promise((resolve) => { setTimeout(resolve, 1000); });
-      const result = ref.current!.innerHTML;
-      setIsPreview(false);
-      editor.mount(ref.current);
-      await new Promise((resolve) => { setTimeout(resolve, 1000); });
-      return result;
-    };
-  }
 
   return (
     <>
@@ -411,7 +393,7 @@ function BlockEditor({
       `}
       </style>
       <div
-        style={isRealEditable ? {
+        style={isEditable ? {
           borderColor: 'lightgray',
           borderWidth: 1,
           borderStyle: 'solid',
@@ -425,8 +407,8 @@ function BlockEditor({
           sideMenu={false}
           formattingToolbar={false}
           editor={editor}
-          editable={isRealEditable}
-          contentEditable={isRealEditable === false ? false : undefined}
+          editable={isEditable}
+          contentEditable={isEditable === false ? false : undefined}
           theme="light"
           onChange={() => {
             onChange(editor.document);
@@ -434,7 +416,7 @@ function BlockEditor({
             //   setFormData({ ...formData, html });
             // });
           }}
-          {...(isRealEditable ? {} : {
+          {...(isEditable ? {} : {
             'data-theming-css-view': true,
           })}
         >

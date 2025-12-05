@@ -9,7 +9,7 @@ import { Editor } from '@monaco-editor/react';
 import { Article } from '@mui/icons-material';
 import { Skeleton } from '@mui/material';
 import Head from 'next/head';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -18,6 +18,7 @@ const GET_SITEITEM = gql`
       title
       html
       blockContent
+      preview
       id
     }
   }
@@ -39,6 +40,15 @@ export const BlockEditorContentView = createReactBlockSpec(
     render: (props) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const user = useContext(UserContext);
+
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [loaded, setLoaded] = useState(false);
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      useEffect(() => {
+        setTimeout(() => {
+          setLoaded(true);
+        }, 3000);
+      });
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const { data: siteItem, loading } = useQuery(
@@ -76,6 +86,9 @@ export const BlockEditorContentView = createReactBlockSpec(
       if (!siteItem || loading) {
         return <Skeleton variant="rectangular" style={{ height: 800 }} />;
       }
+      const showPreview = !user.user?.id && props.editor.isEditable
+      && !loaded && siteItem?.getSiteItem?.preview;
+
       return (
         <div>
           <style>
@@ -86,14 +99,26 @@ export const BlockEditorContentView = createReactBlockSpec(
           <Head>
             <title>{siteItem?.getSiteItem?.title || ''}</title>
           </Head>
-          <ParsePage
-            html={props.block.props.html}
-            args={{
-              content: <BlockView
-                blockContent={siteItem?.getSiteItem?.blockContent}
-              />,
+          {showPreview && (<div
+            dangerouslySetInnerHTML={{
+              __html: siteItem?.getSiteItem?.preview || '',
             }}
-          />
+          />)}
+          <div
+            id="mmcms-page-content"
+            style={{
+              display: showPreview ? 'none' : 'block',
+            }}
+          >
+            <ParsePage
+              html={props.block.props.html}
+              args={{
+                content: <BlockView
+                  blockContent={siteItem?.getSiteItem?.blockContent}
+                />,
+              }}
+            />
+          </div>
         </div>
       );
     },
