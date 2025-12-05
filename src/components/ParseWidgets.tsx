@@ -41,7 +41,7 @@ import UserContext, { UserContextData } from './UserContext';
 import { ISiteItem } from './entities/ISiteItem';
 import { getReactTemplateDefinition } from './reactTemplates';
 // eslint-disable-next-line import/no-cycle
-import { BlockView } from './BlockEditor';
+import { BlockEditorInWidget, BlockView } from './BlockEditor';
 import { WidgetViewType } from './entities/IWidget';
 import { usePageContext } from './PageContext';
 import { FormType } from './entities/IForm';
@@ -93,6 +93,7 @@ export function parseReact(
       useTags,
       useCategories,
       BlockView,
+      BlockEditorInWidget,
       Register,
       Login,
       useQuery,

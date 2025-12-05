@@ -167,6 +167,7 @@ interface BlockEditorProps {
   initialData: any;
   onChange: (data: any) => void;
   isEditable?: boolean;
+  isWidget?: boolean;
   type?: 'page' | 'template';
   setEditor?: (editor: BlockNoteEditor<any>) => void;
   renderHtml?: React.MutableRefObject<(() => Promise<string>) | undefined>
@@ -281,6 +282,7 @@ function BlockEditor({
   type = 'page',
   setEditor = () => {},
   renderHtml,
+  isWidget,
 }: BlockEditorProps) {
   const [isPreview, setIsPreview] = useState(false);
   const isRealEditable = isEditable && !isPreview;
@@ -456,17 +458,19 @@ function BlockEditor({
               // Gets all default slash menu items and `insertAlert` item.
               filterSuggestionItems(
                 [
-                  insertBlockEditorHtmlView(editor as any),
-                  insertBlockEditorPostBlock(editor as any),
-                  insertBlockEditorImageBlock(editor as any),
                   ...(type === 'template' ? templateInserts : []),
                   ...combineByGroup(
                     getDefaultReactSlashMenuItems(editor),
                     getMultiColumnSlashMenuItems(editor),
                   ),
-                  ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
-                  ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
-                  insertBlockEditorPosts(editor as any),
+                  ...(isWidget ? [] : [
+                    insertBlockEditorHtmlView(editor as any),
+                    insertBlockEditorPostBlock(editor as any),
+                    insertBlockEditorImageBlock(editor as any),
+                    ...insertBlockEditorWidgets(editor as any, snippets.data?.getAllWidgets || []),
+                    ...insertBlockEditorForms(editor as any, snippets.data?.getAllForms || []),
+                    insertBlockEditorPosts(editor as any),
+                  ]),
                 ],
                 query,
               ))}
@@ -532,6 +536,18 @@ export function BlockView(props: { blockContent: any }) {
       initialData={props.blockContent}
       onChange={() => {}}
       isEditable={false}
+    />
+  );
+}
+
+export function BlockEditorInWidget(props: { blockContent: any,
+  onChange: (data: any) => void }) {
+  return (
+    <BlockEditor
+      initialData={props.blockContent}
+      onChange={props.onChange}
+      isEditable
+      isWidget
     />
   );
 }
