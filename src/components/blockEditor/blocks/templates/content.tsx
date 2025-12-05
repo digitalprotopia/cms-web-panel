@@ -47,7 +47,7 @@ export const BlockEditorContentView = createReactBlockSpec(
       useEffect(() => {
         setTimeout(() => {
           setLoaded(true);
-        }, 6000);
+        }, 3000);
       });
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
