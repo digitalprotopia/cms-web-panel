@@ -63,7 +63,7 @@ function Header() {
     user.logout();
   };
 
-  if (!user.user) {
+  if (!user.user || (user.user?.role?.name !== 'admin' && window.config.noHeader)) {
     return null;
   }
 

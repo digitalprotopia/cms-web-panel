@@ -3,6 +3,7 @@ export interface Config {
   domain: string;
   noConfirmation?: boolean;
   yandexKey?: string;
+  noHeader?: boolean;
 }
 
 async function config(): Promise<Config> {
