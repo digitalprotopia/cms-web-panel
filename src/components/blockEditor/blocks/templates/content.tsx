@@ -47,7 +47,7 @@ export const BlockEditorContentView = createReactBlockSpec(
       useEffect(() => {
         setTimeout(() => {
           setLoaded(true);
-        }, 3000);
+        }, 6000);
       });
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -86,7 +86,7 @@ export const BlockEditorContentView = createReactBlockSpec(
       if (!siteItem || loading) {
         return <Skeleton variant="rectangular" style={{ height: 800 }} />;
       }
-      const showPreview = !user.user?.id && props.editor.isEditable
+      const showPreview = !user.user?.id && !props.editor.isEditable
       && !loaded && siteItem?.getSiteItem?.preview;
 
       return (
