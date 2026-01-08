@@ -35,6 +35,10 @@ import '../i18n/i18n';
 declare global {
   interface Window {
     config: Config;
+    CachedImport: {
+      Mui: any;
+      babel: any;
+    }
   }
 }
 
@@ -222,7 +226,14 @@ export default function CMSLayoutApollo({
     (async () => {
       const _config = await config();
       console.log(_config);
+
       window.config = _config;
+
+      window.CachedImport = {
+        Mui: await import('@mui/material'),
+        babel: await import('@babel/standalone'),
+      };
+
       setClientCached(client(`${_config.server}/graphql`));
     })();
   }, []);

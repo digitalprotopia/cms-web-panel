@@ -14,10 +14,6 @@ import * as YandexMaps from '@pbe/react-yandex-maps';
 import dayjs from 'dayjs';
 import { compileString } from 'sass';
 
-import * as Mui from '@mui/material';
-
-import * as babel from '@babel/standalone';
-
 import Head from 'next/head';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -61,13 +57,13 @@ export function parseReact(
     getColor?: (row: any) => string,
   } {
   try {
-    const babelCode = babel.transform(code, {
+    const babelCode = window.CachedImport.babel.transform(code, {
       presets: ['react', 'es2017'],
     }).code;
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     const data = {
       React,
-      Mui,
+      Mui: window.CachedImport.Mui,
       Link,
       context,
       user: context.user,
