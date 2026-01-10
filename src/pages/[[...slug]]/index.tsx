@@ -96,7 +96,9 @@ function DynamicPage() {
       variables: { id: currentPage },
       skip: !currentPage,
       onCompleted: () => {
-        user.setLoaded(true);
+        if (!user.user?.id) {
+          user.setLoaded(true);
+        }
       },
     },
   );
