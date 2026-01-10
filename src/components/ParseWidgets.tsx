@@ -1,7 +1,7 @@
 import {
   gql, useApolloClient, useLazyQuery, useMutation, useQuery,
 } from '@apollo/client';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar, enqueueSnackbar } from 'notistack';
 import { Button, Typography, Skeleton } from '@mui/material';
@@ -152,9 +152,15 @@ export function ParseRow(
   const user = useContext(UserContext);
 
   const router = useRouter();
+  const widget = useMemo(() => {
+    if (language === TemplateLanguage.REACT) {
+      return parseReact(html, user, user.pages || [], router);
+    }
+    return null;
+  }, [html, user.user?.id, router.asPath]);
 
-  if (language === TemplateLanguage.REACT) {
-    const { Component } = parseReact(html, user, user.pages || [], router);
+  if (widget && language === TemplateLanguage.REACT) {
+    const { Component } = widget;
     return (
       <ErrorBoundary
         fallbackRender={({ error }) => (
@@ -416,8 +422,15 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     language: props.language || TemplateLanguage.SIMPLE,
   };
 
-  if (props.language === TemplateLanguage.REACT) {
-    const { ListComponent } = parseReact(props.html, user, user.pages!, router);
+  const widget = useMemo(() => {
+    if (props.language === TemplateLanguage.REACT) {
+      return parseReact(props.html, user, user.pages || [], router);
+    }
+    return null;
+  }, [props.html, user.user?.id, router.asPath]);
+
+  if (widget && props.language === TemplateLanguage.REACT) {
+    const { ListComponent } = widget;
     if (ListComponent) {
       return (
         <ErrorBoundary
@@ -503,6 +516,13 @@ export function RenderWidget(
   const user = useContext(UserContext);
   const router = useRouter();
 
+  const template = useMemo(() => {
+    if (language === TemplateLanguage.REACT) {
+      return parseReact(html, user, user.pages || [], router);
+    }
+    return null;
+  }, [html, user.user?.id, router.asPath]);
+
   if (widgetViewType === WidgetViewType.MAP) {
     return (
       <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
@@ -515,8 +535,7 @@ export function RenderWidget(
       </WidgetStyle>
     );
   }
-  if (language === TemplateLanguage.REACT) {
-    const template = parseReact(html, user, user.pages || [], router);
+  if (template && language === TemplateLanguage.REACT) {
     if (template.ListComponent) {
       return (
         <ErrorBoundary
@@ -585,13 +604,19 @@ export function PageWidget(props: {
 
   let filter: ReturnType<typeof parseReact>['filter'];
   let params: UseTableOptions = {};
-  if (data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
-    const widget = parseReact(
-      data.getWidgetByName.template.html,
-      user,
-      user.pages || [],
-      router,
-    );
+  const widget = useMemo(() => {
+    if (data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
+      return parseReact(
+        data.getWidgetByName.template.html,
+        user,
+        user.pages || [],
+        router,
+      );
+    }
+    return null;
+  }, [data?.getWidgetByName?.template?.html, user.user?.id, router.asPath]);
+
+  if (widget && data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
     filter = widget.filter;
     if (widget.search) {
       params.search = widget.search;
