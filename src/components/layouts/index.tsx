@@ -93,13 +93,19 @@ function Header() {
                   {user.user.role.name === 'admin'
                 && (
                 <Button onClick={async () => {
-                  const preview = window.document.getElementById('mmcms-page-content')?.innerHTML || '';
-                  await updatePage({
-                    variables: {
-                      id: user.currentPage?.id,
-                      input: { preview },
-                    },
-                  });
+                  user.enableFakeGuest();
+                  setTimeout(async () => {
+                    const preview = window.document.body?.innerHTML || '';
+                    // const preview = window.document.getElementById('mmcms-page-content')?.innerHTML || '';
+                    console.log(preview);
+                    await updatePage({
+                      variables: {
+                        id: user.currentPage?.id,
+                        input: { preview },
+                      },
+                    });
+                    user.disableFakeGuest();
+                  }, 4000);
                 }}
                 >
                   Сохранить кэш страницы

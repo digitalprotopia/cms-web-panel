@@ -57,7 +57,7 @@ export function parseReact(
     getColor?: (row: any) => string,
   } {
   try {
-    const babelCode = window.CachedImport.babel.transform(code, {
+    const babelCode = window.CachedImport.babelTransform(code, {
       presets: ['react', 'es2017'],
     }).code;
     const resultCode = babelCode!.replace('"use strict";', '').trim();

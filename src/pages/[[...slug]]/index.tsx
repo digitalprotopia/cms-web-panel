@@ -1,19 +1,19 @@
 import { gql, useQuery } from '@apollo/client';
 
-import ParsePage from '@/components/ParsePage';
-import Link from 'next/link';
+// import ParsePage from '@/components/ParsePage';
 import { useRouter } from 'next/router';
 import {
-  Fragment, useContext, useEffect, useState,
+  useContext, useEffect, useState,
 } from 'react';
 import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
 import { ITemplate, TemplateType } from '@/components/entities/ITemplate';
 import Head from 'next/head';
-import BlockEditor, { BlockView } from '@/components/BlockEditor';
-import { CircularProgress } from '@mui/material';
 import parse from 'html-react-parser';
 import { usePageContext } from '@/components/PageContext';
+import dynamic from 'next/dynamic';
+
+const BlockView = dynamic(() => import('@/components/BlockEditor').then((mod) => mod.BlockView));
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -21,6 +21,7 @@ const GET_SITEITEM = gql`
       url
       title
       html
+      preview
       blockContent
       id
     }
@@ -89,11 +90,14 @@ function DynamicPage() {
 
   const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
 
-  const { data: siteItem, loading: siteItemLoading } = useQuery(
+  const { data: siteItem } = useQuery(
     GET_SITEITEM,
     {
       variables: { id: currentPage },
-      skip: !currentPage || template?.type === TemplateType.BLOCKS,
+      skip: !currentPage,
+      onCompleted: () => {
+        user.setLoaded(true);
+      },
     },
   );
 
@@ -103,66 +107,78 @@ function DynamicPage() {
     pageContext.clearData();
   }, [siteItem]);
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [loaded, setLoaded] = useState(false);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    setTimeout(() => {
+      setLoaded(true);
+    }, 6000);
+  });
+
+  const showPreview = !user.user?.id
+  && !loaded && siteItem?.getSiteItem?.preview;
+
   if (!site) return <span>Loading...</span>;
 
-  let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
-  <div>{menu}</div>
-  <div>{content}</div>
-  </div>`;
+  // let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
+  // <div>{menu}</div>
+  // <div>{content}</div>
+  // </div>`;
 
   const headTemplate = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'head');
   const head = headTemplate ? renderTemplate(headTemplate, site?.templateGroup?.templates) : '';
 
-  html = html.replace('{content}', `  <div className="page">
-    <div id="page-content">
-      ${siteItem?.getSiteItem?.html || ''}
-      {blockContent}
-    </div>
-  </div>`);
+  // html = html.replace('{content}', `  <div className="page">
+  //   <div id="page-content">
+  //     ${siteItem?.getSiteItem?.html || ''}
+  //     {blockContent}
+  //   </div>
+  // </div>`);
 
-  let blockContent:React.JSX.Element = <div />;
+  // let blockContent:React.JSX.Element = <div />;
 
-  if (siteItemLoading) {
-    blockContent = (
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'center',
-        }}
-      >
-        <CircularProgress />
-      </div>
-    );
-  }
-  if (siteItem) {
-    blockContent = (
-      <BlockEditor
-        initialData={siteItem?.getSiteItem.blockContent}
-        onChange={() => {}}
-        isEditable={false}
-      />
-    );
-  }
+  // if (siteItemLoading) {
+  //   blockContent = (
+  //     <div
+  //       style={{
+  //         display: 'flex',
+  //         width: '100%',
+  //         justifyContent: 'center',
+  //       }}
+  //     >
+  //       <CircularProgress />
+  //     </div>
+  //   );
+  // }
+  // if (siteItem) {
+  //   blockContent = (
+  //     <BlockEditor
+  //       initialData={siteItem?.getSiteItem.blockContent}
+  //       onChange={() => {}}
+  //       isEditable={false}
+  //     />
+  //   );
+  // }
 
-  const args = {
-    menu: user.pages?.map((item) => {
-      let { url } = item;
-      let currentItem: (ISiteItem | null) = item;
-      while (currentItem?.parentId) {
-        // eslint-disable-next-line @typescript-eslint/no-loop-func
-        currentItem = pages.find((p) => p.id === currentItem!.parentId) || null;
-        url = `${currentItem?.url}/${url}`;
-      }
-      return (
-        <Link key={url} href={url}>
-          <span className="mx-3">{item.title}</span>
-        </Link>
-      );
-    }) || [],
-    title: siteItem?.getSiteItem?.title || '',
-    blockContent,
-  };
+  // const args = {
+  //   menu: user.pages?.map((item) => {
+  //     let { url } = item;
+  //     let currentItem: (ISiteItem | null) = item;
+  //     while (currentItem?.parentId) {
+  //       // eslint-disable-next-line @typescript-eslint/no-loop-func
+  //       currentItem = pages.find((p) => p.id === currentItem!.parentId) || null;
+  //       url = `${currentItem?.url}/${url}`;
+  //     }
+  //     return (
+  //       <Link key={url} href={url}>
+  //         <span className="mx-3">{item.title}</span>
+  //       </Link>
+  //     );
+  //   }) || [],
+  //   title: siteItem?.getSiteItem?.title || '',
+  //   blockContent,
+  // };
 
   if (template?.type === TemplateType.BLOCKS) {
     return (
@@ -171,27 +187,41 @@ function DynamicPage() {
           <title>{siteItem?.getSiteItem?.title || ''}</title>
           {parse(head)}
         </Head>
-        <BlockView
-          blockContent={template?.blockContent}
-        />
+        {showPreview && (<div
+          dangerouslySetInnerHTML={{
+            __html: siteItem?.getSiteItem?.preview || '',
+          }}
+        />)}
+        <div
+          id="mmcms-page-content"
+          style={{
+            display: showPreview ? 'none' : 'block',
+          }}
+        >
+          <BlockView
+            blockContent={template?.blockContent}
+          />
+        </div>
       </div>
     );
   }
 
-  return (
-    <>
-      <style>
-        {`.page a{
-          text-decoration: underline;
-        }`}
-      </style>
-      <Head>
-        <title>{siteItem?.getSiteItem?.title || ''}</title>
-        {parse(head)}
-      </Head>
-      <ParsePage html={html} args={args} />
-    </>
-  );
+  return null;
+
+  // return (
+  //   <>
+  //     <style>
+  //       {`.page a{
+  //         text-decoration: underline;
+  //       }`}
+  //     </style>
+  //     <Head>
+  //       <title>{siteItem?.getSiteItem?.title || ''}</title>
+  //       {parse(head)}
+  //     </Head>
+  //     <ParsePage html={html} args={args} />
+  //   </>
+  // );
 }
 
 export default DynamicPage;

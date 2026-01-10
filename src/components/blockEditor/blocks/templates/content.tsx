@@ -86,8 +86,9 @@ export const BlockEditorContentView = createReactBlockSpec(
       if (!siteItem || loading) {
         return <Skeleton variant="rectangular" style={{ height: 800 }} />;
       }
-      const showPreview = !user.user?.id && !props.editor.isEditable
+      let showPreview = !user.user?.id && !props.editor.isEditable
       && !loaded && siteItem?.getSiteItem?.preview;
+      showPreview = false;
 
       return (
         <div>
