@@ -2,6 +2,7 @@
 import parse, { attributesToProps, DOMNode, domToReact } from 'html-react-parser';
 import reactStringReplace from 'react-string-replace';
 import Link from 'next/link';
+import { useMemo } from 'react';
 // eslint-disable-next-line import/no-cycle
 import { Posts } from './BlockEditor';
 import { FormWidget, PageWidget } from './ParseWidgets';
@@ -10,7 +11,7 @@ function ParsePage(props: {
   html: string;
   args?: Record<string, string | React.JSX.Element | React.JSX.Element[]>
 }) {
-  return parse(
+  return useMemo(() => parse(
     props.html,
     {
       transform(reactNode, domNode) {
@@ -44,7 +45,7 @@ function ParsePage(props: {
         return reactNode as React.JSX.Element;
       },
     },
-  );
+  ), [props.html, props.args]);
 }
 
 export default ParsePage;

@@ -3,7 +3,7 @@ import { gql, useQuery } from '@apollo/client';
 // import ParsePage from '@/components/ParsePage';
 import { useRouter } from 'next/router';
 import {
-  useContext, useEffect, useState,
+  useContext, useEffect, useMemo, useState,
 } from 'react';
 import UserContext from '@/components/UserContext';
 import { ISiteItem, SiteItemType } from '@/components/entities/ISiteItem';
@@ -119,15 +119,21 @@ function DynamicPage() {
   const showPreview = !user.user?.id
   && !loaded && siteItem?.getSiteItem?.preview;
 
+  const parsedHead = useMemo(() => {
+    const headTemplate = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'head');
+    const head = headTemplate ? renderTemplate(headTemplate, site?.templateGroup?.templates) : '';
+    if (!head) {
+      return null;
+    }
+    return parse(head);
+  }, [site?.templateGroup?.templates]);
+
   if (!site) return <span>Loading...</span>;
 
   // let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
   // <div>{menu}</div>
   // <div>{content}</div>
   // </div>`;
-
-  const headTemplate = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'head');
-  const head = headTemplate ? renderTemplate(headTemplate, site?.templateGroup?.templates) : '';
 
   // html = html.replace('{content}', `  <div className="page">
   //   <div id="page-content">
@@ -185,7 +191,7 @@ function DynamicPage() {
       <div className="mmcms-blocks-template">
         <Head>
           <title>{siteItem?.getSiteItem?.title || ''}</title>
-          {parse(head)}
+          {parsedHead}
         </Head>
         {showPreview && (<div
           dangerouslySetInnerHTML={{
