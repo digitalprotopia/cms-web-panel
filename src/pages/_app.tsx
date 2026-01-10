@@ -34,11 +34,6 @@ export default function CMSLayoutApollo({
 
       window.config = _config;
 
-      window.CachedImport = {
-        Mui: await import('@mui/material'),
-        babelTransform: (await import('@babel/standalone')).transform,
-      };
-
       setClientCached(client(`${_config.server}/graphql`));
     })();
   }, []);

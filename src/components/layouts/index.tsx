@@ -96,7 +96,8 @@ function Header() {
                   user.enableFakeGuest();
                   setTimeout(async () => {
                     const preview = window.document.body?.innerHTML || '';
-                    // const preview = window.document.getElementById('mmcms-page-content')?.innerHTML || '';
+                    // const preview =
+                    //  window.document.getElementById('mmcms-page-content')?.innerHTML || '';
                     console.log(preview);
                     await updatePage({
                       variables: {

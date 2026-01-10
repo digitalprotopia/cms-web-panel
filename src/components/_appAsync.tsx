@@ -32,10 +32,6 @@ import '../i18n/i18n';
 declare global {
   interface Window {
     config: Config;
-    CachedImport: {
-      Mui: any;
-      babelTransform: any;
-    }
   }
 }
 

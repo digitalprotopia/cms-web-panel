@@ -22,6 +22,9 @@ import ruLocale from '@fullcalendar/core/locales/ru';
 import Link from 'next/link';
 import { Register } from '@/pages/auth/register';
 import { Login } from '@/pages/auth/login';
+import * as Mui from '@mui/material';
+import { transform } from '@babel/standalone';
+
 import { FieldType } from './entities/IField';
 // eslint-disable-next-line import/no-cycle
 import FormField from './form';
@@ -57,13 +60,13 @@ export function parseReact(
     getColor?: (row: any) => string,
   } {
   try {
-    const babelCode = window.CachedImport.babelTransform(code, {
+    const babelCode = transform(code, {
       presets: ['react', 'es2017'],
     }).code;
     const resultCode = babelCode!.replace('"use strict";', '').trim();
     const data = {
       React,
-      Mui: window.CachedImport.Mui,
+      Mui,
       Link,
       context,
       user: context.user,
