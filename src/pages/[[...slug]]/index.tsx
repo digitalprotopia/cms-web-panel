@@ -118,8 +118,12 @@ function DynamicPage() {
     }, 6000);
   });
 
-  const showPreview = !user.user?.id
+  const showPreview = false && !user.user?.id
   && !loaded && siteItem?.getSiteItem?.preview;
+
+  useEffect(() => {
+    user.setIsPreview(showPreview);
+  }, [showPreview]);
 
   const parsedHead = useMemo(() => {
     const headTemplate = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'head');

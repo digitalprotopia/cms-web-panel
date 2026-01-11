@@ -4,7 +4,11 @@ import { createReactBlockSpec } from '@blocknote/react';
 import { Menu } from '@mantine/core';
 import { WidgetsOutlined } from '@mui/icons-material';
 import Link from 'next/link';
+import { useOnInView } from 'react-intersection-observer';
 
+import { Skeleton } from '@mui/material';
+import { useState } from 'react';
+// import UserContext from '@/components/UserContext';
 import { IWidgetGraphQL as IWidget } from '../../entities/IWidget';
 // eslint-disable-next-line import/no-cycle
 import { PageWidget } from '../../ParseWidgets';
@@ -69,8 +73,25 @@ export const BlockEditorWidget = createReactBlockSpec(
         (w: IWidget) => w.name === props.block.props.type,
       );
 
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [inView, setInView] = useState(false);
+
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      // const user = useContext(UserContext);
+
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const ref = useOnInView((_inView) => {
+        if (_inView) {
+          setInView(true);
+        }
+      }, {
+        /* Optional options */
+        threshold: 0,
+        skip: inView,
+      });
+
       return (
-        <div className={props.editor.isEditable ? 'widget' : 'widget-view'} data-widget-type={props.block.props.type}>
+        <div ref={ref} className={props.editor.isEditable ? 'widget' : 'widget-view'} data-widget-type={props.block.props.type}>
           {/* Icon which opens a menu to choose the Widget type */}
           {props.editor.isEditable
             ? (
@@ -124,7 +145,7 @@ export const BlockEditorWidget = createReactBlockSpec(
             }}
             className={props.block.props.cssClass || undefined}
           >
-            {props.block.props.type ? (
+            {(props.block.props.type && (inView)) ? (
               <PageWidget
                 widgetName={props.block.props.type}
                 blockProps={{
@@ -133,7 +154,13 @@ export const BlockEditorWidget = createReactBlockSpec(
                   height: props.block.props.height,
                 }}
               />
-            ) : null}
+            ) : (<Skeleton
+              variant="rounded"
+              style={{
+                width: '100%',
+                height: props.block.props.height || 200,
+              }}
+            />)}
           </div>
         </div>
       );

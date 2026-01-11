@@ -93,6 +93,7 @@ export default function CMSLayout({
   const [loaded, setLoaded] = useState(false);
 
   const [fakeGuest, setFakeGuest] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
 
   const {
     data, refetch, error, loading,
@@ -192,8 +193,11 @@ export default function CMSLayout({
                   },
                   currentPage,
                   setCurrentPage,
+                  fakeGuest,
                   enableFakeGuest: () => setFakeGuest(true),
                   disableFakeGuest: () => setFakeGuest(false),
+                  isPreview,
+                  setIsPreview,
                 }}
                 >
                   <PageProvider>

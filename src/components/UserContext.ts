@@ -13,8 +13,11 @@ export interface UserContextData {
   setCurrentPage?: (page: ISiteItem | null) => void
   refetch:() => Promise<void>
   logout:() => void,
+  fakeGuest: boolean,
   enableFakeGuest: () => void;
   disableFakeGuest: () => void;
+  isPreview: boolean;
+  setIsPreview: (preview: boolean) => void;
 }
 
 const UserContext = createContext<UserContextData>({
@@ -25,8 +28,11 @@ const UserContext = createContext<UserContextData>({
   setLoaded: () => {},
   refetch: async () => {},
   logout: () => {},
+  fakeGuest: false,
   enableFakeGuest: () => {},
   disableFakeGuest: () => {},
+  isPreview: false,
+  setIsPreview: () => {},
 });
 
 export default UserContext;

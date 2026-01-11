@@ -65,6 +65,7 @@
     "react-frame-component": "^5.2.7",
     "react-full-screen": "^1.1.1",
     "react-i18next": "^15.6.0",
+    "react-intersection-observer": "^10.0.0",
     "react-monaco-editor": "^0.56.2",
     "react-popout": "^4.0.0",
     "react-simple-wysiwyg": "^3.1.3",

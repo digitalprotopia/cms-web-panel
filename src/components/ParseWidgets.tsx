@@ -268,6 +268,8 @@ function MapComponent(props: {
     rowId: '',
   });
 
+  const user = useContext(UserContext);
+
   const ymapsRef = useYMaps();
   const [mapCreate, setMapCreate] = useState(false);
   if (!ymapsRef) {
@@ -278,110 +280,113 @@ function MapComponent(props: {
     <div
       style={{ minHeight: props.height || 400 }}
     >
-      <Map
-        defaultState={{
-          center: props.mapCenter
-            ? [props.mapCenter.lat, props.mapCenter.lng]
-            : [55.751574, 37.573856],
-          zoom: props.zoom || 10,
-        }}
-        height={props.height || 400}
-        width={props.width || '100%'}
-        modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
-        instanceRef={(ref) => {
-          if (ymapsRef && props.data && props.data.length && ref && !mapCreate) {
-            console.log('ref fired');
-            setMapCreate(true);
-            // ref.balloon.events.add()
-            const objectManager = new ymapsRef.ObjectManager({
+      {(false && user.fakeGuest)
+        ? <Mui.Skeleton style={{ height: props.height || 400 }} variant="rectangular" />
+        : (<Map
+            defaultState={{
+              center: props.mapCenter
+                ? [props.mapCenter.lat, props.mapCenter.lng]
+                : [55.751574, 37.573856],
+              zoom: props.zoom || 10,
+            }}
+            height={props.height || 400}
+            width={props.width || '100%'}
+            modules={['geoObject.addon.balloon', 'geoObject.addon.hint']}
+            instanceRef={(ref) => {
+              if (ymapsRef && props.data && props.data.length && ref && !mapCreate) {
+                console.log('ref fired');
+                setMapCreate(true);
+                // ref.balloon.events.add()
+                const objectManager = new ymapsRef.ObjectManager({
 
-              clusterize: true,
-              clusterIconLayout: 'default#pieChart',
-              // @ts-expect-error types
-              clusterIconPieChartRadius: 25,
-              clusterIconPieChartCoreRadius: 15,
-              clusterIconPieChartStrokeWidth: 3,
-              clusterHideIconOnBalloonOpen: false,
-              // hasBalloon: false,
-              clusterDisableClickZoom: true,
-              clusterOpenBalloonOnClick: true,
-              clusterBalloonContentLayout: 'cluster#balloonCarousel',
-              // clusterBalloonItemContentLayout: customItemContentLayout,
-              // Устанавливаем режим открытия балуна.
-              // В данном примере балун никогда не будет открываться в режиме панели.
-              clusterBalloonPanelMaxMapArea: 0,
-              // Устанавливаем размеры макета контента балуна (в пикселях).
-              clusterBalloonContentLayoutWidth: 420,
-              clusterBalloonContentLayoutHeight: 200,
-              // Устанавливаем максимальное количество элементов в нижней панели на одной странице
-              // clusterBalloonPagerSize: 5,
+                  clusterize: true,
+                  clusterIconLayout: 'default#pieChart',
+                  // @ts-expect-error types
+                  clusterIconPieChartRadius: 25,
+                  clusterIconPieChartCoreRadius: 15,
+                  clusterIconPieChartStrokeWidth: 3,
+                  clusterHideIconOnBalloonOpen: false,
+                  // hasBalloon: false,
+                  clusterDisableClickZoom: true,
+                  clusterOpenBalloonOnClick: true,
+                  clusterBalloonContentLayout: 'cluster#balloonCarousel',
+                  // clusterBalloonItemContentLayout: customItemContentLayout,
+                  // Устанавливаем режим открытия балуна.
+                  // В данном примере балун никогда не будет открываться в режиме панели.
+                  clusterBalloonPanelMaxMapArea: 0,
+                  // Устанавливаем размеры макета контента балуна (в пикселях).
+                  clusterBalloonContentLayoutWidth: 420,
+                  clusterBalloonContentLayoutHeight: 200,
+                  // Устанавливаем максимальное количество
+                  // элементов в нижней панели на одной странице
+                  // clusterBalloonPagerSize: 5,
 
-            });
+                });
 
-            const placemarks = props.data.map((row: any) => {
-              const coords = props.getCoords(row);
-              if (!coords) {
-                return null;
-              }
-              return {
-                id: row.id,
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates:
+                const placemarks = props.data.map((row: any) => {
+                  const coords = props.getCoords(row);
+                  if (!coords) {
+                    return null;
+                  }
+                  return {
+                    id: row.id,
+                    type: 'Feature',
+                    geometry: {
+                      type: 'Point',
+                      coordinates:
               [coords.lat, coords.lng],
-                },
-                properties:
+                    },
+                    properties:
               {
                 balloonContent: `<div id="${row.id}${props.id}" style="width: 400px; height: 200px; overflow: auto;">
                   </div>`,
                 elementId: `${row.id}${props.id}`,
                 rowId: row.id,
               },
-                options:
+                    options:
               {
                 iconColor: props.getColor
                   ? props.getColor(row)
                   : 'green',
               },
-              };
-              // ref.geoObjects.add(placemark);
-            }).filter((p: any) => p !== null);
-            objectManager.add({ type: 'FeatureCollection', features: placemarks });
-            objectManager.clusters.state.events.add('change', () => {
-              // @ts-expect-error types
-              const newActiveObjects = objectManager.clusters.state.get('activeObject');
-              // console.log(newActiveObjects);
-              if (!newActiveObjects) {
-                return;
-              }
-              setPortal({
-                open: true,
-                // @ts-expect-error types
-                portalId: newActiveObjects.properties.elementId,
-                // @ts-expect-error types
-                rowId: newActiveObjects.properties.rowId,
-                // balloon: e.get('target').balloon,
-              });
-            });
-            ref.geoObjects.add(objectManager);
-            // ref.geoObjects.add(placemarks);
-            ref.geoObjects.events.add('balloonopen', (e) => {
-              if (e.get('target').getData().properties.rowId) {
-                setPortal({
-                  open: true,
-                  portalId: e.get('target').getData().properties.elementId,
-                  rowId: e.get('target').getData().properties.rowId,
-                  // balloon: e.get('target').balloon,
+                  };
+                  // ref.geoObjects.add(placemark);
+                }).filter((p: any) => p !== null);
+                objectManager.add({ type: 'FeatureCollection', features: placemarks });
+                objectManager.clusters.state.events.add('change', () => {
+                  // @ts-expect-error types
+                  const newActiveObjects = objectManager.clusters.state.get('activeObject');
+                  // console.log(newActiveObjects);
+                  if (!newActiveObjects) {
+                    return;
+                  }
+                  setPortal({
+                    open: true,
+                    // @ts-expect-error types
+                    portalId: newActiveObjects.properties.elementId,
+                    // @ts-expect-error types
+                    rowId: newActiveObjects.properties.rowId,
+                    // balloon: e.get('target').balloon,
+                  });
+                });
+                ref.geoObjects.add(objectManager);
+                // ref.geoObjects.add(placemarks);
+                ref.geoObjects.events.add('balloonopen', (e) => {
+                  if (e.get('target').getData().properties.rowId) {
+                    setPortal({
+                      open: true,
+                      portalId: e.get('target').getData().properties.elementId,
+                      rowId: e.get('target').getData().properties.rowId,
+                      // balloon: e.get('target').balloon,
+                    });
+                  }
+                });
+                ref.geoObjects.events.add('balloonclose', () => {
+                  setPortal({ ...portal, open: false });
                 });
               }
-            });
-            ref.geoObjects.events.add('balloonclose', () => {
-              setPortal({ ...portal, open: false });
-            });
-          }
-        }}
-      />
+            }}
+        />)}
       {portal.open && (
       <Portal elementId={portal.portalId}>
         <div style={{
