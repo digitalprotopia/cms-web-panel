@@ -118,7 +118,7 @@ function DynamicPage() {
     }, 6000);
   });
 
-  const showPreview = false && !user.user?.id
+  const showPreview = !user.user?.id
   && !loaded && siteItem?.getSiteItem?.preview;
 
   useEffect(() => {
