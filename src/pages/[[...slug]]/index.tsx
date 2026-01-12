@@ -134,7 +134,7 @@ function DynamicPage() {
     return parse(head);
   }, [site?.templateGroup?.templates]);
 
-  if (!site) return <span>Loading...</span>;
+  if (!site || !siteItem?.getSiteItem) return null;
 
   // let html = template ? renderTemplate(template, site?.templateGroup?.templates) : `<div>
   // <div>{menu}</div>
