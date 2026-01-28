@@ -13,10 +13,7 @@ import parse from 'html-react-parser';
 import { usePageContext } from '@/components/PageContext';
 import dynamic from 'next/dynamic';
 
-const BlockView = dynamic(() => import('@/components/BlockEditor').then((mod) => mod.BlockView), {
-  ssr: false,
-});
-import('@/components/BlockEditor').then((i) => console.log(i));
+const BlockView = dynamic(() => import('@/components/BlockEditor').then((mod) => mod.BlockView));
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -119,7 +116,7 @@ function DynamicPage() {
     setTimeout(() => {
       setLoaded(true);
     }, 6000);
-  }, []);
+  });
 
   const showPreview = !user.user?.id
   && !loaded && siteItem?.getSiteItem?.preview;
