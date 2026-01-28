@@ -11,10 +11,9 @@ import { ITemplate, TemplateType } from '@/components/entities/ITemplate';
 import Head from 'next/head';
 import parse from 'html-react-parser';
 import { usePageContext } from '@/components/PageContext';
-// import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic';
 
-// const BlockView = dynamic(() => import('@/components/BlockEditor').then((mod) => mod.BlockView));
-import { BlockView } from '@/components/BlockEditor';
+const BlockView = dynamic(() => import('@/components/BlockEditor').then((mod) => mod.BlockView));
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {

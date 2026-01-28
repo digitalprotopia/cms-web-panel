@@ -50,10 +50,6 @@ export const BlockEditorWidget = createReactBlockSpec(
         type: 'string',
         default: '',
       },
-      notLazy: {
-        type: 'boolean',
-        default: false,
-      },
     },
     content: 'inline',
   },
@@ -150,7 +146,7 @@ export const BlockEditorWidget = createReactBlockSpec(
             }}
             className={props.block.props.cssClass || undefined}
           >
-            {(props.block.props.type && (inView || props.block.props.notLazy)) ? (
+            {(props.block.props.type && (inView)) ? (
               <PageWidget
                 widgetName={props.block.props.type}
                 blockProps={{
