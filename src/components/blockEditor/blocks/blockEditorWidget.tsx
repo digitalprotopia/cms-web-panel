@@ -86,8 +86,8 @@ export const BlockEditorWidget = createReactBlockSpec(
         }
       }, {
         /* Optional options */
-        threshold: 0.2,
-        delay: 200,
+        // threshold: 0,
+        // delay: 0,
         skip: inView,
       });
 
