@@ -115,7 +115,7 @@ function DynamicPage() {
   useEffect(() => {
     setTimeout(() => {
       setLoaded(true);
-    }, 2000);
+    }, 6000);
   });
 
   const showPreview = !user.user?.id
