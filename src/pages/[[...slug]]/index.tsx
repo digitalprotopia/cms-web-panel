@@ -119,13 +119,15 @@ function DynamicPage() {
   const [disablePreview, setDisablePreview] = useState(false);
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    setTimeout(() => {
-      setLoaded(true);
+    if (siteItem?.getSiteItem?.preview) {
       setTimeout(() => {
-        setDisablePreview(true);
-      }, 4000);
-    }, 2000);
-  }, []);
+        setLoaded(true);
+        setTimeout(() => {
+          setDisablePreview(true);
+        }, 4000);
+      }, 0);
+    }
+  }, [siteItem?.getSiteItem?.preview]);
 
   const showPreview = !user.user?.id
   && !!siteItem?.getSiteItem?.preview && !disablePreview;
