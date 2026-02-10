@@ -50,6 +50,10 @@ export const BlockEditorWidget = createReactBlockSpec(
         type: 'string',
         default: '',
       },
+      noLazy: {
+        type: 'boolean',
+        default: false,
+      },
     },
     content: 'inline',
   },
@@ -74,7 +78,7 @@ export const BlockEditorWidget = createReactBlockSpec(
       );
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [inView, setInView] = useState(true);
+      const [inView, setInView] = useState(!!props.block.props.noLazy);
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
       // const user = useContext(UserContext);

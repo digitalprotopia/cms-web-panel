@@ -45,7 +45,7 @@ import dayjs from 'dayjs';
 import '@blocknote/core/fonts/inter.css';
 import '@blocknote/mantine/style.css';
 import { MoreVert } from '@mui/icons-material';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField } from '@mui/material';
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, TextField } from '@mui/material';
 import { BlockEditorCssView, insertBlockEditorCssView } from './blockEditor/blocks/templates/css';
 import { BlockEditorHeadView, insertBlockEditorHeadView } from './blockEditor/blocks/templates/head';
 // eslint-disable-next-line import/no-cycle
@@ -106,6 +106,19 @@ export function BlockSettings(
             }}
             fullWidth
             margin="normal"
+          />
+          <FormControlLabel
+            control={
+              (<Checkbox
+                checked={props.block.props.noLazy}
+                onChange={(e) => {
+                  props.editor.updateBlock(props.block, {
+                    props: { noLazy: e.target.checked },
+                  });
+                }}
+              />)
+}
+            label="Загружать сразу"
           />
 
         </DialogContent>
