@@ -111,14 +111,20 @@ function DynamicPage() {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [loaded, setLoaded] = useState(false);
+  const [disablePreview, setDisablePreview] = useState(false);
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     setTimeout(() => {
       setLoaded(true);
-    }, 6000);
+      setTimeout(() => {
+        setDisablePreview(true);
+      }, 4000);
+    }, 2000);
   });
 
   const showPreview = !user.user?.id
+  && siteItem?.getSiteItem?.preview && !disablePreview;
+  const hideReal = !user.user?.id
   && !loaded && siteItem?.getSiteItem?.preview;
 
   useEffect(() => {
@@ -204,16 +210,19 @@ function DynamicPage() {
             __html: siteItem?.getSiteItem?.preview || '',
           }}
         />)}
-        <div
-          id="mmcms-page-content"
-          style={{
-            display: showPreview ? 'none' : 'block',
-          }}
-        >
-          <BlockView
-            blockContent={template?.blockContent}
-          />
-        </div>
+        {hideReal ? null
+          : (
+            <div
+              id="mmcms-page-content"
+              style={{
+                display: showPreview ? 'none' : 'block',
+              }}
+            >
+              <BlockView
+                blockContent={template?.blockContent}
+              />
+            </div>
+          )}
       </div>
     );
   }
