@@ -3,6 +3,7 @@ import { gql, useQuery } from '@apollo/client';
 // import ParsePage from '@/components/ParsePage';
 import { useRouter } from 'next/router';
 import {
+  // lazy,
   useContext, useEffect, useMemo, useState,
 } from 'react';
 import UserContext from '@/components/UserContext';
@@ -11,9 +12,11 @@ import { ITemplate, TemplateType } from '@/components/entities/ITemplate';
 import Head from 'next/head';
 import parse from 'html-react-parser';
 import { usePageContext } from '@/components/PageContext';
-import dynamic from 'next/dynamic';
+import { BlockView } from '@/components/BlockEditor';
+// import dynamic from 'next/dynamic';
 
-const BlockView = dynamic(() => import('@/components/BlockEditor').then((mod) => mod.BlockView));
+// const BlockView = lazy(() => import('@/components/BlockEditor')
+// .then((mod) => ({ default: mod.BlockView })));
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -123,9 +126,9 @@ function DynamicPage() {
   }, []);
 
   const showPreview = !user.user?.id
-  && siteItem?.getSiteItem?.preview && !disablePreview;
+  && !!siteItem?.getSiteItem?.preview && !disablePreview;
   const hideReal = !user.user?.id
-  && !loaded && siteItem?.getSiteItem?.preview;
+  && !loaded && !!siteItem?.getSiteItem?.preview;
 
   useEffect(() => {
     user.setIsPreview(showPreview);
@@ -198,6 +201,8 @@ function DynamicPage() {
   //   blockContent,
   // };
 
+  // console.log({ showPreview, hideReal, loaded, disablePreview });
+
   if (template?.type === TemplateType.BLOCKS) {
     return (
       <div className="mmcms-blocks-template">
@@ -210,19 +215,16 @@ function DynamicPage() {
             __html: siteItem?.getSiteItem?.preview || '',
           }}
         />)}
-        {hideReal ? null
-          : (
-            <div
-              id="mmcms-page-content"
-              style={{
-                display: showPreview ? 'none' : 'block',
-              }}
-            >
-              <BlockView
-                blockContent={template?.blockContent}
-              />
-            </div>
-          )}
+        <div
+          id="mmcms-page-content"
+          style={{
+            display: showPreview ? 'none' : 'block',
+          }}
+        >
+          {hideReal ? null : (<BlockView
+            blockContent={template?.blockContent}
+          />)}
+        </div>
       </div>
     );
   }
