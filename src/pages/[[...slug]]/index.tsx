@@ -125,7 +125,7 @@ function DynamicPage() {
         setTimeout(() => {
           setDisablePreview(true);
         }, 4000);
-      }, 0);
+      }, 2000);
     }
   }, [siteItem?.getSiteItem?.preview]);
 
