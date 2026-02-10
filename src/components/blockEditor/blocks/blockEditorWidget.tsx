@@ -74,7 +74,7 @@ export const BlockEditorWidget = createReactBlockSpec(
       );
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [inView, setInView] = useState(false);
+      const [inView, setInView] = useState(true);
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
       // const user = useContext(UserContext);

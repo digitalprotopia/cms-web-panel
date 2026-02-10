@@ -18,8 +18,8 @@ import React, {
 } from 'react';
 
 import { useRouter } from 'next/router';
-import AdminLayout from '@/components/layouts/admin';
-import IndexLayout from '@/components/layouts';
+// import AdminLayout from '@/components/layouts/admin';
+// import IndexLayout from '@/components/layouts';
 import { Config } from '@/config/config.sample';
 import { IUser } from '@/components/entities/IUser';
 import UserContext from '@/components/UserContext';
@@ -28,6 +28,15 @@ import { YMaps } from '@pbe/react-yandex-maps';
 import { PageProvider } from '@/components/PageContext';
 
 import '../i18n/i18n';
+import dynamic from 'next/dynamic';
+
+const AdminLayout = dynamic(() => import('@/components/layouts/admin'), {
+  ssr: false,
+});
+
+const IndexLayout = dynamic(() => import('@/components/layouts'), {
+  ssr: false,
+});
 
 declare global {
   interface Window {
