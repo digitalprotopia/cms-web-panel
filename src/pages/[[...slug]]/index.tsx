@@ -3,6 +3,8 @@ import { gql, useQuery } from '@apollo/client';
 // import ParsePage from '@/components/ParsePage';
 import { useRouter } from 'next/router';
 import {
+  lazy,
+  Suspense,
   // lazy,
   useContext, useEffect, useMemo, useState,
 } from 'react';
@@ -12,11 +14,11 @@ import { ITemplate, TemplateType } from '@/components/entities/ITemplate';
 import Head from 'next/head';
 import parse from 'html-react-parser';
 import { usePageContext } from '@/components/PageContext';
-import { BlockView } from '@/components/BlockEditor';
+// import { BlockView } from '@/components/BlockEditor';
 // import dynamic from 'next/dynamic';
 
-// const BlockView = lazy(() => import('@/components/BlockEditor')
-// .then((mod) => ({ default: mod.BlockView })));
+const BlockView = lazy(() => import('@/components/BlockEditor')
+  .then((mod) => ({ default: mod.BlockView })));
 
 const GET_SITEITEM = gql`
   query GetSiteItem($id: ID!) {
@@ -221,9 +223,15 @@ function DynamicPage() {
             display: showPreview ? 'none' : 'block',
           }}
         >
-          {hideReal ? null : (<BlockView
-            blockContent={template?.blockContent}
-          />)}
+          <Suspense>
+            {hideReal ? (<BlockView
+              key="nothing"
+              blockContent={undefined}
+            />) : (<BlockView
+              key="page"
+              blockContent={template?.blockContent}
+            />)}
+          </Suspense>
         </div>
       </div>
     );
