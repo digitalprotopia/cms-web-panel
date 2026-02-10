@@ -1,7 +1,7 @@
 import {
   gql, useApolloClient, useLazyQuery, useMutation, useQuery,
 } from '@apollo/client';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar, enqueueSnackbar } from 'notistack';
 import { Button, Typography } from '@mui/material';
@@ -23,7 +23,6 @@ import Link from 'next/link';
 import { Register } from '@/pages/auth/register';
 import { Login } from '@/pages/auth/login';
 import * as Mui from '@mui/material';
-import { transform } from '@babel/standalone';
 
 import { FieldType } from './entities/IField';
 // eslint-disable-next-line import/no-cycle
@@ -45,22 +44,26 @@ import { WidgetViewType } from './entities/IWidget';
 import { usePageContext } from './PageContext';
 import { FormType } from './entities/IForm';
 
-export function parseReact(
+interface ParseReactResult {
+  Component: React.ComponentType<any>,
+  filter?: (data: any[]) => any[],
+  search?: any,
+  params?: UseTableOptions,
+  ListComponent?: React.ComponentType<any>,
+  getColor?: (row: any) => string,
+}
+
+const babel = import('./babelImport');
+
+export async function parseReact(
   code: string,
   context: UserContextData,
   pages: ISiteItem[],
   router: NextRouter,
 ):
-  {
-    Component: React.ComponentType<any>,
-    filter?: (data: any[]) => any[],
-    search?: any,
-    params?: UseTableOptions,
-    ListComponent?: React.ComponentType<any>,
-    getColor?: (row: any) => string,
-  } {
+  Promise<ParseReactResult> {
   try {
-    const babelCode = transform(code, {
+    const babelCode = (await babel).default(code, {
       presets: ['react', 'es2017'],
     }).code;
     const resultCode = babelCode!.replace('"use strict";', '').trim();
@@ -119,6 +122,34 @@ export function parseReact(
   }
 }
 
+const useParseReact = (
+  code: string,
+  context: UserContextData,
+  pages: ISiteItem[],
+  router: NextRouter,
+  conditions: any[],
+  skip: boolean = false,
+) => {
+  const [result, setResult] = useState<ParseReactResult | undefined>(undefined);
+  useEffect(() => {
+    let mounted = true;
+    if (!skip) {
+      setTimeout(() => {
+        parseReact(code, context, pages, router).then((res) => {
+          if (mounted) {
+            setResult(res);
+          }
+        });
+      }, 0);
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [...conditions]);
+
+  return result;
+};
+
 const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = function (props) {
   // находим искомый HTML по id
   const mount = document.getElementById(props.elementId);
@@ -155,12 +186,18 @@ export function ParseRow(
   const user = useContext(UserContext);
 
   const router = useRouter();
-  const widget = useMemo(() => {
-    if (language === TemplateLanguage.REACT) {
-      return parseReact(html, user, user.pages || [], router);
-    }
+  const widget = useParseReact(
+    html,
+    user,
+    user.pages || [],
+    router,
+    [html, user.user?.id, router.asPath],
+    language !== TemplateLanguage.REACT,
+  );
+
+  if (!widget && props.language === TemplateLanguage.REACT) {
     return null;
-  }, [html, user.user?.id, router.asPath]);
+  }
 
   if (widget && language === TemplateLanguage.REACT) {
     const { Component } = widget;
@@ -431,12 +468,18 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     language: props.language || TemplateLanguage.SIMPLE,
   };
 
-  const widget = useMemo(() => {
-    if (props.language === TemplateLanguage.REACT) {
-      return parseReact(props.html, user, user.pages || [], router);
-    }
+  const widget = useParseReact(
+    props.html,
+    user,
+    user.pages || [],
+    router,
+    [props.html, user.user?.id, router.asPath],
+    props.language !== TemplateLanguage.REACT,
+  );
+
+  if (!widget && props.language === TemplateLanguage.REACT) {
     return null;
-  }, [props.html, user.user?.id, router.asPath]);
+  }
 
   if (widget && props.language === TemplateLanguage.REACT) {
     const { ListComponent } = widget;
@@ -525,12 +568,18 @@ export function RenderWidget(
   const user = useContext(UserContext);
   const router = useRouter();
 
-  const template = useMemo(() => {
-    if (language === TemplateLanguage.REACT) {
-      return parseReact(html, user, user.pages || [], router);
-    }
+  const template = useParseReact(
+    html,
+    user,
+    user.pages || [],
+    router,
+    [html, user.user?.id, router.asPath],
+    language !== TemplateLanguage.REACT,
+  );
+
+  if (!template && props.language === TemplateLanguage.REACT) {
     return null;
-  }, [html, user.user?.id, router.asPath]);
+  }
 
   if (widgetViewType === WidgetViewType.MAP) {
     return (
@@ -611,19 +660,16 @@ export function PageWidget(props: {
   const user = useContext(UserContext);
   const router = useRouter();
 
-  let filter: ReturnType<typeof parseReact>['filter'];
+  let filter: ParseReactResult['filter'];
   let params: UseTableOptions = {};
-  const widget = useMemo(() => {
-    if (data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
-      return parseReact(
-        data.getWidgetByName.template.html,
-        user,
-        user.pages || [],
-        router,
-      );
-    }
-    return null;
-  }, [data?.getWidgetByName?.template?.html, user.user?.id, router.asPath]);
+  const widget = useParseReact(
+    data?.getWidgetByName.template.html,
+    user,
+    user.pages || [],
+    router,
+    [data?.getWidgetByName?.template?.html, user.user?.id, router.asPath],
+    !(data && data.getWidgetByName?.template.language === TemplateLanguage.REACT),
+  );
 
   if (widget && data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
     filter = widget.filter;
@@ -636,6 +682,10 @@ export function PageWidget(props: {
   }
 
   const table = useTable(data?.getWidgetByName?.tableView.tableId, params);
+
+  if (!widget && data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
+    return null;
+  }
 
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
     return (
