@@ -7,7 +7,7 @@ import { BlockNoteEditor, insertOrUpdateBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
 import { Editor } from '@monaco-editor/react';
 import { Article } from '@mui/icons-material';
-import { Skeleton } from '@mui/material';
+import { Box } from '@mui/material';
 import Head from 'next/head';
 import { useContext, useEffect, useState } from 'react';
 
@@ -84,7 +84,8 @@ export const BlockEditorContentView = createReactBlockSpec(
         );
       }
       if (!siteItem || loading) {
-        return <Skeleton variant="rectangular" style={{ height: 800 }} />;
+        return <Box style={{ height: 800 }} />;
+        // return <Skeleton variant="rectangular" style={{ height: 800 }} />;
       }
       let showPreview = !user.user?.id && !props.editor.isEditable
       && !loaded && siteItem?.getSiteItem?.preview;

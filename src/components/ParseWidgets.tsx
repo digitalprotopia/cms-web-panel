@@ -4,7 +4,7 @@ import {
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter, NextRouter } from 'next/router';
 import { useSnackbar, enqueueSnackbar } from 'notistack';
-import { Button, Typography, Skeleton } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { createPortal } from 'react-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
@@ -281,7 +281,8 @@ function MapComponent(props: {
       style={{ minHeight: props.height || 400 }}
     >
       {(false && user.fakeGuest)
-        ? <Mui.Skeleton style={{ height: props.height || 400 }} variant="rectangular" />
+        ? <Mui.Box style={{ height: props.height || 400 }} />
+        // <Mui.Skeleton style={{ height: props.height || 400 }} variant="rectangular" />
         : (<Map
             defaultState={{
               center: props.mapCenter
@@ -639,8 +640,14 @@ export function PageWidget(props: {
   if (!data || !data?.getWidgetByName || (data?.getWidgetByName.tableView.tableId && !table.data)) {
     return (
       <div>
-        <Skeleton
+        {/* <Skeleton
           variant="rounded"
+          style={{
+            width: '100%',
+            height: props.blockProps?.height || 200,
+          }}
+        /> */}
+        <Mui.Box
           style={{
             width: '100%',
             height: props.blockProps?.height || 200,

@@ -6,7 +6,7 @@ import { WidgetsOutlined } from '@mui/icons-material';
 import Link from 'next/link';
 import { useOnInView } from 'react-intersection-observer';
 
-import { Skeleton } from '@mui/material';
+import { Box } from '@mui/material';
 import { useState } from 'react';
 // import UserContext from '@/components/UserContext';
 import { IWidgetGraphQL as IWidget } from '../../entities/IWidget';
@@ -155,13 +155,20 @@ export const BlockEditorWidget = createReactBlockSpec(
                   height: props.block.props.height,
                 }}
               />
-            ) : (<Skeleton
-              variant="rounded"
-              style={{
-                width: '100%',
-                height: props.block.props.height || 200,
-              }}
-            />)}
+            )
+              : (<Box
+                  style={{
+                    width: '100%',
+                    height: props.block.props.height || 200,
+                  }}
+              />)}
+            {/* (<Skeleton
+               variant="rounded"
+               style={{
+                 width: '100%',
+                 height: props.block.props.height || 200,
+               }}
+             />) */}
           </div>
         </div>
       );
