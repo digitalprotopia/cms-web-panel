@@ -57,7 +57,7 @@ export const BlockEditorContentView = createReactBlockSpec(
           variables: { id: user.currentPage?.id },
           skip: !user || props.editor.isEditable || !user.currentPage,
           onCompleted() {
-            user.setLoaded(true);
+            // user.setLoaded(true);
           },
         },
       );

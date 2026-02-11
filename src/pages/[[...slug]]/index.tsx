@@ -95,14 +95,26 @@ function DynamicPage() {
 
   const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [loaded, setLoaded] = useState(false);
+  const [disablePreview, setDisablePreview] = useState(false);
+
   const { data: siteItem } = useQuery(
     GET_SITEITEM,
     {
       variables: { id: currentPage },
       skip: !currentPage,
-      onCompleted: () => {
-        if (!user.user?.id) {
+      onCompleted: (_data) => {
+        // if (!user.user?.id) {
+        //   user.setLoaded(true);
+        // }
+        if (user.user?.id) {
           user.setLoaded(true);
+        } else if (!_data.getSiteItem.preview) {
+          setLoaded(true);
+          setTimeout(() => {
+            user.setLoaded(true);
+          }, 4000);
         }
       },
     },
@@ -115,17 +127,15 @@ function DynamicPage() {
   }, [siteItem]);
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [loaded, setLoaded] = useState(false);
-  const [disablePreview, setDisablePreview] = useState(false);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     if (siteItem?.getSiteItem?.preview) {
       setTimeout(() => {
         setLoaded(true);
         setTimeout(() => {
           setDisablePreview(true);
+          user.setLoaded(true);
         }, 4000);
-      }, 2000);
+      }, 0);
     }
   }, [siteItem?.getSiteItem?.preview]);
 
