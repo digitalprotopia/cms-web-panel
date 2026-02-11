@@ -339,6 +339,7 @@ export default function WidgetSettings({
             widgetId={widgetId}
             widgetViewType={widgetData.widgetViewType}
             html={previewMarkup}
+            precompiled=""
             fields={widgetTable.meta?.fields as TableField[]}
             data={widgetTable.meta ? [row] : []}
             language={widgetData.markupLanguage}

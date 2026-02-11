@@ -1,3 +1,12 @@
 import { transform } from '@babel/standalone';
 
-export default transform;
+console.log('BABEL LOADS');
+
+const transformWidget = (code: string) => {
+  const babelCode = transform(code, {
+    presets: ['react', 'es2017'],
+  }).code;
+  return babelCode!.replace('"use strict";', '').trim();
+};
+
+export default transformWidget;

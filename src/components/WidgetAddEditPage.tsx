@@ -208,13 +208,22 @@ function WidgetAddEditPage({ id, onClose }: WidgetAddEditPageProps) {
     return <div>Loading...</div>;
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    let precompiled = '';
+    if (widgetData.markupLanguage === TemplateLanguage.REACT) {
+      try {
+        precompiled = (await import('@/components/babelImport')).default(widgetData.markup);
+      } catch (e) {
+        console.error(e);
+      }
+    }
     const variables = {
       input: {
         name: widgetData.name,
         title: widgetData.title,
         widgetViewType: widgetData.widgetViewType,
         cssClass: widgetData.cssClass,
+        precompiled,
       },
       tableView: {
         title: widgetData.title,

@@ -53,20 +53,22 @@ interface ParseReactResult {
   getColor?: (row: any) => string,
 }
 
-const babel = import('./babelImport');
-
 export async function parseReact(
-  code: string,
-  context: UserContextData,
-  pages: ISiteItem[],
-  router: NextRouter,
+  { code, precompiled, context, pages, router }
+  :{
+    code: string,
+    precompiled: string,
+    context: UserContextData,
+    pages: ISiteItem[],
+    router: NextRouter,
+  },
 ):
   Promise<ParseReactResult> {
   try {
-    const babelCode = (await babel).default(code, {
-      presets: ['react', 'es2017'],
-    }).code;
-    const resultCode = babelCode!.replace('"use strict";', '').trim();
+    if (!precompiled) {
+      const babel = import('./babelImport');
+      precompiled = (await babel).default(code);
+    }
     const data = {
       React,
       Mui,
@@ -108,7 +110,7 @@ export async function parseReact(
       YandexMaps,
     };
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const func = new Function('data', getReactTemplateDefinition('list', resultCode, data));
+    const func = new Function('data', getReactTemplateDefinition('list', precompiled, data));
     return func(data);
   } catch (e) {
     return {
@@ -123,19 +125,24 @@ export async function parseReact(
 }
 
 const useParseReact = (
-  code: string,
-  context: UserContextData,
-  pages: ISiteItem[],
-  router: NextRouter,
-  conditions: any[],
-  skip: boolean = false,
+  {
+    code, precompiled, context, pages, router, conditions, skip,
+  }: {
+    code: string,
+    precompiled: string;
+    context: UserContextData,
+    pages: ISiteItem[],
+    router: NextRouter,
+    conditions: any[],
+    skip: boolean,
+  },
 ) => {
   const [result, setResult] = useState<ParseReactResult | undefined>(undefined);
   useEffect(() => {
     let mounted = true;
     if (!skip) {
       setTimeout(() => {
-        parseReact(code, context, pages, router).then((res) => {
+        parseReact({ code, precompiled, context, pages, router }).then((res) => {
           if (mounted) {
             setResult(res);
           }
@@ -174,25 +181,29 @@ const Portal:React.FC<{ elementId: string, children: React.ReactNode }> = functi
 export function ParseRow(
   props: {
     html: string,
+    precompiled: string,
     row: any,
     fields: TableField[],
     language:TemplateLanguage
   },
 ) {
   const {
-    html, row, fields, language,
+    html, precompiled, row, fields, language,
   } = props;
 
   const user = useContext(UserContext);
 
   const router = useRouter();
   const widget = useParseReact(
-    html,
-    user,
-    user.pages || [],
-    router,
-    [html, user.user?.id, router.asPath],
-    language !== TemplateLanguage.REACT,
+    {
+      code: html,
+      precompiled,
+      context: user,
+      pages: user.pages || [],
+      router,
+      conditions: [html, user.user?.id, router.asPath],
+      skip: language !== TemplateLanguage.REACT,
+    },
   );
 
   if (!widget && props.language === TemplateLanguage.REACT) {
@@ -267,12 +278,14 @@ export function ParseRow(
 }
 
 const WidgetList:React.FC<{ data: any, fields: TableField[], html: string,
+  precompiled: string,
   language?: TemplateLanguage
 }> = function (props) {
   return props.data.map((row: any) => (
     <div key={row.id}>
       <ParseRow
         html={props.html}
+        precompiled={props.precompiled}
         row={row}
         fields={props.fields}
         language={props.language || TemplateLanguage.SIMPLE}
@@ -288,6 +301,7 @@ function MapComponent(props: {
   id: string,
   fields: TableField[],
   html: string,
+  precompiled: string,
   language: TemplateLanguage,
   mapCenter?: { lat: number, lng: number },
   zoom?: number,
@@ -433,6 +447,7 @@ function MapComponent(props: {
         >
           <ParseRow
             html={props.html}
+            precompiled={props.precompiled}
             row={props.data.find((row: any) => row.id === portal.rowId)}
             fields={props.fields}
             language={props.language || TemplateLanguage.SIMPLE}
@@ -444,7 +459,7 @@ function MapComponent(props: {
   );
 }
 
-const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
+const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string, precompiled: string,
   language?: TemplateLanguage
 }> = function (props) {
   // console.log(customItemContentLayout.events);
@@ -465,17 +480,19 @@ const WidgetMap:React.FC<{ data: any, fields: TableField[], html: string,
     data: props.data,
     fields: props.fields,
     html: props.html,
+    precompiled: props.precompiled,
     language: props.language || TemplateLanguage.SIMPLE,
   };
 
-  const widget = useParseReact(
-    props.html,
-    user,
-    user.pages || [],
+  const widget = useParseReact({
+    code: props.html,
+    precompiled: props.precompiled,
+    context: user,
+    pages: user.pages || [],
     router,
-    [props.html, user.user?.id, router.asPath],
-    props.language !== TemplateLanguage.REACT,
-  );
+    conditions: [props.html, user.user?.id, router.asPath],
+    skip: props.language !== TemplateLanguage.REACT,
+  });
 
   if (!widget && props.language === TemplateLanguage.REACT) {
     return null;
@@ -555,6 +572,7 @@ export function RenderWidget(
     widgetId?: string,
     widgetViewType: string,
     html: string,
+    precompiled: string,
     fields: TableField[],
     data: any,
     language: TemplateLanguage,
@@ -563,19 +581,20 @@ export function RenderWidget(
   },
 ) {
   const {
-    widgetId, widgetViewType, html, fields, data, language,
+    widgetId, widgetViewType, html, precompiled, fields, data, language,
   } = props;
   const user = useContext(UserContext);
   const router = useRouter();
 
-  const template = useParseReact(
-    html,
-    user,
-    user.pages || [],
+  const template = useParseReact({
+    code: html,
+    precompiled,
+    context: user,
+    pages: user.pages || [],
     router,
-    [html, user.user?.id, router.asPath],
-    language !== TemplateLanguage.REACT,
-  );
+    conditions: [html, user.user?.id, router.asPath],
+    skip: language !== TemplateLanguage.REACT,
+  });
 
   if (!template && props.language === TemplateLanguage.REACT) {
     return null;
@@ -586,6 +605,7 @@ export function RenderWidget(
       <WidgetStyle cssClass={props.cssClass} style={props.style} widgetId={widgetId}>
         <WidgetMap
           data={data}
+          precompiled={precompiled}
           fields={fields}
           html={html}
           language={language}
@@ -626,6 +646,7 @@ export function RenderWidget(
         data={data}
         fields={fields}
         html={html}
+        precompiled={precompiled}
         language={language}
       />
     </WidgetStyle>
@@ -643,6 +664,7 @@ export function PageWidget(props: {
         name
         widgetViewType
         cssClass
+        precompiled
         template {
           html
           language
@@ -662,14 +684,15 @@ export function PageWidget(props: {
 
   let filter: ParseReactResult['filter'];
   let params: UseTableOptions = {};
-  const widget = useParseReact(
-    data?.getWidgetByName.template.html,
-    user,
-    user.pages || [],
+  const widget = useParseReact({
+    code: data?.getWidgetByName.template.html,
+    precompiled: data?.getWidgetByName.precompiled,
+    context: user,
+    pages: user.pages || [],
     router,
-    [data?.getWidgetByName?.template?.html, user.user?.id, router.asPath],
-    !(data && data.getWidgetByName?.template.language === TemplateLanguage.REACT),
-  );
+    conditions: [data?.getWidgetByName?.template?.html, user.user?.id, router.asPath],
+    skip: !(data && data.getWidgetByName?.template.language === TemplateLanguage.REACT),
+  });
 
   if (widget && data && data.getWidgetByName?.template.language === TemplateLanguage.REACT) {
     filter = widget.filter;
@@ -722,6 +745,7 @@ export function PageWidget(props: {
       widgetId={data.getWidgetByName.id}
       widgetViewType={data.getWidgetByName.widgetViewType}
       html={data.getWidgetByName.template.html}
+      precompiled={data.getWidgetByName.precompiled}
       fields={table.meta?.fields as TableField[]}
       data={resultData}
       language={data.getWidgetByName.template.language}
