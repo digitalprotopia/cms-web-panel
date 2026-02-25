@@ -4,14 +4,19 @@ export const PageContext = createContext<{
   data: Record<string, any>;
   setData:(key: string, value: any) => void;
   clearData: () => void;
+  title: string;
+  setTitle: (title: string) => void;
 }>({
       data: {},
-      setData: () => {},
-      clearData: () => {},
+      setData: () => { },
+      clearData: () => { },
+      title: '',
+      setTitle: () => { },
     });
 
 export function PageProvider(props: { children: React.JSX.Element }) {
   const [data, setData] = React.useState<Record<string, any>>({});
+  const [title, setTitle] = React.useState<string>('');
   return (
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     <PageContext.Provider value={{
@@ -22,6 +27,8 @@ export function PageProvider(props: { children: React.JSX.Element }) {
       clearData: () => {
         setData({});
       },
+      title,
+      setTitle: (t) => setTitle(t),
     }}
     >
       {props.children}
