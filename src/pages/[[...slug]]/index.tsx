@@ -95,20 +95,21 @@ function DynamicPage() {
 
   const template = site?.templateGroup?.templates?.find((_template: any) => _template.name === 'layout');
 
+  const pageContext = usePageContext();
+
   const { data: siteItem } = useQuery(
     GET_SITEITEM,
     {
       variables: { id: currentPage },
       skip: !currentPage,
-      onCompleted: () => {
+      onCompleted: (data) => {
+        pageContext.setTitle(data.getSiteItem.title);
         if (!user.user?.id) {
           user.setLoaded(true);
         }
       },
     },
   );
-
-  const pageContext = usePageContext();
 
   useEffect(() => {
     pageContext.clearData();
