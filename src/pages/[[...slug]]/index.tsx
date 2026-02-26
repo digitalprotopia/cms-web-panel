@@ -71,12 +71,12 @@ function DynamicPage() {
     if (!slug || !slug.length) {
       prevPage = pages.find((p) => p.url === '' && !p.parentId)?.id || '';
     } else {
-    // eslint-disable-next-line no-restricted-syntax, guard-for-in
+      // eslint-disable-next-line no-restricted-syntax, guard-for-in
       for (const i in slug) {
         const item = slug[i];
         // eslint-disable-next-line @typescript-eslint/no-loop-func
         const page = pages.find((p) => (p.type === SiteItemType.DYNAMIC || p.url === item)
-        && ((!prevPage && !p.parentId) || p.parentId === prevPage));
+          && ((!prevPage && !p.parentId) || p.parentId === prevPage));
         if (page) {
           prevPage = page.id;
         } else {
@@ -130,9 +130,9 @@ function DynamicPage() {
   }, [siteItem?.getSiteItem?.preview]);
 
   const showPreview = !user.user?.id
-  && !!siteItem?.getSiteItem?.preview && !disablePreview;
+    && !!siteItem?.getSiteItem?.preview && !disablePreview;
   const hideReal = !user.user?.id
-  && !loaded && !!siteItem?.getSiteItem?.preview;
+    && !loaded && !!siteItem?.getSiteItem?.preview;
 
   useEffect(() => {
     user.setIsPreview(showPreview);
@@ -207,12 +207,14 @@ function DynamicPage() {
 
   // console.log({ showPreview, hideReal, loaded, disablePreview });
 
+  const pageTitle = pageContext.title || siteItem?.getSiteItem?.title || '';
+
   if (template?.type === TemplateType.BLOCKS) {
     return (
       <div className="mmcms-blocks-template">
         <Head>
-          <title>{siteItem?.getSiteItem?.title || ''}</title>
           {parsedHead}
+          <title>{pageTitle}</title>
         </Head>
         {showPreview && (<div
           dangerouslySetInnerHTML={{

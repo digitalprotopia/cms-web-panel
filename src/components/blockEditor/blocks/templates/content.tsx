@@ -8,7 +8,6 @@ import { createReactBlockSpec } from '@blocknote/react';
 import { Editor } from '@monaco-editor/react';
 import { Article } from '@mui/icons-material';
 import { Box } from '@mui/material';
-import Head from 'next/head';
 import { useContext, useEffect, useState } from 'react';
 
 const GET_SITEITEM = gql`
@@ -88,7 +87,7 @@ export const BlockEditorContentView = createReactBlockSpec(
         // return <Skeleton variant="rectangular" style={{ height: 800 }} />;
       }
       let showPreview = !user.user?.id && !props.editor.isEditable
-      && !loaded && siteItem?.getSiteItem?.preview;
+        && !loaded && siteItem?.getSiteItem?.preview;
       showPreview = false;
 
       return (
@@ -98,9 +97,6 @@ export const BlockEditorContentView = createReactBlockSpec(
             text-decoration: underline;
           }`}
           </style>
-          <Head>
-            <title>{siteItem?.getSiteItem?.title || ''}</title>
-          </Head>
           {showPreview && (<div
             dangerouslySetInnerHTML={{
               __html: siteItem?.getSiteItem?.preview || '',
