@@ -56,8 +56,9 @@ import useTable, {
   useDeleteField,
   useEditField,
   useEditRow,
-} from '@/components/use-table';
+} from '@/components/use-table-new';
 import { IFile } from '@/components/entities/IFile';
+import LoadingCircle from '@/components/loading-circle';
 
 interface AddRowFormProps {
   meta: TableMeta;
@@ -931,7 +932,7 @@ function TablePage() {
     handleModalClose();
   }, [handleRefetch, handleModalClose]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingCircle />;
   if (error) {
     return (
       <div>
