@@ -1,5 +1,5 @@
 import { useQuery, gql, useMutation } from '@apollo/client';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   FieldType, IField, IFieldOptions,
 } from './entities/IField';
@@ -140,6 +140,30 @@ const getDbName = (table: {
   return table.dbName;
 };
 
+const generateFieldSelection = (fields: TableField[]) => fields.map((field) => {
+  if (field.type === FieldType.ONE_TO_MANY_ONE) {
+    return `${field.dbName}Id`;
+  }
+  if (field.type === FieldType.ONE_TO_MANY_MANY
+        || field.type === FieldType.MANY_TO_MANY_FIRST
+        || field.type === FieldType.MANY_TO_MANY_SECOND) {
+    return `${field.dbName}Ids`;
+  }
+  if (field.type === FieldType.USER_CREATOR) {
+    return `${field.dbName} { id name }`;
+  }
+  if (field.type === FieldType.USER) {
+    return `${field.dbName} { id name }`;
+  }
+  if (field.type === FieldType.FILE) {
+    return `${field.dbName} { id name extension }`;
+  }
+  if (field.type === FieldType.FILE_GALLERY) {
+    return `${field.dbName} { id name extension }`;
+  }
+  return field.dbName;
+}).join('\n        ');
+
 export const generateGetTableDataQuery = (
   tableName: string,
   fields: TableField[],
@@ -151,19 +175,19 @@ export const generateGetTableDataQuery = (
   }
   fields.forEach((field) => {
     if (field.type === FieldType.ONE_TO_MANY_ONE
-      && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
+            && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
       tables.push(getDbName(field.oneToManyLinkManyTable!));
     }
     if (field.type === FieldType.ONE_TO_MANY_MANY
-      && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
+            && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
       tables.push(getDbName(field.oneToManyLinkOneTable!));
     }
     if (field.type === FieldType.MANY_TO_MANY_FIRST
-      && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
+            && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
       tables.push(getDbName(field.manyToManyLinkSecondTable!));
     }
     if (field.type === FieldType.MANY_TO_MANY_SECOND
-      && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
+            && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
       tables.push(getDbName(field.manyToManyLinkFirstTable!));
     }
   });
@@ -187,38 +211,13 @@ export const generateGetTableDataQuery = (
           createdById
           updatedById
           _cms_title
-          ${fields.map((field) => {
-    if (field.type === FieldType.ONE_TO_MANY_ONE) {
-      return `${field.dbName}Id`;
-    }
-    if (field.type === FieldType.ONE_TO_MANY_MANY
-      || field.type === FieldType.MANY_TO_MANY_FIRST
-      || field.type === FieldType.MANY_TO_MANY_SECOND) {
-      return `${field.dbName}Ids`;
-    }
-    if (field.type === FieldType.USER_CREATOR) {
-      return `${field.dbName} { id name }`;
-    }
-    if (field.type === FieldType.USER) {
-      return `${field.dbName} { id name }`;
-    }
-    if (field.type === FieldType.FILE) {
-      return `${field.dbName} { id name extension }`;
-    }
-    if (field.type === FieldType.FILE_GALLERY) {
-      return `${field.dbName} { id name extension }`;
-    }
-    return field.dbName;
-  }).join('\n        ')}
+          ${generateFieldSelection(fields)}
       }
       }
   `;
-  // if (field.type === 'geo') {
-  //   return `${field.dbName} { lat lon }`;
-  // }
 };
 
-interface UseTableOptions {
+interface UseTableNewOptions {
   onMetaLoaded?: (meta: TableMeta) => void;
   onDataLoaded?: (data: TableData[]) => void;
   search?: any;
@@ -232,7 +231,7 @@ interface UseTableOptions {
   orderDirection?: 'asc' | 'desc';
 }
 
-const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: string) => {
+const useTableNew = (tableId: string, options?: UseTableNewOptions, tableDbName?: string) => {
   const {
     data: tableMetaData,
     loading: metaLoading,
@@ -248,66 +247,81 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
 
   const tableMeta = tableMetaData?.getTable || tableMetaData?.getTableByDbName;
 
-  const processData = (data: any) => {
+  const [lookups, setLookups] = useState<any>({});
+  const [users, setUsers] = useState<any[]>([]);
+
+  const processRow = useCallback((row: any, fields: TableField[], _lookups: any, _users: any[]) => {
+    const newRow = { ...row };
+    fields.forEach((field) => {
+      if (field.type === FieldType.ONE_TO_MANY_ONE) {
+        newRow[field.dbName] = _lookups[newRow[`${field.dbName}Id`]];
+      }
+      if (field.type === FieldType.ONE_TO_MANY_MANY || field.type === FieldType.MANY_TO_MANY_FIRST
+                || field.type === FieldType.MANY_TO_MANY_SECOND) {
+        newRow[field.dbName] = (newRow[`${field.dbName}Ids`] || []).map((id: string) => _lookups[id]);
+      }
+    });
+
+    newRow.createdBy = _users.find((user: any) => user.id === newRow.createdById);
+    newRow.updatedBy = _users.find((user: any) => user.id === newRow.updatedById);
+    return newRow;
+  }, []);
+
+  const extractLookups = useCallback((data: any) => {
     const tables: string[] = [];
     tableMeta?.fields.forEach((field: any) => {
       if (field.type === FieldType.ONE_TO_MANY_ONE
-        && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
+                && !tables.includes(getDbName(field.oneToManyLinkManyTable!))) {
         tables.push(getDbName(field.oneToManyLinkManyTable!));
       }
       if (field.type === FieldType.ONE_TO_MANY_MANY
-        && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
+                && !tables.includes(getDbName(field.oneToManyLinkOneTable!))) {
         tables.push(getDbName(field.oneToManyLinkOneTable!));
       }
       if (field.type === FieldType.MANY_TO_MANY_FIRST
-        && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
+                && !tables.includes(getDbName(field.manyToManyLinkSecondTable!))) {
         tables.push(getDbName(field.manyToManyLinkSecondTable!));
       }
       if (field.type === FieldType.MANY_TO_MANY_SECOND
-        && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
+                && !tables.includes(getDbName(field.manyToManyLinkFirstTable!))) {
         tables.push(getDbName(field.manyToManyLinkFirstTable!));
       }
     });
     const objects: any = {};
     tables.forEach((table) => {
-      data[`getAll${table}`].forEach((row: any) => {
+      (data[`getAll${table}`] || []).forEach((row: any) => {
         objects[row.id] = row;
       });
     });
+    return {
+      objects,
+      users: data.getUsers || [],
+    };
+  }, [tableMeta]);
 
-    tableMeta?.fields.forEach((field: IField) => {
-      if (field.type === FieldType.ONE_TO_MANY_ONE) {
-        data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
-          row[field.dbName] = objects[row[`${field.dbName}Id`]];
-        });
-      }
-      if (field.type === FieldType.ONE_TO_MANY_MANY || field.type === FieldType.MANY_TO_MANY_FIRST
-        || field.type === FieldType.MANY_TO_MANY_SECOND) {
-        data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
-          row[field.dbName] = row[`${field.dbName}Ids`].map((id: string) => objects[id]);
-        });
-      }
-    });
+  const processData = useCallback((data: any, _lookups: any, _users: any[]) => {
+    const rows = data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`] || [];
+    return rows.map((row: any) => processRow(row, tableMeta!.fields, _lookups, _users));
+  }, [tableMeta, processRow]);
 
-    data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`].forEach((row: any) => {
-      row.createdBy = data.getUsers.find((user: any) => user.id === row.createdById);
-      row.updatedBy = data.getUsers.find((user: any) => user.id === row.updatedById);
-    });
-
-    return data[`getAll${tableMeta!.isSystem ? 'SystemTable' : ''}${tableMeta!.dbName}`];
-  };
+  const [localData, setLocalData] = useState<any[] | null>(null);
 
   const {
-    data: tableData,
     loading: dataLoading,
     error: dataError,
     refetch: refetchData,
+    data: tableData,
   } = useQuery(
     generateGetTableDataQuery(tableMeta?.dbName || '', tableMeta?.fields || [], tableMeta?.isSystem),
     {
       skip: !tableMeta?.dbName || !tableMeta?.fields,
       onCompleted: (data) => {
-        options?.onDataLoaded?.(processData(data));
+        const { objects, users: _users } = extractLookups(data);
+        setLookups(objects);
+        setUsers(_users);
+        const processed = processData(data, objects, _users);
+        setLocalData(processed);
+        options?.onDataLoaded?.(processed);
       },
       variables: {
         search: options?.search,
@@ -323,71 +337,124 @@ const useTable = (tableId: string, options?: UseTableOptions, tableDbName?: stri
   const loading = metaLoading || dataLoading;
   const error = metaError || dataError;
 
-  const refetch = async () => {
+  const refetch = useCallback(async () => {
     try {
       const metaResult = await refetchMeta();
-      const newMeta = metaResult.data.getTable;
+      const newMeta = metaResult.data.getTable || metaResult.data.getTableByDbName;
 
       if (newMeta?.dbName && newMeta?.fields?.length) {
         const dataResult = await refetchData();
+        const { objects, users: _users } = extractLookups(dataResult.data);
+        setLookups(objects);
+        setUsers(_users);
+        const processed = processData(dataResult.data, objects, _users);
+        setLocalData(processed);
         return {
           meta: newMeta,
-          data: processData(dataResult.data),
+          data: processed,
         };
       }
     } catch (_error) {
       console.error('Error refetching table data:', _error);
       throw _error;
     }
-  };
+  }, [refetchMeta, refetchData, extractLookups, processData]);
+
+  const updateRow = useCallback((rowId: string, updatedRow: any) => {
+    setLocalData((prev) => {
+      if (!prev) return prev;
+      return prev.map((row) => {
+        if (row.id === rowId) {
+          const merged = { ...row, ...updatedRow };
+          return processRow(merged, tableMeta!.fields, lookups, users);
+        }
+        return row;
+      });
+    });
+  }, [tableMeta, lookups, users, processRow]);
+
+  const addRowToData = useCallback((newRow: any) => {
+    const processed = processRow(newRow, tableMeta!.fields, lookups, users);
+    setLocalData((prev) => {
+      if (!prev) return [processed];
+      return [...prev, processed];
+    });
+  }, [tableMeta, lookups, users, processRow]);
+
+  const removeRow = useCallback((rowId: string) => {
+    setLocalData((prev) => {
+      if (!prev) return prev;
+      return prev.filter((row) => row.id !== rowId);
+    });
+  }, []);
+
+  const data = useMemo(() => {
+    if (localData !== null) return localData;
+    if (!tableData) return null;
+    const { objects, users: _users } = extractLookups(tableData);
+    return processData(tableData, objects, _users);
+  }, [localData, tableData, extractLookups, processData]);
 
   return {
     meta: tableMeta,
-    data: tableData ? processData(tableData) : null,
+    data,
     loading,
     error,
     refetch,
+    updateRow,
+    addRowToData,
+    removeRow,
   } as const;
 };
 
-export const useTableByDbName = (tableDbName?: string, options?: UseTableOptions) => {
-  const result = useTable('', options, tableDbName);
+export const useTableNewByDbName = (tableDbName?: string, options?: UseTableNewOptions) => {
+  const result = useTableNew('', options, tableDbName);
   return result;
 };
 
-export const useAddRow = (dbName: string) => {
+export const useAddRow = (dbName: string, fields?: TableField[]) => {
+  const fieldSelection = fields ? generateFieldSelection(fields) : '';
   const [addRow] = useMutation(gql`
     mutation($input: ${dbName}Input!) {
       create${dbName}(input: $input) {
         id
         createdAt
+        ${fieldSelection}
       }
     }
 `);
 
-  return (data: any) => addRow({
-    variables: {
-      input: data,
-    },
-  });
+  return async (data: any) => {
+    const result = await addRow({
+      variables: {
+        input: data,
+      },
+    });
+    return result.data?.[`create${dbName}`];
+  };
 };
 
-export const useEditRow = (dbName: string) => {
-  const [addRow] = useMutation(gql`
+export const useEditRow = (dbName: string, fields?: TableField[]) => {
+  const fieldSelection = fields ? generateFieldSelection(fields) : '';
+  const [editRowMutation] = useMutation(gql`
     mutation($id: String $input: ${dbName}Input!) {
       edit${dbName}(id: $id input: $input) {
         id
         createdAt
+        ${fieldSelection}
       }
     }
 `);
 
-  return (id: string, data: any) => addRow({
-    variables: {
-      id,
-      input: data,
-    },
-  });
+  return async (id: string, data: any) => {
+    const result = await editRowMutation({
+      variables: {
+        id,
+        input: data,
+      },
+    });
+    return result.data?.[`edit${dbName}`];
+  };
 };
 
 export const useAddField = (
@@ -729,6 +796,6 @@ export const useSiteMenu = (siteMenuName: string) => {
 };
 
 export type {
-  TableMeta, TableField, TableData, UseTableOptions,
+  TableMeta, TableField, TableData, UseTableNewOptions,
 };
-export default useTable;
+export default useTableNew;

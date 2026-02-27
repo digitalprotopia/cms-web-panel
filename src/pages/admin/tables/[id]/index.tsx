@@ -56,12 +56,13 @@ import useTable, {
   useDeleteField,
   useEditField,
   useEditRow,
-} from '@/components/use-table';
+} from '@/components/use-table-new';
 import { IFile } from '@/components/entities/IFile';
+import LoadingCircle from '@/components/loading-circle';
 
 interface AddRowFormProps {
   meta: TableMeta;
-  refetch: () => Promise<void>;
+  addRowToData: (row: any) => void;
 }
 
 // interface FormData {
@@ -69,32 +70,17 @@ interface AddRowFormProps {
 // }
 
 dayjs.extend(utc);
-function AddRowForm({ meta, refetch }: AddRowFormProps) {
+function AddRowForm({ meta, addRowToData }: AddRowFormProps) {
   // const [form, setForm] = useState<FormData>({});
-  const addRow = useAddRow(meta.dbName);
+  const addRow = useAddRow(meta.dbName, meta.fields);
 
   const handleSubmit = async () => {
     try {
-      // const formattedInput = Object.fromEntries(
-      //   Object.entries(form).map(([key, value]) => {
-      //     const field = meta.fields.find((f) => f.dbName === key);
+      const newRow = await addRow({});
 
-      //     switch (field?.type) {
-      //       case 'number':
-      //         return [key, value === '' ? null : Number(value)];
-      //       case 'boolean':
-      //         return [key, Boolean(value)];
-      //       case 'date':
-      //         return [key, value instanceof Date ? value.getTime() : null];
-      //       default:
-      //         return [key, value];
-      //     }
-      //   }),
-      // );
-
-      await addRow({});
-
-      await refetch();
+      if (newRow) {
+        addRowToData(newRow);
+      }
       // setForm({});
     } catch (error) {
       console.error('Error adding row:', error);
@@ -188,14 +174,14 @@ function AddRowForm({ meta, refetch }: AddRowFormProps) {
       </div> */}
 
       {(!meta.isSystem) && (
-      <Button
-        variant="contained"
-        onClick={handleSubmit}
-        // disabled={Object.keys(form).length === 0}
-        className="mt-4 normal-case"
-      >
-        Добавить строку
-      </Button>)}
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          // disabled={Object.keys(form).length === 0}
+          className="mt-4 normal-case"
+        >
+          Добавить строку
+        </Button>)}
     </div>
   );
 }
@@ -205,12 +191,12 @@ interface CellEditProps {
   row: MRT_Row<MRT_RowData>,
   field: TableField,
   meta: TableMeta,
-  refetch: () => Promise<void>,
+  updateRow: (rowId: string, updatedRow: any) => void,
   setEditMode: (value: boolean) => void,
 }
 
 function CellEdit({
-  cell, row, field, meta, refetch, setEditMode,
+  cell, row, field, meta, updateRow, setEditMode,
 }: CellEditProps) {
   const [value, setValue] = useState<any>(() => {
     if (field.type === FieldType.MANY_TO_MANY_FIRST
@@ -228,7 +214,7 @@ function CellEdit({
   });
 
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const editRow = useEditRow(meta.isSystem ? `SystemTable${meta.dbName}` : meta.dbName);
+  const editRow = useEditRow(meta.isSystem ? `SystemTable${meta.dbName}` : meta.dbName, [field]);
 
   if (field.type === FieldType.USER_CREATOR) {
     return null;
@@ -241,11 +227,13 @@ function CellEdit({
       setValue(updatedValue);
     }
 
-    await editRow(row.original.id, {
+    const updatedRow = await editRow(row.original.id, {
       [field.dbName]: updatedValue,
     });
 
-    refetch();
+    if (updatedRow) {
+      updateRow(row.original.id, updatedRow);
+    }
     setEditMode(false);
     setDialogOpen(false);
   };
@@ -258,14 +246,16 @@ function CellEdit({
       {field.type === 'boolean' ? (
         <Checkbox
           checked={!!cell.getValue()}
-          onChange={(e) => {
+          onChange={async (e) => {
             if (field.isSystem) {
               return;
             }
-            editRow(row.original.id, {
+            const updatedRow = await editRow(row.original.id, {
               [field.dbName]: e.target.checked,
             });
-            refetch();
+            if (updatedRow) {
+              updateRow(row.original.id, updatedRow);
+            }
           }}
         />
       ) : (
@@ -279,11 +269,13 @@ function CellEdit({
 
           <IconButton
             onClick={async () => {
-              await editRow(row.original.id, {
+              const updatedRow = await editRow(row.original.id, {
                 [field.dbName]: value,
               });
               setEditMode(false);
-              refetch();
+              if (updatedRow) {
+                updateRow(row.original.id, updatedRow);
+              }
             }}
           >
             <Save />
@@ -358,7 +350,7 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
   const [slugFieldOptions, setSlugFieldOptions] = useState<IFieldSlugOptions>({
     sourceFieldId: '',
   });
-  let options:(IFieldOptions | undefined);
+  let options: (IFieldOptions | undefined);
   if (form.type === FieldType.ONE_TO_MANY_ONE) {
     options = oneToManyOptions!;
   }
@@ -413,24 +405,24 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
       />
 
       {form.type === FieldType.MANY_TO_MANY_FIRST
-      && (
-      <TextField
-        fullWidth
-        size="small"
-        label="Таблица"
-        select
-        value={manyToManyOptions.secondTableId}
-        onChange={(e) => setManyToManyOptions(
-          (prev) => ({ ...prev, secondTableId: e.target.value }),
+        && (
+          <TextField
+            fullWidth
+            size="small"
+            label="Таблица"
+            select
+            value={manyToManyOptions.secondTableId}
+            onChange={(e) => setManyToManyOptions(
+              (prev) => ({ ...prev, secondTableId: e.target.value }),
+            )}
+          >
+            {tables.data.getTables.map((table: any) => (
+              <MenuItem key={table.id} value={table.id}>
+                {table.name}
+              </MenuItem>
+            ))}
+          </TextField>
         )}
-      >
-        {tables.data.getTables.map((table: any) => (
-          <MenuItem key={table.id} value={table.id}>
-            {table.name}
-          </MenuItem>
-        ))}
-      </TextField>
-      )}
 
       <FormControl fullWidth size="small">
         <InputLabel>Тип поля</InputLabel>
@@ -443,8 +435,10 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
             <em>Выберите тип поля</em>
           </MenuItem>
           {Object.values(FieldType)
-            .filter((key) => ![FieldType.ONE_TO_MANY_MANY,
-              FieldType.MANY_TO_MANY_SECOND].includes(key))
+            .filter((key) => ![
+              FieldType.ONE_TO_MANY_MANY,
+              FieldType.MANY_TO_MANY_SECOND,
+            ].includes(key))
             .map((key) => (
               <MenuItem key={key} value={key}>
                 {t(key)}
@@ -454,62 +448,64 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
       </FormControl>
 
       {form.type === FieldType.SLUG
-      && (
-      <TextField
-        fullWidth
-        size="small"
-        label="Строковое поле"
-        select
-        value={slugFieldOptions.sourceFieldId}
-        onChange={(e) => setSlugFieldOptions(
-          (prev) => ({ ...prev, sourceFieldId: e.target.value }),
+        && (
+          <TextField
+            fullWidth
+            size="small"
+            label="Строковое поле"
+            select
+            value={slugFieldOptions.sourceFieldId}
+            onChange={(e) => setSlugFieldOptions(
+              (prev) => ({ ...prev, sourceFieldId: e.target.value }),
+            )}
+          >
+            {meta.fields.filter((field) => field.type === FieldType.STRING).map((field) => (
+              <MenuItem key={field.id} value={field.id}>
+                {field.name}
+              </MenuItem>
+            ))}
+          </TextField>
         )}
-      >
-        {meta.fields.filter((field) => field.type === FieldType.STRING).map((field) => (
-          <MenuItem key={field.id} value={field.id}>
-            {field.name}
-          </MenuItem>
-        ))}
-      </TextField>
-      )}
 
       {form.type === FieldType.ONE_TO_MANY_ONE
-      && (
-      <TextField
-        fullWidth
-        size="small"
-        label="Таблица"
-        select
-        value={oneToManyOptions.manyTableId}
-        onChange={(e) => setOneToManyOptions((prev) => ({ ...prev, manyTableId: e.target.value }))}
-      >
-        {tables.data.getTables.map((table: any) => (
-          <MenuItem key={table.id} value={table.id}>
-            {table.name}
-          </MenuItem>
-        ))}
-      </TextField>
-      )}
+        && (
+          <TextField
+            fullWidth
+            size="small"
+            label="Таблица"
+            select
+            value={oneToManyOptions.manyTableId}
+            onChange={(e) => {
+              setOneToManyOptions((prev) => ({ ...prev, manyTableId: e.target.value }));
+            }}
+          >
+            {tables.data.getTables.map((table: any) => (
+              <MenuItem key={table.id} value={table.id}>
+                {table.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
 
       {form.type === FieldType.MANY_TO_MANY_FIRST
-      && (
-      <TextField
-        fullWidth
-        size="small"
-        label="Таблица"
-        select
-        value={manyToManyOptions.secondTableId}
-        onChange={(e) => setManyToManyOptions(
-          (prev) => ({ ...prev, secondTableId: e.target.value }),
+        && (
+          <TextField
+            fullWidth
+            size="small"
+            label="Таблица"
+            select
+            value={manyToManyOptions.secondTableId}
+            onChange={(e) => setManyToManyOptions(
+              (prev) => ({ ...prev, secondTableId: e.target.value }),
+            )}
+          >
+            {tables.data.getTables.map((table: any) => (
+              <MenuItem key={table.id} value={table.id}>
+                {table.name}
+              </MenuItem>
+            ))}
+          </TextField>
         )}
-      >
-        {tables.data.getTables.map((table: any) => (
-          <MenuItem key={table.id} value={table.id}>
-            {table.name}
-          </MenuItem>
-        ))}
-      </TextField>
-      )}
 
       <Button
         fullWidth
@@ -544,7 +540,7 @@ function TablePage() {
   const [tableMetadata, setTableMetadata] = useState<TableMeta | null>(null);
 
   const {
-    data, meta, loading, error, refetch,
+    data, meta, loading, error, refetch, updateRow, addRowToData, removeRow,
   } = useTable(id as string, {
     onMetaLoaded: (_meta) => {
       setTableMetadata(_meta);
@@ -737,7 +733,7 @@ function TablePage() {
                 row={row}
                 field={field}
                 meta={meta}
-                refetch={handleRefetch}
+                updateRow={updateRow}
                 setEditMode={setEditMode}
               />
             );
@@ -790,10 +786,11 @@ function TablePage() {
           if (field.type === FieldType.ONE_TO_MANY_ONE) {
             cellValue = cellValue?._cms_title;
           }
-          if ([FieldType.ONE_TO_MANY_MANY,
+          if ([
+            FieldType.ONE_TO_MANY_MANY,
             FieldType.MANY_TO_MANY_FIRST,
-            FieldType.MANY_TO_MANY_SECOND]
-            .includes(field.type as FieldType)) {
+            FieldType.MANY_TO_MANY_SECOND,
+          ].includes(field.type as FieldType)) {
             cellValue = cellValue?.map((item: any) => item?._cms_title || 'Не существует').join(', ');
           }
           if (field.type === FieldType.USER_CREATOR) {
@@ -909,7 +906,7 @@ function TablePage() {
       enableColumnActions: false,
     });
     return result;
-  }, [meta?.fields]);
+  }, [meta?.fields, handleRefetch, updateRow]);
 
   const handleDeleteRow = async (row: any) => {
     try {
@@ -920,7 +917,7 @@ function TablePage() {
             }
         `,
       });
-      await handleRefetch();
+      removeRow(row.original.id);
     } catch (e) {
       console.error('Error deleting row:', e);
     }
@@ -935,7 +932,7 @@ function TablePage() {
     handleModalClose();
   }, [handleRefetch, handleModalClose]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingCircle />;
   if (error) {
     return (
       <div>
@@ -1066,13 +1063,13 @@ function TablePage() {
         }}
         renderRowActions={({ row }) => (
           !meta.isSystem && (
-          <IconButton
-            color="error"
-            onClick={() => handleDeleteRow(row)}
-            className="hover:bg-red-50"
-          >
-            <Delete />
-          </IconButton>))}
+            <IconButton
+              color="error"
+              onClick={() => handleDeleteRow(row)}
+              className="hover:bg-red-50"
+            >
+              <Delete />
+            </IconButton>))}
         state={{
           isLoading: loading,
           columnOrder: ['mrt-row-actions',
@@ -1097,7 +1094,7 @@ function TablePage() {
         }}
       />
 
-      <AddRowForm meta={meta} refetch={handleRefetch} />
+      <AddRowForm meta={meta} addRowToData={addRowToData} />
       <FieldPrivilegesDialog
         open={isFieldPrivilegesDialogOpen}
         onClose={() => setIsFieldPrivilegesDialogOpen(false)}
