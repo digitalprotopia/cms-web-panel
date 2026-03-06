@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import {
-  useMemo, useState, useCallback, useRef,
+  useMemo, useState, useCallback, useRef, useEffect,
 } from 'react';
 import {
   gql, useApolloClient, useMutation, useQuery,
@@ -22,6 +22,7 @@ import {
   Close,
   Delete,
   Download,
+  Edit,
   MapOutlined,
   OpenInFull,
   Save,
@@ -47,7 +48,7 @@ import FormField, { FormFieldBlock, FormFieldHTML } from '@/components/form';
 import TableEditor from '@/components/table-editor';
 
 import FieldPrivilegesDialog from '@/components/dialogs/FieldPrivilegeDialog';
-import { useTranslation } from 'react-i18next'; // add by Roman 05.07.25 for i18mext translations
+import { useTranslation } from 'react-i18next';
 import useTable, {
   TableField,
   TableMeta,
@@ -60,131 +61,7 @@ import useTable, {
 import { IFile } from '@/components/entities/IFile';
 import LoadingCircle from '@/components/loading-circle';
 
-interface AddRowFormProps {
-  meta: TableMeta;
-  addRowToData: (row: any) => void;
-}
-
-// interface FormData {
-//   [key: string]: string | number | boolean | Date | null;
-// }
-
 dayjs.extend(utc);
-function AddRowForm({ meta, addRowToData }: AddRowFormProps) {
-  // const [form, setForm] = useState<FormData>({});
-  const addRow = useAddRow(meta.dbName, meta.fields);
-
-  const handleSubmit = async () => {
-    try {
-      const newRow = await addRow({});
-
-      if (newRow) {
-        addRowToData(newRow);
-      }
-      // setForm({});
-    } catch (error) {
-      console.error('Error adding row:', error);
-    }
-  };
-
-  // const renderField = (field: Field) => {
-  //   switch (field.type) {
-  //     case 'boolean':
-  //       return (
-  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-  //           <FormControl fullWidth className="mt-2">
-  //             <FormControlLabel
-  //               control={(
-  //                 <Checkbox
-  //                   checked={Boolean(form[field.dbName])}
-  //                   onChange={(e) => setForm((prev) => ({
-  //                     ...prev,
-  //                     [field.dbName]: e.target.checked,
-  //                   }))}
-  //                 />
-  //               )}
-  //               label={field.name}
-  //               className="m-0"
-  //             />
-  //           </FormControl>
-  //         </div>
-  //       );
-
-  //     case 'date':
-  //       return (
-  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-  //           <DateTimePicker
-  //             label={field.name}
-  //             value={form[field.dbName] ? dayjs(form[field.dbName] as any) : null}
-  //             onChange={(newValue) => setForm((prev) => ({
-  //               ...prev,
-  //               [field.dbName]: newValue ? newValue.toDate() : null,
-  //             }))}
-  //             slotProps={{
-  //               textField: {
-  //                 size: 'small',
-  //                 fullWidth: true,
-  //                 className: 'mt-2',
-  //               },
-  //             }}
-  //           />
-  //         </div>
-  //       );
-
-  //     case 'number':
-  //       return (
-  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-  //           <TextField
-  //             fullWidth
-  //             label={field.name}
-  //             type="number"
-  //             variant="outlined"
-  //             size="small"
-  //             className="mt-2"
-  //             value={form[field.dbName] || ''}
-  //             onChange={(e) => {
-  //               const value = e.target.value === '' ? '' : Number(e.target.value);
-  //               setForm((prev) => ({ ...prev, [field.dbName]: value }));
-  //             }}
-  //           />
-  //         </div>
-  //       );
-
-  //     default: // string
-  //       return (
-  //         <div key={field.id} className="w-full md:w-1/2 lg:w-1/3 p-2">
-  //           <TextField
-  //             fullWidth
-  //             label={field.name}
-  //             variant="outlined"
-  //             size="small"
-  //             className="mt-2"
-  //             value={form[field.dbName] || ''}
-  //             onChange={(e) => setForm((prev) => ({ ...prev, [field.dbName]: e.target.value }))}
-  //           />
-  //         </div>
-  //       );
-  //   }
-  // };
-
-  return (
-    <div className="border-t border-gray-200 pt-4">
-      {/* <div className="flex flex-wrap -mx-2">
-        {meta.fields.map((field) => renderField(field))}
-      </div> */}
-
-      {(!meta.isSystem) && (
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          // disabled={Object.keys(form).length === 0}
-          className="mt-4 normal-case"
-        >
-          Добавить строку
-        </Button>)}
-    </div>
-  );
-}
 
 interface CellEditProps {
   cell: MRT_Cell<MRT_RowData>,
@@ -532,6 +409,140 @@ function AddField({ onClose, refetch, meta }: AddFieldProps) {
   );
 }
 
+interface RowDialogProps {
+  open: boolean;
+  onClose: () => void;
+  mode: 'create' | 'edit';
+  initialData: any;
+  meta: TableMeta;
+  onSave: (form: any) => Promise<void>;
+}
+
+const isFieldEditable = (field: TableField) => {
+  if (field.isSystem) return false;
+  switch (field.type) {
+    case FieldType.USER_CREATOR:
+    case FieldType.USER:
+      return false;
+    default:
+      return true;
+  }
+};
+
+const getFieldValue = (field: TableField, mode: 'create' | 'edit', initialData: any) => {
+  if (mode === 'create') {
+    switch (field.type) {
+      case FieldType.MANY_TO_MANY_FIRST:
+      case FieldType.MANY_TO_MANY_SECOND:
+      case FieldType.ONE_TO_MANY_MANY:
+      case FieldType.FILE_GALLERY:
+        return [];
+      default:
+        return null;
+    }
+  }
+
+  const value = initialData?.[field.dbName];
+
+  switch (field.type) {
+    case FieldType.MANY_TO_MANY_FIRST:
+    case FieldType.MANY_TO_MANY_SECOND:
+    case FieldType.ONE_TO_MANY_MANY:
+      return Array.isArray(value) ? value.map((item: any) => item?.id) : [];
+
+    case FieldType.ONE_TO_MANY_ONE:
+    case FieldType.USER:
+    case FieldType.USER_CREATOR:
+      return value?.id ?? null;
+
+    default:
+      return value;
+  }
+};
+
+const getNormalizedInput = (form: any, initialData: any, fields: TableField[]) => {
+  const result: any = {};
+
+  fields.forEach((field) => {
+    if (!isFieldEditable(field)) return;
+
+    const currentValue = form[field.dbName];
+
+    if (initialData) {
+      const initialValue = getFieldValue(field, 'edit', initialData);
+
+      if (JSON.stringify(currentValue) === JSON.stringify(initialValue)) {
+        return;
+      }
+    } else {
+      if (currentValue === null || currentValue === undefined || currentValue === '') return;
+      if (Array.isArray(currentValue) && currentValue.length === 0) return;
+    }
+
+    result[field.dbName] = currentValue;
+  });
+
+  return result;
+};
+
+function RowDialog({
+  open, onClose, mode, initialData, meta, onSave,
+}: RowDialogProps) {
+  const [form, setForm] = useState<any>({});
+
+  useEffect(() => {
+    if (!open) return;
+
+    const editableFields = meta.fields.filter(isFieldEditable);
+
+    const initialForm = editableFields.reduce((acc: any, field: TableField) => {
+      acc[field.dbName] = getFieldValue(field, mode, initialData);
+      return acc;
+    }, {});
+
+    setForm(initialForm);
+  }, [open, mode, initialData, meta]);
+
+  const fields = [...meta.fields];
+  fields.sort((a, b) => a.position - b.position);
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>
+        {mode === 'create' ? 'Добавить строку' : 'Редактировать строку'}
+      </DialogTitle>
+
+      <DialogContent>
+        <div className="flex flex-col gap-4 mt-2">
+          {fields.filter(isFieldEditable).map((field: TableField) => (
+            <FormField
+              key={field.id}
+              field={field}
+              title={field.name}
+              value={form[field.dbName]}
+              onChange={(value) => setForm({ ...form, [field.dbName]: value })}
+            />
+          ))}
+        </div>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose}>Отмена</Button>
+        <Button
+          onClick={async () => {
+            await onSave(form);
+            onClose();
+          }}
+          variant="contained"
+          color="primary"
+        >
+          Сохранить
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function TablePage() {
   const router = useRouter();
   const { id } = router.query;
@@ -545,10 +556,26 @@ function TablePage() {
     onMetaLoaded: (_meta) => {
       setTableMetadata(_meta);
     },
-    // onDataLoaded: (_data) => {
-    //   // console.log('Table data loaded:', data);
-    // },
   });
+
+  const [rowDialogOpen, setRowDialogOpen] = useState(false);
+  const [rowDialogMode, setRowDialogMode] = useState<'create' | 'edit'>('create');
+  const [currentRow, setCurrentRow] = useState<any>(null);
+
+  const addRow = useAddRow(meta?.dbName || '', meta?.fields);
+  const editRow = useEditRow(meta?.isSystem ? `SystemTable${meta.dbName}` : (meta?.dbName || ''), meta?.fields);
+
+  const handleOpenAddDialog = () => {
+    setRowDialogMode('create');
+    setCurrentRow(null);
+    setRowDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (row: any) => {
+    setRowDialogMode('edit');
+    setCurrentRow(row);
+    setRowDialogOpen(true);
+  };
 
   const [sortFields] = useMutation(gql`
     mutation($tableId: ID! $positions: [PositionItem]!) {
@@ -570,8 +597,6 @@ function TablePage() {
   const [selectedField, setSelectedField] = useState<IField | null>(null);
 
   const columns = useMemo(() => {
-    // if (!meta?.fields) return [];
-
     let result: MRT_ColumnDef<MRT_RowData>[] = [
       {
         accessorKey: 'id',
@@ -1062,19 +1087,29 @@ function TablePage() {
           handleRefetch();
         }}
         renderRowActions={({ row }) => (
-          !meta.isSystem && (
+          <div className="flex gap-1">
             <IconButton
-              color="error"
-              onClick={() => handleDeleteRow(row)}
-              className="hover:bg-red-50"
+              color="primary"
+              onClick={() => handleOpenEditDialog(row.original)}
             >
-              <Delete />
-            </IconButton>))}
+              <Edit />
+            </IconButton>
+            {!meta.isSystem && (
+              <IconButton
+                color="error"
+                onClick={() => handleDeleteRow(row)}
+                className="hover:bg-red-50"
+              >
+                <Delete />
+              </IconButton>
+            )}
+          </div>
+        )}
         state={{
           isLoading: loading,
           columnOrder: ['mrt-row-actions',
             'id', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy',
-            ...fields.map((field) => field.dbName), '+'],
+            ...fields.map((field: TableField) => field.dbName), '+'],
         }}
         initialState={{
           columnVisibility: {
@@ -1094,7 +1129,40 @@ function TablePage() {
         }}
       />
 
-      <AddRowForm meta={meta} addRowToData={addRowToData} />
+      <RowDialog
+        open={rowDialogOpen}
+        onClose={() => setRowDialogOpen(false)}
+        mode={rowDialogMode}
+        initialData={currentRow}
+        meta={meta}
+        onSave={async (form) => {
+          const normalizedInput = getNormalizedInput(form, rowDialogMode === 'edit' ? currentRow : null, meta.fields);
+          if (rowDialogMode === 'create') {
+            const newRow = await addRow(normalizedInput);
+            if (newRow) {
+              addRowToData(newRow);
+            }
+          } else {
+            const updatedRow = await editRow(currentRow.id, normalizedInput);
+            if (updatedRow) {
+              updateRow(currentRow.id, updatedRow);
+            }
+          }
+        }}
+      />
+
+      <div className="mt-4">
+        {!meta.isSystem && (
+          <Button
+            variant="contained"
+            onClick={handleOpenAddDialog}
+            className="normal-case"
+          >
+            Добавить строку
+          </Button>
+        )}
+      </div>
+
       <FieldPrivilegesDialog
         open={isFieldPrivilegesDialogOpen}
         onClose={() => setIsFieldPrivilegesDialogOpen(false)}

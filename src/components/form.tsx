@@ -147,9 +147,9 @@ function FormFieldFile(props: FormFieldProps & { isMulti?: boolean }) {
                 >
                   Выбрать из галереи
                 </Button>
-                {props.isMulti && props.value.length ? `(${props.value.length} выбрано)` : null}
+                {props.isMulti && (props.value?.length || 0) > 0 ? `(${props.value.length} выбрано)` : null}
               </>
-)}
+            )}
           />
           <FormControlLabel
             value="file"
@@ -177,7 +177,7 @@ function FormFieldFile(props: FormFieldProps & { isMulti?: boolean }) {
                 }}
                 disabled={formType === 'id'}
               />
-)}
+            )}
           />
         </RadioGroup>
       </FormControl>
@@ -499,8 +499,8 @@ export default function FormField(props: FormFieldProps) {
     );
   }
   if (props.field.type === FieldType.MANY_TO_MANY_FIRST
-      || props.field.type === FieldType.MANY_TO_MANY_SECOND
-      || props.field.type === FieldType.ONE_TO_MANY_MANY) {
+    || props.field.type === FieldType.MANY_TO_MANY_SECOND
+    || props.field.type === FieldType.ONE_TO_MANY_MANY) {
     return (
       <FormFieldMultipleId
         title={props.title}
@@ -511,9 +511,9 @@ export default function FormField(props: FormFieldProps) {
     );
   }
   if (props.field.type === FieldType.STRING
-      || props.field.type === FieldType.EMAIL
-      || props.field.type === FieldType.PHONE
-      || props.field.type === FieldType.URL
+    || props.field.type === FieldType.EMAIL
+    || props.field.type === FieldType.PHONE
+    || props.field.type === FieldType.URL
   ) {
     return (
       <TextField
