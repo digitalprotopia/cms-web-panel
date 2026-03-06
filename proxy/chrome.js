@@ -13,7 +13,7 @@ function delay(time) {
 let cache = {};
 let loading = {};
 app.set('trust proxy', true)
-app.get('*', async (req, res) => {
+app.get(/.*/, async (req, res) => {
     if (!(req.get('User-agent')?.includes('TelegramBot'))) {
         return proxy(req.protocol + '://' + config.domain + req.originalUrl)(req, res);
     }
