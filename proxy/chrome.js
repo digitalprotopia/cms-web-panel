@@ -15,7 +15,7 @@ let loading = {};
 app.set('trust proxy', true)
 app.get(/.*/, async (req, res) => {
     if (!(req.get('User-agent')?.includes('TelegramBot'))) {
-        return proxy(req.protocol + '://' + config.domain + req.originalUrl)(req, res);
+        return proxy('http' + '://' + config.domain + req.originalUrl)(req, res);
     }
     try {
         let recached;
@@ -23,7 +23,7 @@ app.get(/.*/, async (req, res) => {
         if (req.originalUrl == '/index.html' || req.originalUrl == '/index.php') {
             req.originalUrl = '/';
         }
-        let fullUrl = req.protocol + '://' + config.domain + req.originalUrl;
+        let fullUrl = 'http' + '://' + config.domain + req.originalUrl;
         console.log(fullUrl);
         // console.log(req.ip)
         // console.log(req.get('User-agent'))
