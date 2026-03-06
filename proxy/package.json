@@ -1,5 +1,5 @@
 {
-  "name": "school-catalog-proxy",
+  "name": "universal-react-proxy",
   "version": "1.0.0",
   "description": "",
   "main": "chrome.js",
@@ -12,14 +12,5 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://gitlab.com/protopiahome/projects/school-catalog/school-catalog-proxy.git"
-  },
-  "author": "",
-  "bugs": {
-    "url": "https://gitlab.com/protopiahome/projects/school-catalog/school-catalog-proxy/issues"
-  },
-  "homepage": "https://gitlab.com/protopiahome/projects/school-catalog/school-catalog-proxy#readme"
+  }
 }
