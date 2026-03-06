@@ -503,6 +503,9 @@ function RowDialog({
     setForm(initialForm);
   }, [open, mode, initialData, meta]);
 
+  const fields = [...meta.fields];
+  fields.sort((a, b) => a.position - b.position);
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>
@@ -511,7 +514,7 @@ function RowDialog({
 
       <DialogContent>
         <div className="flex flex-col gap-4 mt-2">
-          {meta.fields.filter(isFieldEditable).map((field: TableField) => (
+          {fields.filter(isFieldEditable).map((field: TableField) => (
             <FormField
               key={field.id}
               field={field}
