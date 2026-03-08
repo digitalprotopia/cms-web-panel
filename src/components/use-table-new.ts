@@ -377,7 +377,7 @@ const useTableNew = (tableId: string, options?: UseTableNewOptions, tableDbName?
     const processed = processRow(newRow, tableMeta!.fields, lookups, users);
     setLocalData((prev) => {
       if (!prev) return [processed];
-      return [...prev, processed];
+      return [processed, ...prev];
     });
   }, [tableMeta, lookups, users, processRow]);
 

@@ -20,6 +20,7 @@ import {
   Add,
   ArrowDropDown,
   Close,
+  ContentCopy,
   Delete,
   Download,
   Edit,
@@ -37,6 +38,7 @@ import {
   MenuItem,
   Select,
   InputLabel, DialogTitle, DialogContent, Dialog, DialogActions,
+  CircularProgress,
 } from '@mui/material';
 
 import {
@@ -547,6 +549,7 @@ function TablePage() {
   const router = useRouter();
   const { id } = router.query;
   const client = useApolloClient();
+  const { enqueueSnackbar } = useSnackbar();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [tableMetadata, setTableMetadata] = useState<TableMeta | null>(null);
 
@@ -561,6 +564,7 @@ function TablePage() {
   const [rowDialogOpen, setRowDialogOpen] = useState(false);
   const [rowDialogMode, setRowDialogMode] = useState<'create' | 'edit'>('create');
   const [currentRow, setCurrentRow] = useState<any>(null);
+  const [isDuplicatingRow, setIsDuplicatingRow] = useState<string | null>(null);
 
   const addRow = useAddRow(meta?.dbName || '', meta?.fields);
   const editRow = useEditRow(meta?.isSystem ? `SystemTable${meta.dbName}` : (meta?.dbName || ''), meta?.fields);
@@ -933,6 +937,29 @@ function TablePage() {
     return result;
   }, [meta?.fields, handleRefetch, updateRow]);
 
+  const handleDuplicateRow = async (rowOriginal: any) => {
+    if (!meta) return;
+    setIsDuplicatingRow(rowOriginal.id);
+    const duplicateData: Record<string, any> = {};
+    meta.fields.filter(isFieldEditable).forEach((field: TableField) => {
+      duplicateData[field.dbName] = getFieldValue(field, 'edit', rowOriginal);
+    });
+
+    const normalizedInput = getNormalizedInput(duplicateData, null, meta.fields);
+    try {
+      const newRow = await addRow(normalizedInput);
+      if (newRow) {
+        addRowToData(newRow);
+        enqueueSnackbar('Строка продублирована', { variant: 'success' });
+      }
+    } catch (e) {
+      console.error('Error duplicating row:', e);
+      enqueueSnackbar('Ошибка при дублировании', { variant: 'error' });
+    } finally {
+      setIsDuplicatingRow(null);
+    }
+  };
+
   const handleDeleteRow = async (row: any) => {
     try {
       await client.mutate({
@@ -1095,13 +1122,28 @@ function TablePage() {
               <Edit />
             </IconButton>
             {!meta.isSystem && (
-              <IconButton
-                color="error"
-                onClick={() => handleDeleteRow(row)}
-                className="hover:bg-red-50"
-              >
-                <Delete />
-              </IconButton>
+              <>
+                <IconButton
+                  color="primary"
+                  onClick={() => handleDuplicateRow(row.original)}
+                  title="Дублировать"
+                  disabled={isDuplicatingRow === row.original.id}
+                >
+                  {isDuplicatingRow === row.original.id ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <ContentCopy />
+                  )}
+                </IconButton>
+                <IconButton
+                  color="error"
+                  onClick={() => handleDeleteRow(row)}
+                  className="hover:bg-red-50"
+                  title="Удалить"
+                >
+                  <Delete />
+                </IconButton>
+              </>
             )}
           </div>
         )}
