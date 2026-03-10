@@ -937,7 +937,7 @@ function TablePage() {
     return result;
   }, [meta?.fields, handleRefetch, updateRow]);
 
-  const handleDuplicateRow = async (rowOriginal: any) => {
+  const handleDuplicateRow = async (rowOriginal: any, index: number) => {
     if (!meta) return;
     setIsDuplicatingRow(rowOriginal.id);
     const duplicateData: Record<string, any> = {};
@@ -949,7 +949,7 @@ function TablePage() {
     try {
       const newRow = await addRow(normalizedInput);
       if (newRow) {
-        addRowToData(newRow);
+        addRowToData(newRow, index);
         enqueueSnackbar('Строка продублирована', { variant: 'success' });
       }
     } catch (e) {
@@ -1125,7 +1125,7 @@ function TablePage() {
               <>
                 <IconButton
                   color="primary"
-                  onClick={() => handleDuplicateRow(row.original)}
+                  onClick={() => handleDuplicateRow(row.original, row.index)}
                   title="Дублировать"
                   disabled={isDuplicatingRow === row.original.id}
                 >

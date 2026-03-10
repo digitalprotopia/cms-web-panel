@@ -373,11 +373,12 @@ const useTableNew = (tableId: string, options?: UseTableNewOptions, tableDbName?
     });
   }, [tableMeta, lookups, users, processRow]);
 
-  const addRowToData = useCallback((newRow: any) => {
+  const addRowToData = useCallback((newRow: any, index?: number) => {
     const processed = processRow(newRow, tableMeta!.fields, lookups, users);
     setLocalData((prev) => {
       if (!prev) return [processed];
-      return [processed, ...prev];
+      return index || index === 0 ? [...prev.slice(0, index), processed, ...prev.slice(index)]
+        : [...prev, processed];
     });
   }, [tableMeta, lookups, users, processRow]);
 
