@@ -457,6 +457,12 @@ const getFieldValue = (field: TableField, mode: 'create' | 'edit', initialData: 
     case FieldType.USER_CREATOR:
       return value?.id ?? null;
 
+    case FieldType.FILE:
+      return value?.id ? { id: value.id } : null;
+
+    case FieldType.FILE_GALLERY:
+      return Array.isArray(value) ? value.map((item: any) => ({ id: item?.id })) : [];
+
     default:
       return value;
   }
@@ -937,7 +943,7 @@ function TablePage() {
     return result;
   }, [meta?.fields, handleRefetch, updateRow]);
 
-  const handleDuplicateRow = async (rowOriginal: any, index: number) => {
+  const handleDuplicateRow = async (rowOriginal: any) => {
     if (!meta) return;
     setIsDuplicatingRow(rowOriginal.id);
     const duplicateData: Record<string, any> = {};
@@ -949,7 +955,7 @@ function TablePage() {
     try {
       const newRow = await addRow(normalizedInput);
       if (newRow) {
-        addRowToData(newRow, index);
+        addRowToData(newRow);
         enqueueSnackbar('Строка продублирована', { variant: 'success' });
       }
     } catch (e) {
@@ -1125,7 +1131,7 @@ function TablePage() {
               <>
                 <IconButton
                   color="primary"
-                  onClick={() => handleDuplicateRow(row.original, row.index)}
+                  onClick={() => handleDuplicateRow(row.original)}
                   title="Дублировать"
                   disabled={isDuplicatingRow === row.original.id}
                 >
