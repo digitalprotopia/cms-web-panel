@@ -1,3 +1,37 @@
+# [1.1.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v1.0.1...v1.1.0) (2026-03-20)
+
+
+### Bug Fixes
+
+* file duplication in table rows ([59f2876](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/59f287654418903776e6f7206141fe00cf3af52d))
+* incorrect title tag rendering ([2efdddd](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/2efdddd5a921fe8cbd16d4b24b2e347d2de69805))
+* lazy widget ([96cdfa6](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/96cdfa619f8cc8163f1340d4e4439a733c1d76cf))
+* next update ([15da120](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/15da120f0508d16f2060064a0529d83a014c57e7))
+* page jump ([4a9e621](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/4a9e6216f46dbc1911895570ec1f1c3c43fe5651))
+* proxy cache ([eab0f22](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/eab0f22257ce3438fe311ba64e405ed6048089a5))
+* proxy cache ([1d0e17f](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/1d0e17f5bc9dc3a5fdf39cd787dd94b19d11cacd))
+* proxy cache ([51f3149](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/51f314934c4a037c6ed82298047db433e49b16ba))
+* removed full refetch after table row edit/add/delete ([beb1496](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/beb1496d8d56dbc16bebe646cce9a16ede810fa0))
+* title changes ([f63d663](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/f63d6633d9e49ea1062c2b2a9466dfddfbb8e4fe))
+* Копирование строки в таблице ([87099f2](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/87099f2754cbc19b7485599fd9dd1e87d97f23e1))
+* Некорректный заголовок страницы при изменении из виджета ([fb66e2d](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/fb66e2da1b77c4bd94829fb7aa1b452f25e3f117))
+* Частичное обновление данных после изменения строки в таблице данных ([7d089b1](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/7d089b1f93f219382ec7811893b03a522c379abc))
+
+
+### Features
+
+* block editor in widgets ([5c909ca](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/5c909ca52eba1610169b96bb85ab8b19488d2937))
+* create/edit table row modal ([4975f9e](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/4975f9e5a11f25996ff6328b4529799da95552d8))
+* Image gallery ([50cf609](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/50cf60909bc4edeebeedfec3b414763e9a81be3b))
+* multi order ([81d6684](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/81d66846bc69fd380b2517811e6372644d1f4ea5))
+* no header ([a374417](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/a3744170eada6044488c17b17d9ba0211ab7583b))
+* proxy cache ([33d0712](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/33d07126a363cfc43ec3106fdc6dd869f10f6c1e))
+* table row duplication ([fdc8253](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/fdc8253b96709ea7e58f728c97e202ca2c4ffa5d))
+* Карточка редактирования строки в таблице ([fc6741d](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/fc6741db845bcc4512583a95441098c3657796d0))
+* Компонент Яндекс-карты для виджетов ([8f426fe](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/8f426fef39ad4edb1341ba5ddd4b7fc781b5f22b))
+* Копирование строки в таблице ([181e18d](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/181e18db521462deb04f838a83d87e257575fe2f))
+* Кэширование страниц ([174d8e9](https://gitlab.com/digitalprotopia/cms/cms-web-panel/commit/174d8e9ba05988698d448fe5fe505a63b3094f4d))
+
 # [0.21.0](https://gitlab.com/digitalprotopia/cms/cms-web-panel/compare/v0.20.0...v0.21.0) (2025-09-18)
 
 
