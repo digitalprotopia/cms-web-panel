@@ -14,6 +14,7 @@ import {
   NavigationSharp,
   BuildOutlined,
   FileCopyOutlined,
+  ImportExportOutlined,
 } from '@mui/icons-material';
 import LanguageIcon from '@mui/icons-material/Language';
 import WidgetsOutlinedIcon from '@mui/icons-material/Widgets';
@@ -143,6 +144,11 @@ const menuItems: ISidebarItem[] = [
     icon: BuildOutlined,
     label: 'Обслуживание',
     href: '/admin/maintenance',
+  },
+  {
+    icon: ImportExportOutlined,
+    label: 'Импорт / Экспорт',
+    href: '/admin/import-export',
   },
 ];
 
