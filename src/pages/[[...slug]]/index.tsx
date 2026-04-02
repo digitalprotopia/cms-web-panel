@@ -29,6 +29,9 @@ const GET_SITEITEM = gql`
       preview
       blockContent
       id
+      metaTitle
+      metaDescription
+      metaKeywords
     }
   }
 `;
@@ -216,6 +219,37 @@ function DynamicPage() {
         <Head>
           {parsedHead}
           <title>{pageTitle}</title>
+          {(siteItem.getSiteItem as ISiteItem).metaTitle
+            ? (
+              <>
+                <meta name="title" content={(siteItem.getSiteItem as ISiteItem).metaTitle} />
+                <meta property="og:title" content={(siteItem.getSiteItem as ISiteItem).metaTitle} />
+                <meta name="twitter:title" content={(siteItem.getSiteItem as ISiteItem).metaTitle} />
+              </>
+            )
+            : null}
+          {(siteItem.getSiteItem as ISiteItem).metaDescription ? (
+            <>
+              <meta
+                name="description"
+                content={(siteItem.getSiteItem as ISiteItem).metaDescription}
+              />
+              <meta
+                property="og:description"
+                content={(siteItem.getSiteItem as ISiteItem).metaDescription}
+              />
+              <meta
+                name="twitter:description"
+                content={(siteItem.getSiteItem as ISiteItem).metaDescription}
+              />
+            </>
+          ) : null}
+          {(siteItem.getSiteItem as ISiteItem).metaKeywords ? (
+            <meta
+              name="keywords"
+              content={(siteItem.getSiteItem as ISiteItem).metaKeywords}
+            />
+          ) : null}
         </Head>
         {showPreview && (<div
           dangerouslySetInnerHTML={{
