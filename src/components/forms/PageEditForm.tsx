@@ -123,22 +123,22 @@ export default function PageForm({
 
   const router = useRouter();
 
-const [formData, setFormData] = useState<Partial<ISiteItem>>({
-  siteId: router.query['site-id'] as string,
-  name: '',
-  title: '',
-  url: '',
-  parentId: undefined,
-  isRoot: false,
-  is404: false,
-  seotag: '',
-  html: '',
-  roleIds: [],
-  type: SiteItemType.STATIC,
-  metaTitle: '',
-  metaDescription: '',
-  metaKeywords: '',
-});
+  const [formData, setFormData] = useState<Partial<ISiteItem>>({
+    siteId: router.query['site-id'] as string,
+    name: '',
+    title: '',
+    url: '',
+    parentId: undefined,
+    isRoot: false,
+    is404: false,
+    seotag: '',
+    html: '',
+    roleIds: [],
+    type: SiteItemType.STATIC,
+    metaTitle: '',
+    metaDescription: '',
+    metaKeywords: '',
+  });
 
   const initialData = useQuery(gql`
     query ($id: ID!) {
