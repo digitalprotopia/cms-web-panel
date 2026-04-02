@@ -7,10 +7,11 @@
     "axios": "^0.21.0",
     "express": "^5.2.1",
     "express-http-proxy": "^2.1.2",
+    "forever": "^4.0.3",
     "puppeteer": "^24.37.5"
   },
-  "devDependencies": {},
   "scripts": {
+    "start": "forever chrome.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
