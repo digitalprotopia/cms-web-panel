@@ -14,7 +14,10 @@ let cache = {};
 let loading = {};
 app.set('trust proxy', true)
 app.get(/.*/, async (req, res) => {
-    if (!(req.get('User-agent')?.includes('TelegramBot'))) {
+    if (!(
+        req.get('User-agent')?.includes('TelegramBot')
+        || req.get('User-agent')?.includes('Lighthouse')
+    )) {
         return proxy('http' + '://' + config.domain + req.originalUrl)(req, res);
     }
     try {

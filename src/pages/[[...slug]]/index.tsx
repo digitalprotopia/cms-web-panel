@@ -115,8 +115,9 @@ function DynamicPage() {
     pageContext.clearData();
   }, [siteItem]);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  // eslint-disable-next-line
   const [loaded, setLoaded] = useState(false);
+  // eslint-disable-next-line
   const [disablePreview, setDisablePreview] = useState(false);
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
@@ -130,10 +131,12 @@ function DynamicPage() {
     }
   }, [siteItem?.getSiteItem?.preview]);
 
-  const showPreview = !user.user?.id
-    && !!siteItem?.getSiteItem?.preview && !disablePreview;
-  const hideReal = !user.user?.id
-    && !loaded && !!siteItem?.getSiteItem?.preview;
+  const showPreview = false;
+  // !user.user?.id
+  //   && !!siteItem?.getSiteItem?.preview && !disablePreview;
+  const hideReal = false;
+  // !user.user?.id
+  //   && !loaded && !!siteItem?.getSiteItem?.preview;
 
   useEffect(() => {
     user.setIsPreview(showPreview);
