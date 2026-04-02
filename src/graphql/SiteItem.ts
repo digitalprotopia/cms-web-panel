@@ -23,6 +23,9 @@ export const GET_SITE_PAGES = gql`
       type
       createdAt
       updatedAt
+      metaTitle
+      metaDescription
+      metaKeywords
     }
   }
 `;

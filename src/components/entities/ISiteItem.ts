@@ -27,4 +27,7 @@ export interface ISiteItem extends IEntity {
   roleIds?: string[];
   roles?: IRole[];
   type: SiteItemType;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
 }

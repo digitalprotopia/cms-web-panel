@@ -22,6 +22,9 @@ const CREATE_PAGE = gql`
       seotag
       html
       blockContent
+      metaTitle
+      metaDescription
+      metaKeywords
       type
       createdAt
       updatedAt
@@ -42,6 +45,9 @@ const UPDATE_PAGE = gql`
       seotag
       html
       blockContent
+      metaTitle
+      metaDescription
+      metaKeywords
       type
       createdAt
       updatedAt
@@ -129,6 +135,9 @@ export default function PageForm({
     html: '',
     roleIds: [],
     type: SiteItemType.STATIC,
+    metaTitle: '',
+    metaDescription: '',
+    metaKeywords: '',
   });
 
   const initialData = useQuery(gql`
@@ -148,6 +157,9 @@ export default function PageForm({
           id
           name
         }
+        metaTitle
+        metaDescription
+        metaKeywords
         type
         createdAt
         updatedAt
@@ -169,6 +181,9 @@ export default function PageForm({
         roleIds: data.getSiteItem.roles.map((role: IRole) => role.id),
         type: data.getSiteItem.type,
         blockContent: data.getSiteItem.blockContent,
+        metaTitle: data.getSiteItem.metaTitle || '',
+        metaDescription: data.getSiteItem.metaDescription || '',
+        metaKeywords: data.getSiteItem.metaKeywords || '',
       });
     },
   });
@@ -231,6 +246,54 @@ export default function PageForm({
             slotProps={{
               htmlInput: { maxLength: 255 },
             }}
+          />
+        </div>
+
+        {/* SEO настройки */}
+        <div className="grid p-2 grid-cols-2 gap-4">
+          <TextField
+            label="Meta Title (SEO заголовок)"
+            fullWidth
+            value={formData.metaTitle || ''}
+            onChange={(e) => setFormData({
+              ...formData,
+              metaTitle: e.target.value,
+            })}
+            slotProps={{
+              htmlInput: { maxLength: 255 },
+            }}
+            helperText="Рекомендуемая длина: 50-60 символов. Отображается в результатах поиска."
+          />
+          <TextField
+            label="Meta Keywords"
+            fullWidth
+            value={formData.metaKeywords || ''}
+            onChange={(e) => setFormData({
+              ...formData,
+              metaKeywords: e.target.value,
+            })}
+            slotProps={{
+              htmlInput: { maxLength: 500 },
+            }}
+            helperText="Ключевые слова через запятую"
+          />
+        </div>
+
+        <div className="grid p-2 grid-cols-1 gap-4">
+          <TextField
+            label="Meta Description"
+            fullWidth
+            multiline
+            rows={3}
+            value={formData.metaDescription || ''}
+            onChange={(e) => setFormData({
+              ...formData,
+              metaDescription: e.target.value,
+            })}
+            slotProps={{
+              htmlInput: { maxLength: 500 },
+            }}
+            helperText="Рекомендуемая длина: 150-160 символов. Краткое описание содержания страницы."
           />
         </div>
 
