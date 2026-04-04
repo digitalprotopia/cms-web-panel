@@ -17,6 +17,8 @@ app.get(/.*/, async (req, res) => {
     if (!(
         req.get('User-agent')?.includes('TelegramBot')
         || req.get('User-agent')?.includes('Lighthouse')
+        || req.get('User-agent')?.includes('GoogleBot')
+        || req.get('User-agent')?.includes('YandexBot')
     )) {
         return proxy('http' + '://' + config.domain + req.originalUrl)(req, res);
     }
