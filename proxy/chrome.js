@@ -14,12 +14,9 @@ let cache = {};
 let loading = {};
 app.set('trust proxy', true)
 app.get(/.*/, async (req, res) => {
-    if (!(
-        req.get('User-agent')?.includes('TelegramBot')
-        || req.get('User-agent')?.includes('Lighthouse')
-        || req.get('User-agent')?.includes('Googlebot')
-        || req.get('User-agent')?.includes('YandexBot')
-    )) {
+    const bots = ['TelegramBot', 'Lighthouse', 'Googlebot', 'YandexBot', 'YandexMobileBot', ...(config.botUserAgents || [])];
+    const isBot = bots.some(bot => req.get('User-agent')?.toLowerCase().includes(bot.toLowerCase()));
+    if (!isBot) {
         return proxy('http' + '://' + config.domain + req.originalUrl)(req, res);
     }
     try {
